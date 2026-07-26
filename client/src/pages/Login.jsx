@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 
 function Login() {
   const navigate = useNavigate();
@@ -104,33 +105,40 @@ function Login() {
     }
   };
 
-  // Sign in with Google Feature
-  const handleGoogleSignIn = async () => {
+  // Sign in with Google Feature (Handles credential token from Google OAuth)
+  const handleGoogleSuccess = async (credentialResponse) => {
     setGeneralError("");
     setSuccessMessage("");
     setIsGoogleLoading(true);
 
     try {
-      // Simulate Google OAuth Popup & Authentication
-      await new Promise((resolve) => setTimeout(resolve, 1400));
+      const response = await fetch("http://localhost:5000/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          credential: credentialResponse.credential,
+        }),
+      });
 
-      const googleUser = {
-        id: Date.now(),
-        fullName: "Alex Rivera",
-        email: "alex.rivera@gmail.com",
-        userType: "Working Professional",
-        authProvider: "google",
-        avatar: "https://lh3.googleusercontent.com/a/default-user"
-      };
+      const data = await response.json();
 
-      localStorage.setItem("neurosync_current_user", JSON.stringify(googleUser));
-      setSuccessMessage("🟢 Successfully authenticated with Google! Redirecting...");
+      if (!response.ok || !data.success) {
+        setGeneralError(data.message || "Google authentication failed.");
+        setIsGoogleLoading(false);
+        return;
+      }
+
+      localStorage.setItem("neurosync_current_user", JSON.stringify(data.user));
+      localStorage.setItem("neurosync_token", data.token);
+      setSuccessMessage("🟢 Successfully authenticated with Google! Saved to MongoDB Atlas.");
 
       setTimeout(() => {
         navigate("/");
       }, 1500);
     } catch (err) {
-      setGeneralError("Google authentication failed. Please try again.", err);
+      setGeneralError("Cannot connect to backend server for Google Auth.", err);
     } finally {
       setIsGoogleLoading(false);
     }
@@ -189,37 +197,16 @@ function Login() {
               </div>
             )}
 
-            {/* Google Sign In Feature Button */}
-            <button
-              type="button"
-              className="btn-google mb-3"
-              onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading || isLoading}
-            >
-              {isGoogleLoading ? (
-                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-              ) : (
-                <svg className="google-icon" viewBox="0 0 24 24">
-                  <path
-                    fill="#EA4335"
-                    d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
-                  />
-                  <path
-                    fill="#4285F4"
-                    d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"
-                  />
-                </svg>
-              )}
-              {isGoogleLoading ? "Connecting to Google..." : "Sign in with Google"}
-            </button>
+            {/* Google OAuth Login Component */}
+            <div className="d-flex justify-content-center mb-3">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setGeneralError("Google Login was cancelled or failed.")}
+                useOneTap
+                theme="filled_blue"
+                shape="pill"
+              />
+            </div>
 
             <div className="auth-divider">OR</div>
 
