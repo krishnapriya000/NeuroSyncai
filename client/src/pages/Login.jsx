@@ -96,7 +96,11 @@ function Login() {
       setSuccessMessage(`Welcome back, ${data.user.fullName}! Login successful.`);
 
       setTimeout(() => {
-        navigate("/");
+        if (data.user?.role === "Admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       }, 1500);
     } catch (err) {
       setGeneralError("Cannot connect to server. Please ensure the backend is running.", err);
@@ -132,10 +136,14 @@ function Login() {
 
       localStorage.setItem("neurosync_current_user", JSON.stringify(data.user));
       localStorage.setItem("neurosync_token", data.token);
-      setSuccessMessage("🟢 Successfully authenticated with Google! Saved to MongoDB Atlas.");
+      setSuccessMessage("🟢 Successfully authenticated with Google!");
 
       setTimeout(() => {
-        navigate("/");
+        if (data.user?.role === "Admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       }, 1500);
     } catch (err) {
       setGeneralError("Cannot connect to backend server for Google Auth.", err);
@@ -163,12 +171,25 @@ function Login() {
     setIsSendingReset(true);
 
     try {
-      // Simulate sending Gmail reset link
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await fetch("http://localhost:5000/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: resetEmail.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setGeneralError(data.message || "Failed to send reset email.");
+        return;
+      }
+
       setResetSent(true);
-      setSuccessMessage(`📩 Password reset link sent to ${resetEmail}! Please check your inbox.`);
+      setSuccessMessage(data.message || `📩 Password reset link sent to ${resetEmail}! Please check your inbox.`);
     } catch (err) {
-      setGeneralError("Failed to send reset email. Please try again later.", err);
+      setGeneralError("Cannot connect to backend server. Please ensure the server is running.");
     } finally {
       setIsSendingReset(false);
     }
@@ -275,6 +296,9 @@ function Login() {
                   className="btn btn-link forgot-link p-0 border-0"
                   onClick={() => {
                     setMode("forgot");
+                    if (!resetEmail && formData.email) {
+                      setResetEmail(formData.email.trim());
+                    }
                     setGeneralError("");
                     setSuccessMessage("");
                     setResetSent(false);

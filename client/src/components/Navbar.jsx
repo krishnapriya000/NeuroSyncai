@@ -95,6 +95,14 @@ function Navbar() {
               </a>
             </li>
 
+            {currentUser?.role === "Admin" && (
+              <li className="nav-item">
+                <Link className="nav-link px-3 text-warning fw-semibold" to="/admin">
+                  ⚡ Admin Dashboard
+                </Link>
+              </li>
+            )}
+
             {currentUser ? (
               /* Authenticated User Profile Circle Avatar */
               <li className="nav-item ms-lg-3 user-profile-wrapper" ref={dropdownRef}>
@@ -136,8 +144,21 @@ function Navbar() {
                           {currentUser.fullName || "NeuroSync User"}
                         </p>
                         <p className="user-dropdown-email">{currentUser.email}</p>
+                        {currentUser.role === "Admin" && (
+                          <span className="badge bg-warning text-dark mt-1">Admin</span>
+                        )}
                       </div>
                     </div>
+
+                    {currentUser.role === "Admin" && (
+                      <Link
+                        to="/admin"
+                        className="user-dropdown-item d-flex align-items-center gap-2 text-decoration-none py-2 px-3 text-white border-bottom border-secondary border-opacity-25"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        ⚡ Admin Portal
+                      </Link>
+                    )}
 
                     <button
                       className="user-dropdown-btn-logout"
