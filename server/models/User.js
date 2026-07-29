@@ -77,6 +77,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    lastCheckInDate: {
+      type: String, // Format: "YYYY-MM-DD"
+      default: "",
+    },
   },
   {
     timestamps: true,

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getDashboardPathForRole, getLoginRedirectPathForUser } from "../utils/roleUtils";
 
 function Register() {
   const navigate = useNavigate();
@@ -140,7 +141,10 @@ function Register() {
       localStorage.setItem("neurosync_current_user", JSON.stringify(data.user));
       localStorage.setItem("neurosync_token", data.token);
 
-      setSuccessMessage("🎉 Account created successfully & Redirecting to login...");
+      const targetUser = data.user || { role: formData.userType };
+      const targetPath = getLoginRedirectPathForUser(targetUser);
+
+      setSuccessMessage(`🎉 Account created successfully! Redirecting...`);
 
       // Reset form
       setFormData({
@@ -152,10 +156,11 @@ function Register() {
         termsAccepted: false
       });
 
-      // Redirect after 1.8 seconds
+      // Redirect after 1.5 seconds
       setTimeout(() => {
-        navigate("/login");
-      }, 1800);
+        navigate(targetPath);
+      }, 1500);
+
 
     } catch (err) {
       setGeneralError("Cannot connect to server. Please ensure the backend is running.", err);

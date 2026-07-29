@@ -1,0 +1,571 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/dashboard/Sidebar";
+import TopNavbar from "../components/dashboard/TopNavbar";
+import DashboardFooter from "../components/dashboard/DashboardFooter";
+import { 
+  FiUser, 
+  FiMail, 
+  FiPhone, 
+  FiBook, 
+  FiSmile, 
+  FiSave, 
+  FiArrowLeft,
+  FiCheckCircle,
+  FiZap,
+  FiClock,
+  FiTarget,
+  FiShield
+} from "react-icons/fi";
+import "../styles/studentDashboard.css";
+
+function StudentProfile() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("profile");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Form State
+  const [userProfile, setUserProfile] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    age: "",
+    gender: "Other",
+    occupation: "",
+    lifestyle: "",
+    profileImage: "",
+    role: "Student",
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // Fetch profile from MongoDB on mount
+  useEffect(() => {
+    const fetchProfileFromDB = async () => {
+      setIsLoading(true);
+      setErrorMsg("");
+      const token = localStorage.getItem("neurosync_token");
+
+      if (!token) {
+        setErrorMsg("Authentication token missing. Please log in.");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:5000/api/student/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          setErrorMsg(data.message || "Failed to load profile from database.");
+          setIsLoading(false);
+          return;
+        }
+
+        const dbUser = data.user;
+        setUserProfile({
+          fullName: dbUser.fullName || "",
+          email: dbUser.email || "",
+          phone: dbUser.phone || "",
+          age: dbUser.age ? String(dbUser.age) : "",
+          gender: dbUser.gender || "Other",
+          occupation: dbUser.occupation || "",
+          lifestyle: dbUser.lifestyle || "",
+          profileImage: dbUser.profileImage || "",
+          role: dbUser.role || "Student",
+        });
+
+        // Sync local storage cache
+        localStorage.setItem("neurosync_current_user", JSON.stringify(dbUser));
+      } catch (err) {
+        console.error("Fetch profile DB error:", err);
+        setErrorMsg("Cannot connect to server to fetch profile data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfileFromDB();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserProfile((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    if (successMsg) setSuccessMsg("");
+    if (errorMsg) setErrorMsg("");
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    if (!userProfile.fullName.trim()) {
+      setErrorMsg("Full Name cannot be empty.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const token = localStorage.getItem("neurosync_token");
+
+      const response = await fetch("http://localhost:5000/api/student/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          fullName: userProfile.fullName.trim(),
+          phone: userProfile.phone.trim(),
+          age: userProfile.age,
+          gender: userProfile.gender,
+          occupation: userProfile.occupation.trim(),
+          lifestyle: userProfile.lifestyle.trim(),
+          profileImage: userProfile.profileImage.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setErrorMsg(data.message || "Failed to save profile to database.");
+        setIsSaving(false);
+        return;
+      }
+
+      setSuccessMsg(data.message || "🎉 Profile updated and saved to database successfully!");
+      setIsEditing(false);
+
+      // Sync local storage cache
+      if (data.user) {
+        localStorage.setItem("neurosync_current_user", JSON.stringify(data.user));
+      }
+
+      setTimeout(() => {
+        setSuccessMsg("");
+      }, 4000);
+    } catch (err) {
+      console.error("Save profile DB error:", err);
+      setErrorMsg("Cannot connect to server to save profile changes.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Helper for initial
+  const getInitial = () => {
+    if (!userProfile.fullName) return "S";
+    return userProfile.fullName.trim().charAt(0).toUpperCase();
+  };
+
+  return (
+    <div className="dashboard-container">
+      {/* Sidebar */}
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isOpen={sidebarOpen} 
+        setIsOpen={setSidebarOpen} 
+      />
+
+      {/* Top Navbar */}
+      <TopNavbar 
+        studentName={userProfile.fullName || "Student"} 
+        toggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
+      />
+
+      {/* Main Content Area */}
+      <main className="ns-main-content">
+        {/* Navigation / Header Bar */}
+        <div className="d-flex align-items-center justify-content-between mb-4">
+          <div>
+            <button 
+              onClick={() => navigate("/student/dashboard")}
+              className="btn btn-outline-secondary btn-sm rounded-pill text-white border-secondary mb-2 d-inline-flex align-items-center gap-2"
+            >
+              <FiArrowLeft /> Back to Student Dashboard
+            </button>
+            <h1 className="fw-bold text-white fs-3 mb-1">Student Profile</h1>
+            <p className="text-secondary small mb-0">Enter and update your profile details stored securely in the database.</p>
+          </div>
+          <button 
+            className={`btn ${isEditing ? "btn-outline-light" : "btn-primary"} rounded-pill px-4 py-2 fw-semibold d-flex align-items-center gap-2`}
+            onClick={() => setIsEditing(!isEditing)}
+            disabled={isLoading}
+          >
+            {isEditing ? "Cancel Editing" : "✏️ Edit Profile"}
+          </button>
+        </div>
+
+        {/* Loading Spinner State */}
+        {isLoading ? (
+          <div className="p-5 text-center text-white my-5 rounded-4 bg-dark bg-opacity-50">
+            <div className="spinner-border text-primary mb-3" role="status" style={{ width: "3rem", height: "3rem" }} />
+            <h5 className="fw-bold">Loading Student Profile from Database...</h5>
+            <p className="text-secondary small">Fetching your record from MongoDB</p>
+          </div>
+        ) : (
+          <>
+            {/* Notifications */}
+            {successMsg && (
+              <div className="alert alert-success border-0 bg-success bg-opacity-20 text-success-light rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
+                <FiCheckCircle size={20} />
+                <div>{successMsg}</div>
+              </div>
+            )}
+
+            {errorMsg && (
+              <div className="alert alert-danger border-0 bg-danger bg-opacity-20 text-danger-light rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
+                <span>⚠️</span>
+                <div>{errorMsg}</div>
+              </div>
+            )}
+
+            {/* Student Profile Hero Header Card */}
+            <div 
+              className="p-4 mb-4 rounded-4 text-white position-relative overflow-hidden shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%)",
+                border: "1px solid rgba(255, 255, 255, 0.12)"
+              }}
+            >
+              <div className="row align-items-center">
+                <div className="col-auto">
+                  <div className="position-relative">
+                    <div 
+                      className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-lg"
+                      style={{
+                        width: "90px",
+                        height: "90px",
+                        fontSize: "2.2rem",
+                        background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                        border: "3px solid rgba(255, 255, 255, 0.25)"
+                      }}
+                    >
+                      {userProfile.profileImage ? (
+                        <img 
+                          src={userProfile.profileImage} 
+                          alt="Student Avatar" 
+                          className="rounded-circle w-100 h-100" 
+                          style={{ objectFit: "cover" }} 
+                        />
+                      ) : (
+                        getInitial()
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col ms-2">
+                  <div className="d-flex align-items-center gap-2 mb-1">
+                    <h2 className="fw-bold fs-3 mb-0 text-white">{userProfile.fullName || "Student User"}</h2>
+                    <span className="badge bg-primary text-white rounded-pill px-3 py-1" style={{ fontSize: "0.78rem" }}>
+                      🎓 {userProfile.role}
+                    </span>
+                  </div>
+                  <p className="text-secondary small mb-2">{userProfile.email} {userProfile.occupation ? `• ${userProfile.occupation}` : ""}</p>
+                  <div className="d-flex flex-wrap gap-3 text-secondary" style={{ fontSize: "0.83rem" }}>
+                    <span>📍 Database Status: <strong className="text-success">Synced with MongoDB</strong></span>
+                    <span>⚡ Role Access: <strong className="text-info">Student Only</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Quick Stat Cards */}
+            <div className="row g-3 mb-4">
+              <div className="col-6 col-lg-3">
+                <div className="p-3 rounded-4 bg-slate-900 border border-slate-800 text-white" style={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="d-flex align-items-center gap-2 text-primary mb-1">
+                    <FiZap />
+                    <span className="small text-secondary fw-semibold">Study Streak</span>
+                  </div>
+                  <div className="fs-4 fw-bold">7 Days 🔥</div>
+                </div>
+              </div>
+
+              <div className="col-6 col-lg-3">
+                <div className="p-3 rounded-4 bg-slate-900 border border-slate-800 text-white" style={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="d-flex align-items-center gap-2 text-info mb-1">
+                    <FiClock />
+                    <span className="small text-secondary fw-semibold">Focus Hours</span>
+                  </div>
+                  <div className="fs-4 fw-bold">34.5 hrs</div>
+                </div>
+              </div>
+
+              <div className="col-6 col-lg-3">
+                <div className="p-3 rounded-4 bg-slate-900 border border-slate-800 text-white" style={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="d-flex align-items-center gap-2 text-success mb-1">
+                    <FiSmile />
+                    <span className="small text-secondary fw-semibold">Mood Score</span>
+                  </div>
+                  <div className="fs-4 fw-bold">88% Calm</div>
+                </div>
+              </div>
+
+              <div className="col-6 col-lg-3">
+                <div className="p-3 rounded-4 bg-slate-900 border border-slate-800 text-white" style={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="d-flex align-items-center gap-2 text-warning mb-1">
+                    <FiTarget />
+                    <span className="small text-secondary fw-semibold">Goals Met</span>
+                  </div>
+                  <div className="fs-4 fw-bold">12 / 15</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Details & Form */}
+            <div className="row g-4 mb-4">
+              {/* Main Details Form */}
+              <div className="col-lg-8">
+                <div 
+                  className="p-4 rounded-4 text-white shadow-sm"
+                  style={{
+                    background: "#0F172A",
+                    border: "1px solid rgba(255, 255, 255, 0.08)"
+                  }}
+                >
+                  <h5 className="fw-bold mb-4 d-flex align-items-center gap-2 text-white">
+                    <FiUser className="text-primary" /> Database Student Information
+                  </h5>
+
+                  <form onSubmit={handleSave}>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">Full Name</label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiUser />
+                          </span>
+                          <input 
+                            type="text" 
+                            name="fullName"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            placeholder="Enter your full name"
+                            value={userProfile.fullName}
+                            onChange={handleChange}
+                            disabled={!isEditing || isSaving}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">Email Address (Read-only)</label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiMail />
+                          </span>
+                          <input 
+                            type="email" 
+                            name="email"
+                            className="form-control bg-dark text-white-50 border-secondary border-opacity-25"
+                            value={userProfile.email}
+                            disabled
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">Phone Number</label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiPhone />
+                          </span>
+                          <input 
+                            type="text" 
+                            name="phone"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            placeholder="e.g. +1 (555) 234-5678"
+                            value={userProfile.phone}
+                            onChange={handleChange}
+                            disabled={!isEditing || isSaving}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-md-3">
+                        <label className="form-label text-secondary small fw-semibold">Age</label>
+                        <input 
+                          type="number" 
+                          name="age"
+                          className="form-control bg-dark text-white border-secondary border-opacity-25"
+                          placeholder="e.g. 21"
+                          value={userProfile.age}
+                          onChange={handleChange}
+                          disabled={!isEditing || isSaving}
+                        />
+                      </div>
+
+                      <div className="col-md-3">
+                        <label className="form-label text-secondary small fw-semibold">Gender</label>
+                        <select 
+                          name="gender"
+                          className="form-select bg-dark text-white border-secondary border-opacity-25"
+                          value={userProfile.gender}
+                          onChange={handleChange}
+                          disabled={!isEditing || isSaving}
+                        >
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">Major / Academic Discipline</label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiBook />
+                          </span>
+                          <input 
+                            type="text" 
+                            name="occupation"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            placeholder="e.g. Computer Science & AI"
+                            value={userProfile.occupation}
+                            onChange={handleChange}
+                            disabled={!isEditing || isSaving}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">Study Focus / Lifestyle Goal</label>
+                        <input 
+                          type="text" 
+                          name="lifestyle"
+                          className="form-control bg-dark text-white border-secondary border-opacity-25"
+                          placeholder="e.g. Deep Focus & Cognitive Wellness"
+                          value={userProfile.lifestyle}
+                          onChange={handleChange}
+                          disabled={!isEditing || isSaving}
+                        />
+                      </div>
+
+                      {isEditing && (
+                        <div className="col-12">
+                          <label className="form-label text-secondary small fw-semibold">Avatar Image URL (Optional)</label>
+                          <input 
+                            type="text" 
+                            name="profileImage"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            placeholder="https://example.com/photo.jpg"
+                            value={userProfile.profileImage}
+                            onChange={handleChange}
+                            disabled={isSaving}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {isEditing && (
+                      <div className="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-end gap-2">
+                        <button 
+                          type="button" 
+                          className="btn btn-outline-secondary text-white rounded-pill px-4"
+                          onClick={() => setIsEditing(false)}
+                          disabled={isSaving}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          type="submit" 
+                          className="btn btn-primary rounded-pill px-4 d-flex align-items-center gap-2"
+                          disabled={isSaving}
+                        >
+                          {isSaving ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                              Saving to Database...
+                            </>
+                          ) : (
+                            <>
+                              <FiSave /> Save Profile to Database
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </form>
+                </div>
+              </div>
+
+              {/* Side Card: Academic Summary & Security */}
+              <div className="col-lg-4">
+                <div 
+                  className="p-4 rounded-4 text-white shadow-sm mb-4"
+                  style={{
+                    background: "#0F172A",
+                    border: "1px solid rgba(255, 255, 255, 0.08)"
+                  }}
+                >
+                  <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-white">
+                    <FiShield className="text-success" /> Database Protection
+                  </h6>
+                  <p className="text-secondary small mb-3">
+                    Your profile details are stored in MongoDB Atlas / Database and protected with JWT token encryption.
+                  </p>
+
+                  <div className="d-flex flex-column gap-2">
+                    <button 
+                      className="btn btn-outline-light btn-sm text-start rounded-3 p-2 text-decoration-none"
+                      onClick={() => navigate("/reset-password")}
+                    >
+                      🔑 Change Account Password
+                    </button>
+                    <div className="p-2 rounded bg-white bg-opacity-5 text-secondary small">
+                      <strong>Role Access:</strong> <span className="text-info">Student Only Portal</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div 
+                  className="p-4 rounded-4 text-white shadow-sm"
+                  style={{
+                    background: "#0F172A",
+                    border: "1px solid rgba(255, 255, 255, 0.08)"
+                  }}
+                >
+                  <h6 className="fw-bold mb-3 text-white">🎓 Student Quick Actions</h6>
+                  <div className="d-flex flex-column gap-2">
+                    <button 
+                      className="btn btn-primary btn-sm rounded-pill text-start px-3 py-2"
+                      onClick={() => navigate("/student/dashboard")}
+                    >
+                      📊 Go to Main Dashboard
+                    </button>
+                    <button 
+                      className="btn btn-outline-info btn-sm rounded-pill text-start px-3 py-2 text-info"
+                      onClick={() => alert("NeuroSync AI Assistant ready for study support!")}
+                    >
+                      🤖 Talk to Study AI
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </main>
+
+      <DashboardFooter />
+    </div>
+  );
+}
+
+export default StudentProfile;

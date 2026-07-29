@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import { getDashboardPathForRole, getLoginRedirectPathForUser } from "../utils/roleUtils";
 
 function Login() {
   const navigate = useNavigate();
@@ -95,12 +96,10 @@ function Login() {
 
       setSuccessMessage(`Welcome back, ${data.user.fullName}! Login successful.`);
 
+      const targetPath = getLoginRedirectPathForUser(data.user);
+
       setTimeout(() => {
-        if (data.user?.role === "Admin") {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+        navigate(targetPath);
       }, 1500);
     } catch (err) {
       setGeneralError("Cannot connect to server. Please ensure the backend is running.", err);
@@ -138,12 +137,10 @@ function Login() {
       localStorage.setItem("neurosync_token", data.token);
       setSuccessMessage("🟢 Successfully authenticated with Google!");
 
+      const targetPath = getLoginRedirectPathForUser(data.user);
+
       setTimeout(() => {
-        if (data.user?.role === "Admin") {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+        navigate(targetPath);
       }, 1500);
     } catch (err) {
       setGeneralError("Cannot connect to backend server for Google Auth.", err);
@@ -151,6 +148,7 @@ function Login() {
       setIsGoogleLoading(false);
     }
   };
+
 
   // Forgot Password Submit
   const handleForgotSubmit = async (e) => {
@@ -223,7 +221,6 @@ function Login() {
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={() => setGeneralError("Google Login was cancelled or failed.")}
-                useOneTap
                 theme="filled_blue"
                 shape="pill"
               />

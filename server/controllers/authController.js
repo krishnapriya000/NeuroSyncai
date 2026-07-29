@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Login = require("../models/Login");
 const bcrypt = require("bcryptjs");
@@ -9,6 +10,13 @@ const { sendPasswordResetEmail } = require("../config/mailer");
 // @route   POST /api/auth/register
 exports.registerUser = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection is currently unavailable. Please ensure MongoDB is running.",
+      });
+    }
+
     const { fullName, email, password, userType, phone, age, gender, occupation } = req.body;
 
     if (!fullName || !email || !password) {
@@ -63,6 +71,13 @@ exports.registerUser = async (req, res) => {
 // @route   POST /api/auth/login
 exports.loginUser = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection is currently unavailable. Please ensure MongoDB is running.",
+      });
+    }
+
     const { email, password } = req.body;
 
     if (!email || !password) {

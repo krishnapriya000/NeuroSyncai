@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getDashboardPathForRole, getRoleDisplayInfo } from "../utils/roleUtils";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -53,6 +54,9 @@ function Navbar() {
     return name.trim().charAt(0).toUpperCase();
   };
 
+  const userDashboardPath = getDashboardPathForRole(currentUser?.role);
+  const roleDisplay = getRoleDisplayInfo(currentUser?.role);
+
   return (
     <nav className="navbar navbar-expand-lg navbar-custom">
       <div className="container">
@@ -95,13 +99,16 @@ function Navbar() {
               </a>
             </li>
 
-            {currentUser?.role === "Admin" && (
+            {currentUser ? (
               <li className="nav-item">
-                <Link className="nav-link px-3 text-warning fw-semibold" to="/admin">
-                  ⚡ Admin Dashboard
+                <Link 
+                  className={`nav-link px-3 fw-semibold ${currentUser.role === "Admin" ? "text-warning" : "text-info"}`} 
+                  to={userDashboardPath}
+                >
+                  {roleDisplay.icon} {roleDisplay.label}
                 </Link>
               </li>
-            )}
+            ) : null}
 
             {currentUser ? (
               /* Authenticated User Profile Circle Avatar */
@@ -144,21 +151,19 @@ function Navbar() {
                           {currentUser.fullName || "NeuroSync User"}
                         </p>
                         <p className="user-dropdown-email">{currentUser.email}</p>
-                        {currentUser.role === "Admin" && (
-                          <span className="badge bg-warning text-dark mt-1">Admin</span>
-                        )}
+                        <span className={`badge mt-1 ${currentUser.role === "Admin" ? "bg-warning text-dark" : "bg-primary text-white"}`}>
+                          {currentUser.role || "User"}
+                        </span>
                       </div>
                     </div>
 
-                    {currentUser.role === "Admin" && (
-                      <Link
-                        to="/admin"
-                        className="user-dropdown-item d-flex align-items-center gap-2 text-decoration-none py-2 px-3 text-white border-bottom border-secondary border-opacity-25"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        ⚡ Admin Portal
-                      </Link>
-                    )}
+                    <Link
+                      to={userDashboardPath}
+                      className="user-dropdown-item d-flex align-items-center gap-2 text-decoration-none py-2 px-3 text-white border-bottom border-secondary border-opacity-25"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      {roleDisplay.icon} {roleDisplay.label}
+                    </Link>
 
                     <button
                       className="user-dropdown-btn-logout"

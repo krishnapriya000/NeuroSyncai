@@ -13,6 +13,9 @@ const app = express();
 
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const studentRoutes = require("./routes/studentRoutes");
+const { protect } = require("./middleware/authMiddleware");
+const { getLatestCheckIn } = require("./controllers/studentController");
 
 // Middleware
 app.use(cors());
@@ -21,6 +24,8 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/student", studentRoutes);
+app.get("/api/dailycheckin/latest", protect, getLatestCheckIn);
 
 // Test Route
 app.get("/", (req, res) => {
