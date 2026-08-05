@@ -6,6 +6,11 @@ const {
   updateUserRole,
   deleteUser,
   getLoginLogs,
+  getWellnessAnalytics,
+  getTodayCheckIns,
+  getAverageWellnessScore,
+  getHighStressStudents,
+  getWellnessTrends,
 } = require("../controllers/adminController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
@@ -18,5 +23,12 @@ router.get("/users", getAllUsers);
 router.put("/users/:id/role", updateUserRole);
 router.delete("/users/:id", deleteUser);
 router.get("/logins", getLoginLogs);
+
+// Wellness Analytics Routes
+router.get("/wellness-analytics", getWellnessAnalytics);
+router.get("/today-checkins", getTodayCheckIns);
+router.get("/wellness-score", getAverageWellnessScore);
+router.get("/high-stress-students", getHighStressStudents);
+router.get("/wellness-trends", getWellnessTrends);
 
 module.exports = router;

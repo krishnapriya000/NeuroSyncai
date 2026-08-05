@@ -5,7 +5,7 @@ import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
 import HeroWelcomeCard from "../components/dashboard/HeroWelcomeCard";
 import StatCard from "../components/dashboard/StatCard";
-import DailyCheckInSummaryCard from "../components/dashboard/DailyCheckInSummaryCard";
+import TodaysWellnessSummaryCard from "../components/dashboard/TodaysWellnessSummaryCard";
 import MoodTrackerCard from "../components/dashboard/MoodTrackerCard";
 import AICompanionCard from "../components/dashboard/AICompanionCard";
 import TasksCard from "../components/dashboard/TasksCard";
@@ -124,8 +124,8 @@ function StudentDashboard() {
           onTalkClick={handleTalkToAI} 
         />
 
-        {/* Live Daily Check-in Summary Card */}
-        <DailyCheckInSummaryCard 
+        {/* Today's Wellness Summary Card */}
+        <TodaysWellnessSummaryCard 
           loading={checkInState.loading}
           error={checkInState.error}
           data={checkInState.data}

@@ -178,7 +178,7 @@ exports.getStudentProfile = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         phone: user.phone || "",
-        age: user.age || "",
+        dob: user.dob || (user.dateOfBirth ? user.dateOfBirth.toISOString().split("T")[0] : "") || "",
         gender: user.gender || "Other",
         occupation: user.occupation || "",
         lifestyle: user.lifestyle || "",
@@ -201,7 +201,7 @@ exports.getStudentProfile = async (req, res) => {
 // @access  Private (Student)
 exports.updateStudentProfile = async (req, res) => {
   try {
-    const { fullName, phone, age, gender, occupation, lifestyle, profileImage } = req.body;
+    const { fullName, phone, dob, gender, occupation, lifestyle, profileImage } = req.body;
 
     if (!fullName || !fullName.trim()) {
       return res.status(400).json({ success: false, message: "Full Name is required." });
@@ -210,7 +210,8 @@ exports.updateStudentProfile = async (req, res) => {
     const updateFields = {
       fullName: fullName.trim(),
       phone: phone ? phone.trim() : "",
-      age: age ? Number(age) : undefined,
+      dob: dob ? dob.trim() : "",
+      dateOfBirth: dob ? new Date(dob) : undefined,
       gender: gender || "Other",
       occupation: occupation ? occupation.trim() : "",
       lifestyle: lifestyle ? lifestyle.trim() : "",
@@ -230,7 +231,7 @@ exports.updateStudentProfile = async (req, res) => {
         fullName: updatedUser.fullName,
         email: updatedUser.email,
         phone: updatedUser.phone,
-        age: updatedUser.age,
+        dob: updatedUser.dob || (updatedUser.dateOfBirth ? updatedUser.dateOfBirth.toISOString().split("T")[0] : ""),
         gender: updatedUser.gender,
         occupation: updatedUser.occupation,
         lifestyle: updatedUser.lifestyle,

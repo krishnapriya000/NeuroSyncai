@@ -15,7 +15,8 @@ import {
   FiZap,
   FiClock,
   FiTarget,
-  FiShield
+  FiShield,
+  FiCalendar
 } from "react-icons/fi";
 import "../styles/studentDashboard.css";
 
@@ -29,7 +30,7 @@ function StudentProfile() {
     fullName: "",
     email: "",
     phone: "",
-    age: "",
+    dob: "",
     gender: "Other",
     occupation: "",
     lifestyle: "",
@@ -76,7 +77,7 @@ function StudentProfile() {
           fullName: dbUser.fullName || "",
           email: dbUser.email || "",
           phone: dbUser.phone || "",
-          age: dbUser.age ? String(dbUser.age) : "",
+          dob: dbUser.dob || (dbUser.dateOfBirth ? dbUser.dateOfBirth.split("T")[0] : "") || "",
           gender: dbUser.gender || "Other",
           occupation: dbUser.occupation || "",
           lifestyle: dbUser.lifestyle || "",
@@ -131,7 +132,7 @@ function StudentProfile() {
         body: JSON.stringify({
           fullName: userProfile.fullName.trim(),
           phone: userProfile.phone.trim(),
-          age: userProfile.age,
+          dob: userProfile.dob,
           gender: userProfile.gender,
           occupation: userProfile.occupation.trim(),
           lifestyle: userProfile.lifestyle.trim(),
@@ -399,16 +400,21 @@ function StudentProfile() {
                       </div>
 
                       <div className="col-md-3">
-                        <label className="form-label text-secondary small fw-semibold">Age</label>
-                        <input 
-                          type="number" 
-                          name="age"
-                          className="form-control bg-dark text-white border-secondary border-opacity-25"
-                          placeholder="e.g. 21"
-                          value={userProfile.age}
-                          onChange={handleChange}
-                          disabled={!isEditing || isSaving}
-                        />
+                        <label className="form-label text-secondary small fw-semibold">Date of Birth (DOB)</label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiCalendar />
+                          </span>
+                          <input 
+                            type="date" 
+                            name="dob"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            style={{ colorScheme: "dark" }}
+                            value={userProfile.dob}
+                            onChange={handleChange}
+                            disabled={!isEditing || isSaving}
+                          />
+                        </div>
                       </div>
 
                       <div className="col-md-3">
