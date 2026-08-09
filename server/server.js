@@ -14,6 +14,8 @@ const app = express();
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const moodTrackerRoutes = require("./routes/moodTrackerRoutes");
+const journalRoutes = require("./routes/journalRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const { getLatestCheckIn } = require("./controllers/studentController");
 
@@ -25,6 +27,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/moodtracker", moodTrackerRoutes);
+app.use("/api/journal", journalRoutes);
 app.get("/api/dailycheckin/latest", protect, getLatestCheckIn);
 
 // Test Route

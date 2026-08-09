@@ -8,6 +8,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import StudentProfile from "./pages/StudentProfile";
 import StudentCheckIn from "./pages/StudentCheckIn";
+import StudentMoodTracker from "./pages/StudentMoodTracker";
+import StudentJournal from "./pages/StudentJournal";
 import ParentDashboard from "./pages/ParentDashboard";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import SeniorDashboard from "./pages/SeniorDashboard";
@@ -84,6 +86,14 @@ function App() {
           } 
         />
         <Route 
+          path="/student/mood-tracker" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentMoodTracker />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
           path="/student/profile" 
           element={
             <ProtectedRoute allowedRoles={["Student", "User"]}>
@@ -96,6 +106,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Student", "User"]}>
               <StudentCheckIn />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/journal" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentJournal />
             </ProtectedRoute>
           } 
         />

@@ -13,22 +13,42 @@ import {
   FiLogOut,
   FiX
 } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: FiGrid },
-  { id: "mood-tracker", label: "Mood Tracker", icon: FiSmile },
+  { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/student/dashboard" },
+  { id: "mood-tracker", label: "Mood Tracker", icon: FiSmile, path: "/student/mood-tracker" },
   { id: "ai-companion", label: "AI Companion", icon: FiCpu },
-  { id: "journal", label: "Journal", icon: FiBookOpen },
+  { id: "journal", label: "Journal", icon: FiBookOpen, path: "/student/journal" },
   { id: "study-planner", label: "Study Planner", icon: FiCalendar },
   { id: "goals", label: "Goals", icon: FiTarget },
   { id: "focus-timer", label: "Focus Timer", icon: FiClock },
   { id: "progress", label: "Progress", icon: FiTrendingUp },
   { id: "notifications", label: "Notifications", icon: FiBell, badge: 3 },
-  { id: "settings", label: "Settings", icon: FiSettings },
+  { id: "settings", label: "Settings", icon: FiSettings, path: "/student/profile" },
 ];
 
 function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
+  const navigate = useNavigate();
+
+  const handleNavClick = (item) => {
+    if (setActiveTab) {
+      setActiveTab(item.id);
+    }
+    if (isOpen && setIsOpen) {
+      setIsOpen(false);
+    }
+    if (item.path) {
+      navigate(item.path);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("neurosync_token");
+    localStorage.removeItem("neurosync_current_user");
+    navigate("/login");
+  };
+
   return (
     <>
       {/* Mobile Backdrop */}
@@ -69,10 +89,7 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
                   <li key={item.id} className={`ns-nav-item ${isActive ? "active" : ""}`}>
                     <button
                       type="button"
-                      onClick={() => {
-                        setActiveTab(item.id);
-                        if (isOpen) setIsOpen(false);
-                      }}
+                      onClick={() => handleNavClick(item)}
                     >
                       <Icon className="ns-nav-icon" />
                       <span className="flex-grow-1">{item.label}</span>
@@ -96,9 +113,7 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
               <button
                 type="button"
                 className="ns-logout-btn"
-                onClick={() => {
-                  alert("Logged out successfully");
-                }}
+                onClick={handleLogout}
               >
                 <FiLogOut className="ns-nav-icon" />
                 <span>Logout</span>

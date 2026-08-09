@@ -24,7 +24,7 @@ exports.registerUser = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       return res.status(400).json({ success: false, message: "An account with this email address already exists." });
     }
@@ -36,7 +36,7 @@ exports.registerUser = async (req, res) => {
     // Create user in MongoDB Atlas
     const newUser = await User.create({
       fullName,
-      email: email.toLowerCase(),
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
       role: userType || "User",
       occupation: occupation || userType || "",
@@ -84,8 +84,8 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Please provide both email and password." });
     }
 
-    // Find user by email in MongoDB Atlas
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // Find user by email in MongoDB Atlas (trimmed and lowercased)
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
       return res.status(400).json({ success: false, message: "No account found with this email address." });
     }
