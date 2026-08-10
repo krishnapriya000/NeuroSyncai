@@ -9,24 +9,18 @@ const bcrypt = require("bcryptjs");
 async function run() {
   await connectDB();
 
-  const emailToTest = "krishnaak0404@gmail.com";
-  console.log(`Searching for email: '${emailToTest}'`);
-
-  const user = await User.findOne({ email: emailToTest.toLowerCase().trim() });
-  console.log("Result:", user);
-
+  const user = await User.findOne({ email: "krishnapriyarajesh2027@mca.ajce.in" });
   if (user) {
-    console.log("User details:", {
+    console.log("User found:", {
       id: user._id,
       fullName: user.fullName,
-      email: user.email,
+      email: `'${user.email}'`,
       role: user.role,
-      authProvider: user.authProvider,
       hasPassword: !!user.password,
+      passwordLength: user.password ? user.password.length : 0
     });
-
-    const isMatch = await bcrypt.compare("Krishna#4", user.password || "");
-    console.log("Password 'Krishna#4' match result:", isMatch);
+  } else {
+    console.log("User NOT found");
   }
 
   process.exit(0);

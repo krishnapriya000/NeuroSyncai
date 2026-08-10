@@ -1,4 +1,5 @@
 const MoodTracker = require("../models/MoodTracker");
+const { evaluateAndProcessStudentRisk } = require("../services/riskAssessmentService");
 
 // Helper function to format current date (YYYY-MM-DD) and time (hh:mm AM/PM)
 const getFormattedDateTime = () => {
@@ -47,10 +48,23 @@ exports.createMoodEntry = async (req, res) => {
       time,
     });
 
+    // Asynchronously trigger risk assessment evaluation
+    const riskEval = await evaluateAndProcessStudentRisk(req.user._id).catch((err) => {
+      console.error("Mood Risk Evaluation Error:", err);
+      return null;
+    });
+
     return res.status(201).json({
       success: true,
       message: "Mood recorded successfully!",
       data: moodEntry,
+      wellbeingAssessment: riskEval
+        ? {
+            riskLevel: riskEval.riskLevel,
+            alertSent: riskEval.alertSent,
+            message: riskEval.message,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Error creating mood entry:", error);

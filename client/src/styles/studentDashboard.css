@@ -19,11 +19,32 @@
   --ns-accent-pink: #ec4899;
   --ns-accent-emerald: #10b981;
   --ns-text-main: #f8fafc;
-  --ns-text-muted: #94a3b8;
+  --ns-text-muted: #cbd5e1;
   --ns-sidebar-width: 270px;
   --ns-topbar-height: 76px;
   --ns-radius: 18px;
   --ns-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* High Contrast Text Readability Fixes */
+.text-muted {
+  color: #cbd5e1 !important;
+}
+
+.text-gray-300 {
+  color: #cbd5e1 !important;
+}
+
+.extra-small.text-muted {
+  color: #94a3b8 !important;
+}
+
+.ns-search-input::placeholder,
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
 }
 
 /* Dashboard Root Layout */

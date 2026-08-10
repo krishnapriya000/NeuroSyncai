@@ -12,6 +12,9 @@ import StudentMoodTracker from "./pages/StudentMoodTracker";
 import StudentJournal from "./pages/StudentJournal";
 import ParentDashboard from "./pages/ParentDashboard";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
+import ProfessionalProfile from "./pages/ProfessionalProfile";
+import ProfessionalCheckIn from "./pages/ProfessionalCheckIn";
+import ProfessionalMoodStress from "./pages/ProfessionalMoodStress";
 import SeniorDashboard from "./pages/SeniorDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getLoginRedirectPathForUser } from "./utils/roleUtils";
@@ -134,6 +137,36 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Working Professional"]}>
               <ProfessionalDashboard />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Working Professional Profile Route */}
+        <Route 
+          path="/professional/profile" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <ProfessionalProfile />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Working Professional Daily Check-in Route */}
+        <Route 
+          path="/professional/checkin" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <ProfessionalCheckIn />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Working Professional Mood & Stress Route */}
+        <Route 
+          path="/professional/mood-stress" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <ProfessionalMoodStress />
             </ProtectedRoute>
           } 
         />

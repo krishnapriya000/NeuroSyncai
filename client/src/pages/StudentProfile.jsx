@@ -16,7 +16,12 @@ import {
   FiClock,
   FiTarget,
   FiShield,
-  FiCalendar
+  FiCalendar,
+  FiAlertTriangle,
+  FiBell,
+  FiHeart,
+  FiTrash2,
+  FiUsers
 } from "react-icons/fi";
 import "../styles/studentDashboard.css";
 
@@ -25,7 +30,7 @@ function StudentProfile() {
   const [activeTab, setActiveTab] = useState("profile");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Form State
+  // Student Profile State
   const [userProfile, setUserProfile] = useState({
     fullName: "",
     email: "",
@@ -44,59 +49,132 @@ function StudentProfile() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Fetch profile from MongoDB on mount
-  useEffect(() => {
-    const fetchProfileFromDB = async () => {
-      setIsLoading(true);
-      setErrorMsg("");
-      const token = localStorage.getItem("neurosync_token");
+  // Emergency Contact Form State
+  const [emergencyForm, setEmergencyForm] = useState({
+    guardianName: "",
+    relationship: "",
+    guardianEmail: "",
+    guardianPhone: "",
+    emergencyAlertsEnabled: true,
+  });
 
-      if (!token) {
-        setErrorMsg("Authentication token missing. Please log in.");
+  const [hasEmergencyContact, setHasEmergencyContact] = useState(false);
+  const [isSavingContact, setIsSavingContact] = useState(false);
+  const [contactSuccessMsg, setContactSuccessMsg] = useState("");
+  const [contactErrorMsg, setContactErrorMsg] = useState("");
+
+  // Emergency Alert History State
+  const [alertHistory, setAlertHistory] = useState([]);
+  const [isLoadingAlerts, setIsLoadingAlerts] = useState(false);
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchProfileFromDB();
+    fetchEmergencyContactFromDB();
+    fetchAlertHistoryFromDB();
+  }, []);
+
+  const fetchProfileFromDB = async () => {
+    setIsLoading(true);
+    setErrorMsg("");
+    const token = localStorage.getItem("neurosync_token");
+
+    if (!token) {
+      setErrorMsg("Authentication token missing. Please log in.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/student/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setErrorMsg(data.message || "Failed to load profile from database.");
         setIsLoading(false);
         return;
       }
 
-      try {
-        const response = await fetch("http://localhost:5000/api/student/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const dbUser = data.user;
+      setUserProfile({
+        fullName: dbUser.fullName || "",
+        email: dbUser.email || "",
+        phone: dbUser.phone || "",
+        dob: dbUser.dob || (dbUser.dateOfBirth ? dbUser.dateOfBirth.split("T")[0] : "") || "",
+        gender: dbUser.gender || "Other",
+        occupation: dbUser.occupation || "",
+        lifestyle: dbUser.lifestyle || "",
+        profileImage: dbUser.profileImage || "",
+        role: dbUser.role || "Student",
+      });
+
+      localStorage.setItem("neurosync_current_user", JSON.stringify(dbUser));
+    } catch (err) {
+      console.error("Fetch profile DB error:", err);
+      setErrorMsg("Cannot connect to server to fetch profile data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchEmergencyContactFromDB = async () => {
+    const token = localStorage.getItem("neurosync_token");
+    if (!token) return;
+
+    try {
+      const response = await fetch("http://localhost:5000/api/student/emergency/contact", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success && data.contact) {
+        setHasEmergencyContact(true);
+        setEmergencyForm({
+          guardianName: data.contact.guardianName || "",
+          relationship: data.contact.relationship || "",
+          guardianEmail: data.contact.guardianEmail || "",
+          guardianPhone: data.contact.guardianPhone || "",
+          emergencyAlertsEnabled: data.contact.emergencyAlertsEnabled !== false,
         });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-          setErrorMsg(data.message || "Failed to load profile from database.");
-          setIsLoading(false);
-          return;
-        }
-
-        const dbUser = data.user;
-        setUserProfile({
-          fullName: dbUser.fullName || "",
-          email: dbUser.email || "",
-          phone: dbUser.phone || "",
-          dob: dbUser.dob || (dbUser.dateOfBirth ? dbUser.dateOfBirth.split("T")[0] : "") || "",
-          gender: dbUser.gender || "Other",
-          occupation: dbUser.occupation || "",
-          lifestyle: dbUser.lifestyle || "",
-          profileImage: dbUser.profileImage || "",
-          role: dbUser.role || "Student",
-        });
-
-        // Sync local storage cache
-        localStorage.setItem("neurosync_current_user", JSON.stringify(dbUser));
-      } catch (err) {
-        console.error("Fetch profile DB error:", err);
-        setErrorMsg("Cannot connect to server to fetch profile data.");
-      } finally {
-        setIsLoading(false);
+      } else {
+        setHasEmergencyContact(false);
       }
-    };
+    } catch (err) {
+      console.error("Fetch emergency contact error:", err);
+    }
+  };
 
-    fetchProfileFromDB();
-  }, []);
+  const fetchAlertHistoryFromDB = async () => {
+    setIsLoadingAlerts(true);
+    const token = localStorage.getItem("neurosync_token");
+    if (!token) return;
+
+    try {
+      const response = await fetch("http://localhost:5000/api/student/emergency/alerts", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setAlertHistory(data.alerts || []);
+      }
+    } catch (err) {
+      console.error("Fetch alert history error:", err);
+    } finally {
+      setIsLoadingAlerts(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -106,6 +184,17 @@ function StudentProfile() {
     }));
     if (successMsg) setSuccessMsg("");
     if (errorMsg) setErrorMsg("");
+  };
+
+  const handleEmergencyChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const val = type === "checkbox" ? checked : value;
+    setEmergencyForm((prev) => ({
+      ...prev,
+      [name]: val,
+    }));
+    if (contactSuccessMsg) setContactSuccessMsg("");
+    if (contactErrorMsg) setContactErrorMsg("");
   };
 
   const handleSave = async (e) => {
@@ -151,7 +240,6 @@ function StudentProfile() {
       setSuccessMsg(data.message || "🎉 Profile updated and saved to database successfully!");
       setIsEditing(false);
 
-      // Sync local storage cache
       if (data.user) {
         localStorage.setItem("neurosync_current_user", JSON.stringify(data.user));
       }
@@ -167,7 +255,139 @@ function StudentProfile() {
     }
   };
 
-  // Helper for initial
+  const handleSaveEmergencyContact = async (e) => {
+    e.preventDefault();
+    setContactErrorMsg("");
+    setContactSuccessMsg("");
+
+    if (!emergencyForm.guardianName.trim()) {
+      setContactErrorMsg("Guardian name is required.");
+      return;
+    }
+
+    if (!emergencyForm.relationship.trim()) {
+      setContactErrorMsg("Relationship is required.");
+      return;
+    }
+
+    if (!emergencyForm.guardianEmail.trim()) {
+      setContactErrorMsg("Guardian email address is required.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emergencyForm.guardianEmail.trim())) {
+      setContactErrorMsg("Please enter a valid guardian email address.");
+      return;
+    }
+
+    setIsSavingContact(true);
+
+    try {
+      const token = localStorage.getItem("neurosync_token");
+
+      const response = await fetch("http://localhost:5000/api/student/emergency/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          guardianName: emergencyForm.guardianName.trim(),
+          relationship: emergencyForm.relationship.trim(),
+          guardianEmail: emergencyForm.guardianEmail.trim(),
+          guardianPhone: emergencyForm.guardianPhone.trim(),
+          emergencyAlertsEnabled: emergencyForm.emergencyAlertsEnabled,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setContactErrorMsg(data.message || "Failed to save emergency contact.");
+        setIsSavingContact(false);
+        return;
+      }
+
+      setHasEmergencyContact(true);
+      setContactSuccessMsg(
+        hasEmergencyContact
+          ? "🛡️ Emergency contact updated successfully!"
+          : "🛡️ Emergency contact saved and registered successfully!"
+      );
+
+      fetchAlertHistoryFromDB();
+
+      setTimeout(() => {
+        setContactSuccessMsg("");
+      }, 4000);
+    } catch (err) {
+      console.error("Save emergency contact error:", err);
+      setContactErrorMsg("Server error occurred while saving emergency contact.");
+    } finally {
+      setIsSavingContact(false);
+    }
+  };
+
+  const handleDeleteEmergencyContact = async () => {
+    if (!window.confirm("Are you sure you want to remove your emergency contact?")) return;
+
+    setContactErrorMsg("");
+    setContactSuccessMsg("");
+    setIsSavingContact(true);
+
+    try {
+      const token = localStorage.getItem("neurosync_token");
+      const response = await fetch("http://localhost:5000/api/student/emergency/contact", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setContactErrorMsg(data.message || "Failed to delete emergency contact.");
+        setIsSavingContact(false);
+        return;
+      }
+
+      setHasEmergencyContact(false);
+      setEmergencyForm({
+        guardianName: "",
+        relationship: "",
+        guardianEmail: "",
+        guardianPhone: "",
+        emergencyAlertsEnabled: true,
+      });
+
+      setContactSuccessMsg("Emergency contact removed successfully.");
+
+      setTimeout(() => {
+        setContactSuccessMsg("");
+      }, 4000);
+    } catch (err) {
+      console.error("Delete emergency contact error:", err);
+      setContactErrorMsg("Server error occurred while deleting emergency contact.");
+    } finally {
+      setIsSavingContact(false);
+    }
+  };
+
+  // Helper to format Date for Alert History
+  const formatAlertDate = (dateStr) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const getInitial = () => {
     if (!userProfile.fullName) return "S";
     return userProfile.fullName.trim().charAt(0).toUpperCase();
@@ -201,7 +421,7 @@ function StudentProfile() {
               <FiArrowLeft /> Back to Student Dashboard
             </button>
             <h1 className="fw-bold text-white fs-3 mb-1">Student Profile</h1>
-            <p className="text-secondary small mb-0">Enter and update your profile details stored securely in the database.</p>
+            <p className="text-secondary small mb-0">Enter and update your profile details and emergency contact settings.</p>
           </div>
           <button 
             className={`btn ${isEditing ? "btn-outline-light" : "btn-primary"} rounded-pill px-4 py-2 fw-semibold d-flex align-items-center gap-2`}
@@ -221,7 +441,7 @@ function StudentProfile() {
           </div>
         ) : (
           <>
-            {/* Notifications */}
+            {/* Profile Notifications */}
             {successMsg && (
               <div className="alert alert-success border-0 bg-success bg-opacity-20 text-success-light rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
                 <FiCheckCircle size={20} />
@@ -281,7 +501,7 @@ function StudentProfile() {
                   <p className="text-secondary small mb-2">{userProfile.email} {userProfile.occupation ? `• ${userProfile.occupation}` : ""}</p>
                   <div className="d-flex flex-wrap gap-3 text-secondary" style={{ fontSize: "0.83rem" }}>
                     <span>📍 Database Status: <strong className="text-success">Synced with MongoDB</strong></span>
-                    <span>⚡ Role Access: <strong className="text-info">Student Only</strong></span>
+                    <span>🛡️ Emergency Alert: <strong className={emergencyForm.emergencyAlertsEnabled ? "text-success" : "text-warning"}>{emergencyForm.emergencyAlertsEnabled ? "Emergency Alerts: ON" : "Emergency Alerts: OFF"}</strong></span>
                   </div>
                 </div>
               </div>
@@ -335,7 +555,7 @@ function StudentProfile() {
               {/* Main Details Form */}
               <div className="col-lg-8">
                 <div 
-                  className="p-4 rounded-4 text-white shadow-sm"
+                  className="p-4 rounded-4 text-white shadow-sm mb-4"
                   style={{
                     background: "#0F172A",
                     border: "1px solid rgba(255, 255, 255, 0.08)"
@@ -509,6 +729,280 @@ function StudentProfile() {
                     )}
                   </form>
                 </div>
+
+                {/* ==================================================
+                    SECTION: EMERGENCY CONTACT (Requirement 1 & 12)
+                    ================================================== */}
+                <div 
+                  className="p-4 rounded-4 text-white shadow-sm mb-4"
+                  style={{
+                    background: "#0F172A",
+                    border: "1px solid rgba(239, 68, 68, 0.25)"
+                  }}
+                >
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <h5 className="fw-bold mb-0 d-flex align-items-center gap-2 text-white">
+                      <span style={{ fontSize: "1.3rem" }}>🛡️</span> Emergency Contact
+                    </h5>
+                    <span 
+                      className={`badge rounded-pill px-3 py-1.5 fw-semibold ${
+                        emergencyForm.emergencyAlertsEnabled
+                          ? "bg-success bg-opacity-20 text-success border border-success border-opacity-50"
+                          : "bg-secondary bg-opacity-20 text-warning border border-warning border-opacity-50"
+                      }`}
+                    >
+                      Emergency Alerts: {emergencyForm.emergencyAlertsEnabled ? "ON" : "OFF"}
+                    </span>
+                  </div>
+
+                  <p className="text-secondary small mb-4">
+                    Add a trusted parent or guardian who can be contacted if NeuroSync detects a high-risk wellbeing situation.
+                  </p>
+
+                  {/* Feedback Banners */}
+                  {contactSuccessMsg && (
+                    <div className="alert alert-success border-0 bg-success bg-opacity-20 text-success-light rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
+                      <FiCheckCircle size={20} />
+                      <div>{contactSuccessMsg}</div>
+                    </div>
+                  )}
+
+                  {contactErrorMsg && (
+                    <div className="alert alert-danger border-0 bg-danger bg-opacity-20 text-danger-light rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
+                      <FiAlertTriangle size={20} />
+                      <div>{contactErrorMsg}</div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSaveEmergencyContact}>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">
+                          Guardian Name <span className="text-danger">*</span>
+                        </label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiUser />
+                          </span>
+                          <input 
+                            type="text" 
+                            name="guardianName"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            placeholder="e.g. Anu Rajesh"
+                            value={emergencyForm.guardianName}
+                            onChange={handleEmergencyChange}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">
+                          Relationship <span className="text-danger">*</span>
+                        </label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiUsers />
+                          </span>
+                          <input 
+                            type="text" 
+                            name="relationship"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            placeholder="e.g. Mother, Father, Guardian"
+                            value={emergencyForm.relationship}
+                            onChange={handleEmergencyChange}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">
+                          Guardian Email <span className="text-danger">*</span>
+                        </label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiMail />
+                          </span>
+                          <input 
+                            type="email" 
+                            name="guardianEmail"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            placeholder="guardian@example.com"
+                            value={emergencyForm.guardianEmail}
+                            onChange={handleEmergencyChange}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label text-secondary small fw-semibold">
+                          Phone Number (Optional)
+                        </label>
+                        <div className="input-group">
+                          <span className="input-group-text bg-dark text-secondary border-secondary border-opacity-25">
+                            <FiPhone />
+                          </span>
+                          <input 
+                            type="text" 
+                            name="guardianPhone"
+                            className="form-control bg-dark text-white border-secondary border-opacity-25"
+                            placeholder="e.g. +91 9876543210"
+                            value={emergencyForm.guardianPhone}
+                            onChange={handleEmergencyChange}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="col-12">
+                        <div className="p-3 rounded-3 bg-dark bg-opacity-50 border border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
+                          <div>
+                            <div className="fw-semibold text-white mb-0">Emergency Alerts Status</div>
+                            <div className="text-secondary small">Automatically notify guardian if high-risk pattern is detected</div>
+                          </div>
+                          <div className="form-check form-switch fs-4 mb-0">
+                            <input
+                              className="form-check-input style-toggle-switch"
+                              type="checkbox"
+                              role="switch"
+                              name="emergencyAlertsEnabled"
+                              id="emergencyAlertsSwitch"
+                              checked={emergencyForm.emergencyAlertsEnabled}
+                              onChange={handleEmergencyChange}
+                              style={{ cursor: "pointer" }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
+                      {hasEmergencyContact ? (
+                        <button 
+                          type="button" 
+                          className="btn btn-outline-danger btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1"
+                          onClick={handleDeleteEmergencyContact}
+                          disabled={isSavingContact}
+                        >
+                          <FiTrash2 size={14} /> Remove Contact
+                        </button>
+                      ) : (
+                        <span className="text-secondary small">No guardian contact configured yet</span>
+                      )}
+
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary rounded-pill px-4 d-inline-flex align-items-center gap-2 fw-bold"
+                        disabled={isSavingContact}
+                      >
+                        {isSavingContact ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                            Saving Contact...
+                          </>
+                        ) : (
+                          <>
+                            <FiSave /> {hasEmergencyContact ? "Update Contact" : "Save Emergency Contact"}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* ==================================================
+                    SECTION: EMERGENCY ALERT HISTORY (Requirement 9 & 12)
+                    ================================================== */}
+                <div 
+                  className="p-4 rounded-4 text-white shadow-sm"
+                  style={{
+                    background: "#0F172A",
+                    border: "1px solid rgba(255, 255, 255, 0.08)"
+                  }}
+                >
+                  <h5 className="fw-bold mb-2 d-flex align-items-center gap-2 text-white">
+                    <FiBell className="text-warning" /> Emergency Alert History
+                  </h5>
+                  <p className="text-secondary small mb-4">
+                    Log of wellbeing evaluations and automated guardian notifications.
+                  </p>
+
+                  {isLoadingAlerts ? (
+                    <div className="text-center py-4 text-secondary">
+                      <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                      Loading alert history...
+                    </div>
+                  ) : alertHistory.length === 0 ? (
+                    <div className="p-4 rounded-3 bg-dark bg-opacity-40 border border-secondary border-opacity-25 text-center">
+                      <FiCheckCircle size={32} className="text-success mb-2" />
+                      <div className="fw-semibold text-white mb-1">No Emergency Alerts Triggered</div>
+                      <p className="text-secondary small mb-0">Your recent check-in & mood records show balanced wellbeing scores.</p>
+                    </div>
+                  ) : (
+                    <div className="d-flex flex-column gap-3">
+                      {alertHistory.map((alertItem) => {
+                        const isHigh = alertItem.riskLevel === "HIGH_RISK";
+                        const isMod = alertItem.riskLevel === "MODERATE_RISK";
+
+                        const badgeBg = isHigh ? "#EF4444" : isMod ? "#F59E0B" : "#10B981";
+                        const badgeLabel = isHigh ? "🔴 High Risk" : isMod ? "🟡 Moderate Risk" : "🟢 Low Risk";
+
+                        const statusLabel =
+                          alertItem.status === "SENT"
+                            ? "Guardian notified"
+                            : alertItem.status === "COOLDOWN_SKIPPED"
+                            ? "Cooldown Active (Skipped)"
+                            : alertItem.status === "ALERTS_DISABLED"
+                            ? "Alerts Disabled"
+                            : "Notification Failed";
+
+                        const statusClass =
+                          alertItem.status === "SENT"
+                            ? "text-success"
+                            : alertItem.status === "COOLDOWN_SKIPPED"
+                            ? "text-info"
+                            : "text-danger";
+
+                        return (
+                          <div 
+                            key={alertItem._id}
+                            className="p-3 rounded-3 bg-dark bg-opacity-40 border border-secondary border-opacity-25"
+                          >
+                            <div className="d-flex align-items-center justify-content-between mb-2">
+                              <span 
+                                className="badge rounded-pill px-3 py-1.5 fw-semibold"
+                                style={{ background: badgeBg, color: "#FFF" }}
+                              >
+                                {badgeLabel}
+                              </span>
+
+                              <span className="text-secondary small d-flex align-items-center gap-1">
+                                <FiClock size={13} />
+                                {formatAlertDate(alertItem.createdAt || alertItem.sentAt)}
+                              </span>
+                            </div>
+
+                            <div className="d-flex align-items-center justify-content-between mt-2">
+                              <span className={`fw-semibold small ${statusClass}`}>
+                                {statusLabel}
+                              </span>
+                              <span className="text-secondary small">
+                                {alertItem.guardianEmail}
+                              </span>
+                            </div>
+
+                            {alertItem.triggerReason && (
+                              <div className="mt-2 text-secondary small font-monospace opacity-75 text-truncate" style={{ fontSize: "0.78rem" }}>
+                                Reason: {alertItem.triggerReason}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Side Card: Academic Summary & Security */}
@@ -524,7 +1018,7 @@ function StudentProfile() {
                     <FiShield className="text-success" /> Database Protection
                   </h6>
                   <p className="text-secondary small mb-3">
-                    Your profile details are stored in MongoDB Atlas / Database and protected with JWT token encryption.
+                    Your profile details and emergency contact settings are stored in MongoDB and protected with JWT token encryption.
                   </p>
 
                   <div className="d-flex flex-column gap-2">

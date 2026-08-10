@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const DailyCheckIn = require("../models/DailyCheckIn");
+const { evaluateAndProcessStudentRisk } = require("../services/riskAssessmentService");
 
 // Helper to get today's date in YYYY-MM-DD format (local server time)
 const getTodayDateString = () => {
@@ -97,6 +98,12 @@ exports.submitCheckIn = async (req, res) => {
       { new: true }
     ).select("-password");
 
+    // Trigger risk assessment evaluation
+    const riskEval = await evaluateAndProcessStudentRisk(studentId).catch((err) => {
+      console.error("Check-in Risk Evaluation Error:", err);
+      return null;
+    });
+
     return res.status(200).json({
       success: true,
       message: "Daily check-in submitted successfully!",
@@ -108,6 +115,13 @@ exports.submitCheckIn = async (req, res) => {
         role: updatedUser.role,
         lastCheckInDate: updatedUser.lastCheckInDate,
       },
+      wellbeingAssessment: riskEval
+        ? {
+            riskLevel: riskEval.riskLevel,
+            alertSent: riskEval.alertSent,
+            message: riskEval.message,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Submit Check-in Error:", error);

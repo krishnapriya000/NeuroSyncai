@@ -32,8 +32,8 @@ function testLogin(email, password) {
 }
 
 async function run() {
-  console.log("Testing POST /api/auth/login with krishnaak0404@gmail.com...");
-  const res = await testLogin("krishnaak0404@gmail.com", "Krishna#4");
+  console.log("Testing POST /api/auth/login with krishnapriyarajesh2027@mca.ajce.in and Password123...");
+  const res = await testLogin("krishnapriyarajesh2027@mca.ajce.in", "Password123");
   console.log("Response Status:", res.status);
   console.log("Response Body:", res.body);
 }
