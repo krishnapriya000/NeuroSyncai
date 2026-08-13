@@ -5,6 +5,7 @@ import TopNavbar from "../components/dashboard/TopNavbar";
 import DashboardFooter from "../components/dashboard/DashboardFooter";
 import AIMoodRecommendationCard from "../components/dashboard/AIMoodRecommendationCard";
 import MoodHistoryCard from "../components/dashboard/MoodHistoryCard";
+import FacialEmotionAnalysisModal from "../components/professional/FacialEmotionAnalysisModal";
 import {
   FiSmile,
   FiSliders,
@@ -16,7 +17,8 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiHeart,
-  FiRefreshCw
+  FiRefreshCw,
+  FiCamera
 } from "react-icons/fi";
 import "../styles/studentDashboard.css";
 
@@ -54,6 +56,18 @@ function StudentMoodTracker() {
   const [intensity, setIntensity] = useState(5);
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Facial analysis state
+  const [facialModalOpen, setFacialModalOpen] = useState(false);
+
+  const handleUseMoodFromAI = (mappedMood) => {
+    setSelectedMood(mappedMood);
+    setErrorMessage("");
+    setSuccessMessage(`AI estimated mood (${mappedMood}) applied! Please review intensity & reason, then click Save Mood to record.`);
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 5000);
+  };
 
   // UI feedback & data states
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -495,6 +509,44 @@ function StudentMoodTracker() {
               </form>
             </div>
 
+            {/* AI Facial Emotion Analysis Card */}
+            <div className="ns-card mt-4 mb-4">
+              <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                  <div className="d-flex align-items-center gap-2 mb-1">
+                    <span
+                      className="badge rounded-pill px-3 py-1"
+                      style={{
+                        background: "rgba(168, 85, 247, 0.15)",
+                        color: "#C084FC",
+                        border: "1px solid rgba(168, 85, 247, 0.3)",
+                        fontSize: "0.78rem",
+                      }}
+                    >
+                      <FiCamera className="me-1" /> AI Feature
+                    </span>
+                  </div>
+                  <h3 className="text-white fw-bold fs-5 mb-1">AI Facial Emotion Analysis</h3>
+                  <p className="text-muted mb-0" style={{ fontSize: "0.88rem" }}>
+                    Use your facial expression to get an AI-estimated emotional state.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn text-white fw-semibold px-4 py-2.5 rounded-3 d-flex align-items-center gap-2 shadow-sm"
+                  style={{
+                    background: "linear-gradient(135deg, #8B5CF6, #6366F1)",
+                    border: "none",
+                    fontSize: "0.92rem",
+                  }}
+                  onClick={() => setFacialModalOpen(true)}
+                >
+                  <FiCamera size={18} />
+                  Start AI Analysis
+                </button>
+              </div>
+            </div>
+
             {/* Mood History Card (Below Form on Left) */}
             <MoodHistoryCard refreshKey={historyRefreshKey} />
           </div>
@@ -647,6 +699,15 @@ function StudentMoodTracker() {
           </div>
         </div>
       </main>
+
+      {/* Facial Emotion Analysis Modal */}
+      <FacialEmotionAnalysisModal
+        isOpen={facialModalOpen}
+        onClose={() => setFacialModalOpen(false)}
+        onUseMood={handleUseMoodFromAI}
+        selectedMood={selectedMood}
+        role="student"
+      />
 
       {/* Footer */}
       <DashboardFooter />

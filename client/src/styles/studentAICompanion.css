@@ -1,0 +1,472 @@
+/* ==========================================================================
+   NeuroSync Student AI Companion Styles
+   ========================================================================== */
+
+.ns-ai-companion-page {
+  min-height: 100vh;
+  background-color: #0b0f19;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Page Header & Status Badge */
+.ns-ai-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.ns-online-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+  animation: ns-pulse-dot 1.8s infinite;
+}
+
+@keyframes ns-pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 12px #10b981; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* Main Container Layout */
+.ns-ai-main-wrapper {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.ns-ai-chat-card {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  height: 720px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ns-ai-chat-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.ns-ai-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar Customization */
+.ns-ai-chat-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ns-ai-chat-body::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.ns-ai-chat-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/* Empty State */
+.ns-ai-empty-state {
+  text-align: center;
+  max-width: 620px;
+  margin: auto;
+  padding: 2rem 1rem;
+}
+
+.ns-ai-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(59, 130, 246, 0.25));
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  color: #c084fc;
+  font-size: 1.8rem;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+}
+
+.ns-suggested-prompts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.ns-prompt-pill {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ns-prompt-pill:hover {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.4);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
+}
+
+/* Chat Messages */
+.ns-msg-row {
+  display: flex;
+  gap: 12px;
+  max-width: 88%;
+}
+
+.ns-msg-row.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.ns-msg-row.assistant {
+  align-self: flex-start;
+}
+
+.ns-msg-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.ns-msg-avatar.user {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #fff;
+}
+
+.ns-msg-avatar.assistant {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+}
+
+.ns-msg-bubble {
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ns-msg-row.user .ns-msg-bubble {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  border-top-right-radius: 2px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.ns-msg-row.assistant .ns-msg-bubble {
+  background: rgba(30, 41, 59, 0.85);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-left-radius: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ns-msg-time {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 4px;
+  display: block;
+}
+
+.ns-msg-row.user .ns-msg-time {
+  text-align: right;
+}
+
+/* Suggested Study Tasks Card in Message */
+.ns-study-suggestion-card {
+  margin-top: 12px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.ns-suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(30, 41, 59, 0.6);
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.ns-suggestion-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Typing Indicator */
+.ns-typing-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  width: fit-content;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.ns-typing-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.ns-typing-dots span {
+  width: 6px;
+  height: 6px;
+  background: #a855f7;
+  border-radius: 50%;
+  animation: ns-bounce-dot 1.4s infinite ease-in-out both;
+}
+
+.ns-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.ns-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes ns-bounce-dot {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* Chat Input Footer */
+.ns-ai-chat-footer {
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ns-input-box-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 8px 12px;
+  transition: border-color 0.2s;
+}
+
+.ns-input-box-wrapper:focus-within {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+}
+
+.ns-chat-textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 0.92rem;
+  resize: none;
+  outline: none;
+  max-height: 120px;
+  min-height: 24px;
+}
+
+.ns-chat-textarea::placeholder {
+  color: #64748b;
+}
+
+.ns-send-btn {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.ns-send-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.ns-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Right Panel: Your Current Insights */
+.ns-insights-panel {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  padding: 1.25rem;
+}
+
+.ns-insight-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.ns-insight-card:last-child {
+  margin-bottom: 0;
+}
+
+.ns-insight-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.ns-insight-icon.mood { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.ns-insight-icon.stress { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+.ns-insight-icon.study { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.ns-insight-icon.goals { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.ns-insight-icon.emotion { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+.ns-quick-action-btn {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 8px;
+}
+
+.ns-quick-action-btn:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.35);
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.ns-quick-action-btn:last-child {
+  margin-bottom: 0;
+}
+
+/* Relaxation Modal */
+.ns-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.ns-modal-card {
+  background: #0f172a;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color: #f8fafc;
+}
+
+/* Breathing Circle Animation */
+.ns-breathing-circle-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.ns-breathing-circle {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.4), rgba(59, 130, 246, 0.1));
+  border: 2px solid #a855f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #ffffff;
+  animation: ns-breathe-anim 8s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+}
+
+@keyframes ns-breathe-anim {
+  0%, 100% { transform: scale(0.85); box-shadow: 0 0 15px rgba(168, 85, 247, 0.2); }
+  50% { transform: scale(1.25); box-shadow: 0 0 40px rgba(168, 85, 247, 0.5); }
+}
+
+@media (max-width: 991px) {
+  .ns-ai-chat-card {
+    height: 580px;
+  }
+}

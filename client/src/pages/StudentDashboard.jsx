@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/studentDashboard.css";
 
 import Sidebar from "../components/dashboard/Sidebar";
@@ -18,9 +19,11 @@ import DashboardFooter from "../components/dashboard/DashboardFooter";
 import { FiSmile, FiZap, FiClock, FiTarget } from "react-icons/fi";
 
 function StudentDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [studentName, setStudentName] = useState("Alex Morgan");
+  const [goalSummary, setGoalSummary] = useState(null);
 
   // Daily Check-in state
   const [checkInState, setCheckInState] = useState({
@@ -87,13 +90,31 @@ function StudentDashboard() {
       }
     }
 
-    // Fetch latest check-in data for the logged-in student
     fetchLatestCheckIn();
+
+    // Fetch goals summary for the logged-in student
+    const fetchGoalSummary = async () => {
+      const token = localStorage.getItem("neurosync_token");
+      if (!token) return;
+      try {
+        const res = await fetch("http://localhost:5000/api/goals/summary", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+          setGoalSummary(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching goal summary:", err);
+      }
+    };
+
+    fetchGoalSummary();
   }, []);
 
   const handleTalkToAI = () => {
     setActiveTab("ai-companion");
-    alert("Opening NeuroSync AI Chat Companion...");
+    navigate("/student/ai-companion");
   };
 
   const currentMoodDisplay = checkInState.data?.hasData && checkInState.data?.mood
@@ -161,11 +182,15 @@ function StudentDashboard() {
               type="focus"
             />
           </div>
-          <div className="col-12 col-sm-6 col-xl-3">
+          <div 
+            className="col-12 col-sm-6 col-xl-3" 
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/student/goals")}
+          >
             <StatCard 
               title="Goals Completed"
-              value="12 / 15"
-              trend="80% completion rate"
+              value={goalSummary ? `${goalSummary.completed} / ${goalSummary.total}` : "0 / 0"}
+              trend={goalSummary ? `${goalSummary.overallProgress}% completion rate` : "0% completion rate"}
               icon={FiTarget}
               type="goals"
             />

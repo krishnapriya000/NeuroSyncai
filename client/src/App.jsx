@@ -10,6 +10,10 @@ import StudentProfile from "./pages/StudentProfile";
 import StudentCheckIn from "./pages/StudentCheckIn";
 import StudentMoodTracker from "./pages/StudentMoodTracker";
 import StudentJournal from "./pages/StudentJournal";
+import StudentStudyPlanner from "./pages/StudentStudyPlanner";
+import StudentGoals from "./pages/StudentGoals";
+import StudentAICompanion from "./pages/StudentAICompanion";
+import StudentFocusTimer from "./pages/StudentFocusTimer";
 import ParentDashboard from "./pages/ParentDashboard";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
@@ -117,6 +121,38 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Student", "User"]}>
               <StudentJournal />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/study-planner" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentStudyPlanner />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/goals" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentGoals />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/ai-companion" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentAICompanion />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/focus-timer" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentFocusTimer />
             </ProtectedRoute>
           } 
         />

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
+    "@vladmandic/face-api": "^1.7.15",
     "bootstrap": "^5.3.8",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

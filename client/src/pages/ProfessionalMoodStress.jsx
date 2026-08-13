@@ -5,6 +5,7 @@ import "../styles/studentDashboard.css";
 import ProfessionalSidebar from "../components/professional/ProfessionalSidebar";
 import ProfessionalNavbar from "../components/professional/ProfessionalNavbar";
 import DashboardFooter from "../components/dashboard/DashboardFooter";
+import FacialEmotionAnalysisModal from "../components/professional/FacialEmotionAnalysisModal";
 
 import {
   FiSmile,
@@ -78,6 +79,7 @@ function ProfessionalMoodStress() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [facialModalOpen, setFacialModalOpen] = useState(false);
 
   const [todayCheckIn, setTodayCheckIn] = useState(null);
   const [history, setHistory] = useState([]);
@@ -769,32 +771,32 @@ function ProfessionalMoodStress() {
               </div>
             </div>
 
-            {/* SECTION 5 — FUTURE FACIAL EMOTION PLACEHOLDER */}
+            {/* SECTION 5 — FACIAL EMOTION ANALYSIS */}
             <div className="row g-4 mb-4">
               <div className="col-12">
                 <div className="ns-card p-4 border border-secondary border-opacity-25">
                   <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
                     <div className="d-flex align-items-center gap-3">
-                      <div className="p-3 rounded-4 bg-purple-500 bg-opacity-25 text-purple-400 fs-4" style={{ backgroundColor: "rgba(139, 92, 246, 0.2)", color: "#a78bfa" }}>
+                      <div className="p-3 rounded-4 bg-primary bg-opacity-25 text-primary fs-4">
                         <FiCamera />
                       </div>
                       <div>
                         <div className="d-flex align-items-center gap-2 mb-1">
                           <h5 className="mb-0 text-white fw-bold fs-6">AI Facial Emotion Analysis</h5>
-                          <span className="badge bg-purple-500 bg-opacity-25 text-purple-300 border border-purple-400 border-opacity-30 rounded-pill px-2.5 py-0.5 extra-small" style={{ color: "#c4b5fd" }}>
-                            Coming Soon
+                          <span className="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-30 rounded-pill px-2.5 py-0.5 extra-small">
+                            Real-time AI
                           </span>
                         </div>
                         <p className="text-gray-300 mb-0 extra-small" style={{ fontSize: "0.84rem", color: "#CBD5E1" }}>
-                          NeuroSync will analyze facial expressions to estimate your current emotional state and compare it with your self-reported mood.
+                          NeuroSync analyzes your facial expressions locally in real-time to estimate your current emotional state.
                         </p>
                       </div>
                     </div>
 
                     <button
-                      className="btn btn-outline-secondary rounded-pill px-4 py-2 text-white-50 flex-shrink-0 d-flex align-items-center gap-2"
-                      disabled
-                      style={{ opacity: 0.6, cursor: "not-allowed" }}
+                      type="button"
+                      className="btn btn-primary rounded-pill px-4 py-2 fw-semibold ns-btn-primary flex-shrink-0 d-flex align-items-center gap-2"
+                      onClick={() => setFacialModalOpen(true)}
                     >
                       <FiCamera /> Start AI Analysis
                     </button>
@@ -805,6 +807,12 @@ function ProfessionalMoodStress() {
           </div>
         )}
       </main>
+
+      {/* FACIAL EMOTION ANALYSIS MODAL */}
+      <FacialEmotionAnalysisModal
+        isOpen={facialModalOpen}
+        onClose={() => setFacialModalOpen(false)}
+      />
 
       {/* FOOTER */}
       <DashboardFooter />
