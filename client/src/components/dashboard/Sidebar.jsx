@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   FiGrid, 
   FiSmile, 
@@ -9,13 +9,14 @@ import {
   FiClock, 
   FiTrendingUp, 
   FiBell, 
+  FiUser,
   FiSettings, 
   FiLogOut,
   FiX
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 
-const navItems = [
+const navItemsList = [
   { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/student/dashboard" },
   { id: "mood-tracker", label: "Mood Tracker", icon: FiSmile, path: "/student/mood-tracker" },
   { id: "ai-companion", label: "AI Companion", icon: FiCpu, path: "/student/ai-companion" },
@@ -23,13 +24,35 @@ const navItems = [
   { id: "study-planner", label: "Study Planner", icon: FiCalendar, path: "/student/study-planner" },
   { id: "goals", label: "Goals", icon: FiTarget, path: "/student/goals" },
   { id: "focus-timer", label: "Focus Timer", icon: FiClock, path: "/student/focus-timer" },
-  { id: "progress", label: "Progress", icon: FiTrendingUp },
-  { id: "notifications", label: "Notifications", icon: FiBell, badge: 3 },
-  { id: "settings", label: "Settings", icon: FiSettings, path: "/student/profile" },
+  { id: "progress", label: "Progress", icon: FiTrendingUp, path: "/student/progress" },
+  { id: "notifications", label: "Notifications", icon: FiBell, path: "/student/notifications" },
+  { id: "profile", label: "Profile", icon: FiUser, path: "/student/profile" },
+  { id: "settings", label: "Settings", icon: FiSettings, path: "/student/settings" },
 ];
 
 function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      const token = localStorage.getItem("neurosync_token");
+      if (!token) return;
+      try {
+        const res = await fetch("http://localhost:5000/api/notifications/unread-count", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (err) {
+        console.error("Sidebar fetch unread count error:", err);
+      }
+    };
+
+    fetchUnreadCount();
+  }, [activeTab]);
 
   const handleNavClick = (item) => {
     if (setActiveTab) {
@@ -82,9 +105,10 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
           {/* Navigation Items */}
           <nav>
             <ul className="ns-nav-list">
-              {navItems.map((item) => {
+              {navItemsList.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
+                const showBadge = item.id === "notifications" && unreadCount > 0;
                 return (
                   <li key={item.id} className={`ns-nav-item ${isActive ? "active" : ""}`}>
                     <button
@@ -93,9 +117,9 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
                     >
                       <Icon className="ns-nav-icon" />
                       <span className="flex-grow-1">{item.label}</span>
-                      {item.badge && (
+                      {showBadge && (
                         <span className="badge rounded-pill bg-primary px-2 py-1" style={{ fontSize: "0.7rem" }}>
-                          {item.badge}
+                          {unreadCount}
                         </span>
                       )}
                     </button>

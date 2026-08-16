@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiSearch, FiBell, FiMenu, FiUser, FiSettings, FiLogOut, FiChevronDown } from "react-icons/fi";
 
@@ -6,6 +6,30 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  const [recentUnread, setRecentUnread] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchTopNavNotifications = async () => {
+      const token = localStorage.getItem("neurosync_token");
+      if (!token) return;
+      try {
+        const res = await fetch("http://localhost:5000/api/notifications?filter=Unread&limit=4", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setRecentUnread(data.data || []);
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (err) {
+        console.error("TopNavbar notification fetch error:", err);
+      }
+    };
+
+    fetchTopNavNotifications();
+  }, [showNotifications]);
 
   const handleLogout = () => {
     localStorage.removeItem("neurosync_current_user");
@@ -56,10 +80,12 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
             title="Notifications"
           >
             <FiBell size={18} />
-            <span 
-              className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-dark rounded-circle"
-              style={{ width: "10px", height: "10px" }}
-            ></span>
+            {unreadCount > 0 && (
+              <span 
+                className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-dark rounded-circle"
+                style={{ width: "10px", height: "10px" }}
+              />
+            )}
           </button>
 
           {/* Notifications Popover */}
@@ -67,7 +93,7 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
             <div 
               className="position-absolute end-0 mt-2 p-3 rounded-4 shadow-lg text-white"
               style={{
-                width: "300px",
+                width: "320px",
                 background: "#0F172A",
                 border: "1px solid rgba(255, 255, 255, 0.12)",
                 backdropFilter: "blur(20px)",
@@ -76,22 +102,41 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
             >
               <div className="d-flex align-items-center justify-content-between mb-2">
                 <h6 className="fw-bold mb-0 fs-6">Notifications</h6>
-                <span className="badge bg-primary rounded-pill">3 New</span>
+                <span className="badge bg-primary rounded-pill">{unreadCount} New</span>
               </div>
-              <div className="d-flex flex-column gap-2" style={{ fontSize: "0.83rem" }}>
-                <div className="p-2 rounded bg-white bg-opacity-10">
-                  <div className="fw-semibold">Study Goal Alert</div>
-                  <div className="text-muted" style={{ fontSize: "0.78rem" }}>2 hours left to hit today's focus target!</div>
-                </div>
-                <div className="p-2 rounded bg-white bg-opacity-5">
-                  <div className="fw-semibold">Upcoming Exam</div>
-                  <div className="text-muted" style={{ fontSize: "0.78rem" }}>DBMS Assignment due tomorrow</div>
-                </div>
-                <div className="p-2 rounded bg-white bg-opacity-5">
-                  <div className="fw-semibold">AI Assistant Feedback</div>
-                  <div className="text-muted" style={{ fontSize: "0.78rem" }}>Weekly cognitive health report ready</div>
-                </div>
+              <div className="d-flex flex-column gap-2 mb-2" style={{ fontSize: "0.83rem", maxHeight: "240px", overflowY: "auto" }}>
+                {recentUnread.length > 0 ? (
+                  recentUnread.map((item) => (
+                    <div 
+                      key={item._id} 
+                      className="p-2 rounded bg-white bg-opacity-10 cursor-pointer"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        setShowNotifications(false);
+                        if (item.link) navigate(item.link);
+                        else navigate("/student/notifications");
+                      }}
+                    >
+                      <div className="fw-semibold text-truncate">{item.title}</div>
+                      <div className="text-muted text-truncate" style={{ fontSize: "0.78rem" }}>{item.message}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-3 text-center text-muted" style={{ fontSize: "0.8rem" }}>
+                    No unread notifications right now.
+                  </div>
+                )}
               </div>
+              <button
+                className="btn btn-sm btn-outline-primary w-100 rounded-pill mt-1"
+                style={{ fontSize: "0.78rem" }}
+                onClick={() => {
+                  setShowNotifications(false);
+                  navigate("/student/notifications");
+                }}
+              >
+                View All Notifications →
+              </button>
             </div>
           )}
         </div>
@@ -152,7 +197,7 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
                   style={{ fontSize: "0.88rem" }}
                   onClick={() => {
                     setShowProfileMenu(false);
-                    navigate("/student/profile");
+                    navigate("/student/settings");
                   }}
                 >
                   <FiSettings /> Account Settings

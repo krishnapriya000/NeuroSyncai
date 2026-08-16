@@ -14,11 +14,15 @@ import StudentStudyPlanner from "./pages/StudentStudyPlanner";
 import StudentGoals from "./pages/StudentGoals";
 import StudentAICompanion from "./pages/StudentAICompanion";
 import StudentFocusTimer from "./pages/StudentFocusTimer";
+import StudentProgress from "./pages/StudentProgress";
+import StudentNotifications from "./pages/StudentNotifications";
+import StudentSettings from "./pages/StudentSettings";
 import ParentDashboard from "./pages/ParentDashboard";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
 import ProfessionalCheckIn from "./pages/ProfessionalCheckIn";
 import ProfessionalMoodStress from "./pages/ProfessionalMoodStress";
+import ProfessionalWorkLifeBalance from "./pages/ProfessionalWorkLifeBalance";
 import SeniorDashboard from "./pages/SeniorDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getLoginRedirectPathForUser } from "./utils/roleUtils";
@@ -156,6 +160,30 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route 
+          path="/student/progress" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentProgress />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/notifications" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentNotifications />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/settings" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentSettings />
+            </ProtectedRoute>
+          } 
+        />
 
         {/* Parent Dashboard Route */}
         <Route 
@@ -203,6 +231,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Working Professional"]}>
               <ProfessionalMoodStress />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/professional/work-life-balance" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <ProfessionalWorkLifeBalance />
             </ProtectedRoute>
           } 
         />

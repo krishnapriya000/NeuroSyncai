@@ -41,7 +41,55 @@ function StudentFocusTimer() {
         if (u.fullName || u.name) setStudentName(u.fullName || u.name);
       } catch (e) {}
     }
+
+    // Fetch initial focus session summary for today
+    const fetchTodayFocus = async () => {
+      const token = localStorage.getItem("neurosync_token");
+      if (!token) return;
+      try {
+        const res = await fetch("http://localhost:5000/api/focus/today", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setCompletedSessions(data.completedCount || 0);
+        }
+      } catch (err) {
+        console.error("Error fetching focus summary:", err);
+      }
+    };
+
+    fetchTodayFocus();
   }, []);
+
+  const handleSessionComplete = async () => {
+    const token = localStorage.getItem("neurosync_token");
+    if (activeMode === "pomodoro") {
+      setCompletedSessions((prev) => prev + 1);
+      if (token) {
+        try {
+          await fetch("http://localhost:5000/api/focus/session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              durationMinutes: 25,
+              taskName: selectedTask || "General Study & Revision",
+            }),
+          });
+        } catch (err) {
+          console.error("Error logging focus session:", err);
+        }
+      }
+      alert("🎉 Focus Session Completed! Time to take a short break.");
+      switchMode("shortBreak");
+    } else {
+      alert("Break over! Ready to lock back in?");
+      switchMode("pomodoro");
+    }
+  };
 
   // Timer interval countdown
   useEffect(() => {
@@ -52,14 +100,7 @@ function StudentFocusTimer() {
       }, 1000);
     } else if (timeLeft === 0 && isRunning) {
       setIsRunning(false);
-      if (activeMode === "pomodoro") {
-        setCompletedSessions((prev) => prev + 1);
-        alert("🎉 Focus Session Completed! Time to take a short break.");
-        switchMode("shortBreak");
-      } else {
-        alert("Break over! Ready to lock back in?");
-        switchMode("pomodoro");
-      }
+      handleSessionComplete();
     }
     return () => clearInterval(timer);
   }, [isRunning, timeLeft, activeMode]);

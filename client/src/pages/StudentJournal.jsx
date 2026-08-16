@@ -33,6 +33,89 @@ const moodOptions = [
   { id: "Anxious", label: "Anxious", emoji: "😰", color: "#EC4899" },
 ];
 
+const getTimeGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "Good morning 🌤️";
+  if (hour >= 12 && hour < 17) return "Good afternoon ☀️";
+  if (hour >= 17 && hour < 21) return "Good evening 🌙";
+  return "Take a quiet moment before you end your day 🌙";
+};
+
+const calculateJournalStreak = (entries) => {
+  if (!entries || entries.length === 0) return 0;
+  const formatDateStr = (dateObj) => {
+    const d = new Date(dateObj);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  const dates = [...new Set(entries.map((j) => formatDateStr(j.createdAt)))].sort((a, b) => (a < b ? 1 : -1));
+  if (dates.length === 0) return 0;
+
+  const todayStr = formatDateStr(new Date());
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = formatDateStr(yesterday);
+
+  let streak = 0;
+  if (dates.includes(todayStr) || dates.includes(yesterdayStr)) {
+    let curr = dates.includes(todayStr) ? new Date() : yesterday;
+    while (true) {
+      const dStr = formatDateStr(curr);
+      if (dates.includes(dStr)) {
+        streak++;
+        curr.setDate(curr.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+  }
+  return streak;
+};
+
+const generatePersonalizedMessage = (entries, latestMoodTracker) => {
+  const total = entries ? entries.length : 0;
+
+  if (total === 0) {
+    return "Start by writing what's on your mind today. There is no right or wrong way to journal. 🌱";
+  }
+
+  if (total === 1) {
+    return "You've taken the first step toward understanding your thoughts. Keep going! 💙";
+  }
+
+  const streak = calculateJournalStreak(entries);
+  if (streak >= 2) {
+    return `You've journaled for ${streak} days in a row! Your consistency is something to be proud of. 🔥`;
+  }
+
+  const latestEntry = entries[0];
+  const now = new Date();
+  const daysSinceLast = Math.floor((now - new Date(latestEntry.createdAt)) / (1000 * 60 * 60 * 24));
+
+  if (daysSinceLast >= 3) {
+    return "It's been a little while since your last journal entry. Take a few minutes today to check in with yourself. 💙";
+  }
+
+  // Mood Integration
+  const currentMood = (latestMoodTracker || latestEntry.mood || "").toLowerCase();
+  if (currentMood.includes("stress") || currentMood.includes("sad") || currentMood.includes("anxious") || currentMood.includes("angry") || currentMood.includes("tired")) {
+    return "You seem to have had a stressful day. Writing your thoughts down may help you organize what you're feeling. Take your time. 💙";
+  }
+
+  if (currentMood.includes("happy") || currentMood.includes("great") || currentMood.includes("calm") || currentMood.includes("energetic")) {
+    return "It looks like you've been having some positive moments lately. Capture what made today meaningful. 😊";
+  }
+
+  if (currentMood.includes("neutral") || currentMood.includes("okay")) {
+    return "Take a moment to reflect on how your day went. Even small thoughts are worth writing down. 🌱";
+  }
+
+  return "You're building a healthy journaling habit. Keep giving yourself time to reflect. 🌱";
+};
+
 function StudentJournal() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("journal");
@@ -41,6 +124,7 @@ function StudentJournal() {
 
   // Data state
   const [journals, setJournals] = useState([]);
+  const [latestTrackerMood, setLatestTrackerMood] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
@@ -95,6 +179,18 @@ function StudentJournal() {
     }
 
     try {
+      // Fetch latest mood from Mood Tracker safely
+      fetch("http://localhost:5000/api/moodtracker/latest", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.success && data.data && data.data.mood) {
+            setLatestTrackerMood(data.data.mood);
+          }
+        })
+        .catch((err) => console.error("Error fetching mood tracker for journal message:", err));
+
       const response = await fetch("http://localhost:5000/api/journal", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -380,6 +476,41 @@ function StudentJournal() {
             <FiPlus size={20} />
             <span>New Entry</span>
           </button>
+        </div>
+
+        {/* A Message for You 💙 Card */}
+        <div
+          className="ns-card mb-4 p-4 position-relative overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(88, 28, 135, 0.25) 100%)",
+            border: "1px solid rgba(139, 92, 246, 0.3)",
+            borderRadius: "16px",
+          }}
+        >
+          <div className="d-flex align-items-center justify-content-between mb-2">
+            <h5 className="text-white fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "1.1rem" }}>
+              A Message for You 💙
+            </h5>
+            <span
+              className="badge rounded-pill px-3 py-1"
+              style={{
+                background: "rgba(139, 92, 246, 0.2)",
+                color: "#C084FC",
+                border: "1px solid rgba(139, 92, 246, 0.3)",
+                fontSize: "0.75rem",
+              }}
+            >
+              Personalized Reflection
+            </span>
+          </div>
+
+          <div className="text-white fw-semibold mb-1" style={{ fontSize: "0.95rem" }}>
+            {getTimeGreeting()}
+          </div>
+
+          <p className="text-white-50 mb-0" style={{ fontSize: "0.93rem", lineHeight: "1.55" }}>
+            "{generatePersonalizedMessage(journals, latestTrackerMood)}"
+          </p>
         </div>
 
         {/* Success Feedback Alert */}

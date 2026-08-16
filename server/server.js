@@ -21,6 +21,9 @@ const professionalRoutes = require("./routes/professionalRoutes");
 const studyTaskRoutes = require("./routes/studyTaskRoutes");
 const goalRoutes = require("./routes/goalRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const focusRoutes = require("./routes/focusRoutes");
+const progressRoutes = require("./routes/progressRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const { getLatestCheckIn } = require("./controllers/studentController");
 
@@ -40,6 +43,9 @@ app.use("/api/journal", journalRoutes);
 app.use("/api/study-tasks", studyTaskRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/focus", focusRoutes);
+app.use("/api/progress", progressRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.get("/api/dailycheckin/latest", protect, getLatestCheckIn);
 
 // Test Route

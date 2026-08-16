@@ -45,6 +45,8 @@ function ProfessionalSidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
       navigate("/professional/checkin");
     } else if (id === "mood" || id === "mood-stress") {
       navigate("/professional/mood-stress");
+    } else if (id === "balance" || id === "work-life-balance") {
+      navigate("/professional/work-life-balance");
     } else if (id === "overview") {
       navigate("/professional/dashboard");
     }

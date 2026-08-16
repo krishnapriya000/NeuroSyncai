@@ -342,6 +342,12 @@ select::placeholder {
   flex-shrink: 0;
 }
 
+.ns-stat-icon-wrapper.study {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
 .ns-stat-icon-wrapper.mood {
   background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(139, 92, 246, 0.2));
   border: 1px solid rgba(236, 72, 153, 0.3);
@@ -355,15 +361,22 @@ select::placeholder {
 }
 
 .ns-stat-icon-wrapper.focus {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(20, 184, 166, 0.2));
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #60a5fa;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c084fc;
 }
 
 .ns-stat-icon-wrapper.goals {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2));
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: #34d399;
+}
+
+.ns-stat-icon-wrapper.sm {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 1.25rem;
 }
 
 .ns-stat-label {
