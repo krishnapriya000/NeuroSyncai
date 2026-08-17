@@ -11,8 +11,7 @@ function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    userType: "",
-    termsAccepted: false
+    userType: ""
   });
 
   // UI States
@@ -89,10 +88,6 @@ function Register() {
       newErrors.userType = "Please select your user category";
     }
 
-    if (!formData.termsAccepted) {
-      newErrors.termsAccepted = "You must agree to the Terms of Service & Privacy Policy";
-    }
-
     return newErrors;
   };
 
@@ -152,8 +147,7 @@ function Register() {
         email: "",
         password: "",
         confirmPassword: "",
-        userType: "",
-        termsAccepted: false
+        userType: ""
       });
 
       // Redirect after 1.5 seconds
@@ -320,24 +314,6 @@ function Register() {
             </select>
             {errors.userType && (
               <div className="field-error-text">⚠️ {errors.userType}</div>
-            )}
-          </div>
-
-          {/* Terms & Conditions Checkbox */}
-          <div className="mb-3 form-check">
-            <input
-              id="termsAccepted"
-              name="termsAccepted"
-              type="checkbox"
-              className="form-check-input"
-              checked={formData.termsAccepted}
-              onChange={handleChange}
-            />
-            <label htmlFor="termsAccepted" className="form-check-label small text-secondary">
-              I agree to NeuroSync's <a href="#" className="forgot-link">Terms of Service</a> & <a href="#" className="forgot-link">Privacy Policy</a>
-            </label>
-            {errors.termsAccepted && (
-              <div className="field-error-text">⚠️ {errors.termsAccepted}</div>
             )}
           </div>
 
