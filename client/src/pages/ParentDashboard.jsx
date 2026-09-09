@@ -14,6 +14,7 @@ function ParentDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [parentName, setParentName] = useState("Parent User");
+  const [dependentsCount, setDependentsCount] = useState(0);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("neurosync_current_user");
@@ -27,6 +28,24 @@ function ParentDashboard() {
         console.error("Error parsing stored user:", e);
       }
     }
+
+    const fetchChildrenCount = async () => {
+      const token = localStorage.getItem("neurosync_token");
+      if (!token) return;
+      try {
+        const res = await fetch("http://localhost:5000/api/parent/children", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setDependentsCount(data.count || 0);
+        }
+      } catch (e) {
+        console.error("Error fetching parent dependents count:", e);
+      }
+    };
+
+    fetchChildrenCount();
   }, []);
 
   const handleTalkToAI = () => {
@@ -90,8 +109,8 @@ function ParentDashboard() {
           <div className="col-12 col-sm-6 col-xl-3">
             <StatCard 
               title="Active Dependents"
-              value="2 Tracked"
-              trend="All synced"
+              value={`${dependentsCount} Tracked`}
+              trend={dependentsCount > 0 ? "All synced" : "Add your first child"}
               icon={FiUsers}
               type="streak"
             />

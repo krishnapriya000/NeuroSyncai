@@ -3,15 +3,77 @@ const MoodTracker = require("../models/MoodTracker");
 const StudyTask = require("../models/StudyTask");
 const Goal = require("../models/Goal");
 const Journal = require("../models/Journal");
+const User = require("../models/User");
+const ProfessionalCheckIn = require("../models/ProfessionalCheckIn");
+const ProfessionalProfile = require("../models/ProfessionalProfile");
+const FocusSession = require("../models/FocusSession");
 
 /**
- * Retrieves authenticated student context safely for AI personalized responses.
- * Only retrieves data belonging to the requested student ID.
+ * Retrieves authenticated user context safely for AI personalized responses.
+ * Detects whether the user is a Working Professional or Student and builds appropriate context.
  */
 async function getUserContext(userId) {
   try {
-    const todayStr = new Date().toISOString().split("T")[0];
+    const user = await User.findById(userId).select("fullName email role").lean();
+    const isProfessional = user?.role === "Working Professional";
 
+    if (isProfessional) {
+      const todayStr = new Date().toISOString().split("T")[0];
+
+      const [latestProfCheckIn, profProfile, focusSessions, recentJournals] = await Promise.all([
+        ProfessionalCheckIn.findOne({ userId }).sort({ createdAt: -1 }).lean(),
+        ProfessionalProfile.findOne({ userId }).lean(),
+        FocusSession.find({ userId }).sort({ createdAt: -1 }).lean(),
+        Journal.find({ userId }).sort({ createdAt: -1 }).limit(3).lean(),
+      ]);
+
+      const totalFocusMinutes = focusSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+      const sessionCount = focusSessions.length;
+      const avgDuration = sessionCount > 0 ? Math.round(totalFocusMinutes / sessionCount) : 0;
+
+      return {
+        role: "Working Professional",
+        userName: user?.fullName || "Professional",
+        profCheckIn: latestProfCheckIn
+          ? {
+              mood: latestProfCheckIn.mood,
+              stressLevel: latestProfCheckIn.stressLevel,
+              energyLevel: latestProfCheckIn.energyLevel,
+              focusLevel: latestProfCheckIn.focusLevel,
+              workingHours: latestProfCheckIn.workingHours,
+              breaksTaken: latestProfCheckIn.breaksTaken,
+              workLifeBalance: latestProfCheckIn.workLifeBalance,
+              workPressure: latestProfCheckIn.workPressure,
+              sleepHours: latestProfCheckIn.sleepHours,
+              date: latestProfCheckIn.date,
+            }
+          : null,
+        profProfile: profProfile
+          ? {
+              jobTitle: profProfile.jobTitle,
+              company: profProfile.company,
+              workType: profProfile.workType,
+              wellnessGoal: profProfile.wellnessGoal,
+              dailyFocusGoal: profProfile.dailyFocusGoal,
+              preferredBreakDuration: profProfile.preferredBreakDuration,
+              avgSleepHours: profProfile.avgSleepHours,
+            }
+          : null,
+        focusStats: {
+          totalMinutes: totalFocusMinutes,
+          sessionCount: sessionCount,
+          avgDurationMinutes: avgDuration,
+          recentSessions: focusSessions.slice(0, 5).map((s) => ({
+            taskName: s.taskName,
+            duration: s.durationMinutes,
+            date: s.date,
+          })),
+        },
+        recentJournalMoods: recentJournals.map((j) => j.mood).filter(Boolean),
+      };
+    }
+
+    // Default: Student Context
     const [latestCheckIn, latestMood, pendingTasks, activeGoals, recentJournals] = await Promise.all([
       DailyCheckIn.findOne({ studentId: userId }).sort({ createdAt: -1 }).lean(),
       MoodTracker.findOne({ studentId: userId }).sort({ createdAt: -1 }).lean(),
@@ -20,8 +82,8 @@ async function getUserContext(userId) {
       Journal.find({ userId }).sort({ createdAt: -1 }).limit(3).lean(),
     ]);
 
-    // Format safe context object (no unnecessary raw personal text)
     return {
+      role: "Student",
       checkIn: latestCheckIn
         ? {
             feeling: latestCheckIn.feeling,
@@ -64,13 +126,11 @@ async function getUserContext(userId) {
         .filter(Boolean),
     };
   } catch (error) {
-    console.error("Error building AI student context:", error);
+    console.error("Error building AI user context:", error);
     return {
+      role: "Unknown",
       checkIn: null,
       mood: null,
-      studyTasks: { pendingCount: 0, tasks: [] },
-      goals: { activeCount: 0, goals: [] },
-      recentJournalMoods: [],
     };
   }
 }
@@ -82,25 +142,24 @@ function classifyIntent(prompt) {
   const p = prompt.toLowerCase();
 
   if (
-    p.includes("study") ||
+    p.includes("workday") ||
     p.includes("plan") ||
-    p.includes("revision") ||
-    p.includes("exam") ||
-    p.includes("subject") ||
-    p.includes("assignment") ||
     p.includes("schedule") ||
-    p.includes("homework")
+    p.includes("task") ||
+    p.includes("priorit") ||
+    p.includes("agenda") ||
+    p.includes("organize")
   ) {
-    return "study";
+    return "planning";
   }
 
   if (
     p.includes("focus") ||
-    p.includes("pomodoro") ||
-    p.includes("distract") ||
-    p.includes("break") ||
     p.includes("concentrat") ||
-    p.includes("productivity")
+    p.includes("deep work") ||
+    p.includes("distract") ||
+    p.includes("pomodoro") ||
+    p.includes("productiv")
   ) {
     return "focus";
   }
@@ -108,35 +167,140 @@ function classifyIntent(prompt) {
   if (
     p.includes("stress") ||
     p.includes("anxious") ||
-    p.includes("sad") ||
-    p.includes("overwhelmed") ||
-    p.includes("mood") ||
-    p.includes("relax") ||
-    p.includes("tired") ||
-    p.includes("feel") ||
     p.includes("burnout") ||
-    p.includes("coping")
+    p.includes("overwhelmed") ||
+    p.includes("pressure") ||
+    p.includes("tired") ||
+    p.includes("exhausted")
   ) {
     return "wellness";
   }
 
   if (
-    p.includes("goal") ||
-    p.includes("target") ||
-    p.includes("reach") ||
-    p.includes("achieve") ||
-    p.includes("milestone")
+    p.includes("balance") ||
+    p.includes("break") ||
+    p.includes("rest") ||
+    p.includes("work-life") ||
+    p.includes("pause") ||
+    p.includes("shutdown")
   ) {
-    return "goals";
+    return "balance";
+  }
+
+  if (
+    p.includes("analyze") ||
+    p.includes("analytics") ||
+    p.includes("progress") ||
+    p.includes("score") ||
+    p.includes("history") ||
+    p.includes("week")
+  ) {
+    return "analytics";
   }
 
   return "general";
 }
 
 /**
- * Fallback Context Engine for intelligent personalized responses when external API key is not provided.
+ * Intelligent Fallback Engine for Working Professionals when AI API key is not configured.
+ */
+function generateProfessionalFallback(prompt, context) {
+  const p = prompt.toLowerCase();
+  const intent = classifyIntent(prompt);
+
+  const mood = context.profCheckIn?.mood || "Balanced";
+  const stressLevel = context.profCheckIn?.stressLevel || 2;
+  const energyLevel = context.profCheckIn?.energyLevel || 4;
+  const focusLevel = context.profCheckIn?.focusLevel || 4;
+  const workLifeBalance = context.profCheckIn?.workLifeBalance || 4;
+  const workingHours = context.profCheckIn?.workingHours || 8;
+  const totalFocusMins = context.focusStats?.totalMinutes || 0;
+  const sessionCount = context.focusStats?.sessionCount || 0;
+  const jobTitle = context.profProfile?.jobTitle || "Professional";
+  const wellnessGoal = context.profProfile?.wellnessGoal || "Maintain Work-Life Balance";
+
+  let responseContent = "";
+
+  if (p.includes("plan my workday") || p.includes("plan my day") || (intent === "planning" && p.includes("plan"))) {
+    responseContent = `Here is a structured workday plan tailored to your profile (${jobTitle}) and current energy level (${energyLevel}/5):\n\n` +
+      `🌅 **Morning Peak Focus Block (9:00 AM - 11:30 AM)**\n` +
+      `• Dedicate your highest mental energy to top-priority projects or high-friction deliverables.\n` +
+      `• Minimize email & chat notifications during this 2.5-hour block.\n\n` +
+      `🥗 **Midday Reset & Recharge (12:30 PM - 1:30 PM)**\n` +
+      `• Step away from your workspace for lunch.\n` +
+      `• Take a 15-minute outdoors walk or screen-free rest break.\n\n` +
+      `💻 **Afternoon Execution & Meetings (2:00 PM - 4:30 PM)**\n` +
+      `• Handle collaborative tasks, team syncs, and administrative work.\n` +
+      `• Run a 25-minute NeuroSync Focus Session for remaining tasks.\n\n` +
+      `📊 **End-of-Day Shutdown Ritual (4:45 PM - 5:00 PM)**\n` +
+      `• Review completed milestones and clear your desk to protect your work-life balance.\n\n` +
+      `Would you like me to adjust this plan based on specific meetings you have scheduled today?`;
+  } else if (p.includes("focus") || intent === "focus") {
+    responseContent = `To elevate your focus and concentration today:\n\n` +
+      `• **Current Focus Activity**: You have completed **${sessionCount} focus session(s)** totaling **${totalFocusMins} minutes**.\n` +
+      `• **Focus Rating Logged**: ${focusLevel}/5\n\n` +
+      `**Recommended Deep Work Strategy:**\n` +
+      `1. **Single-Tasking**: Focus on ONE key milestone without context switching.\n` +
+      `2. **Timeboxing**: Launch a 25-minute or 45-minute NeuroSync Focus Session.\n` +
+      `3. **Environment Prep**: Put phone notifications on silent and close non-essential browser tabs.\n\n` +
+      `Your recent activity shows stronger productivity during the morning. I'd suggest using your first focus block for your highest-priority task, followed by a short break!`;
+  } else if (p.includes("stress") || intent === "wellness") {
+    responseContent = `I understand work can feel overwhelming at times, and I'm here to support you.\n\n` +
+      `• **Logged Stress Level**: ${stressLevel}/5 (${stressLevel >= 4 ? "High Stress" : stressLevel === 3 ? "Moderate Stress" : "Low Stress"})\n` +
+      `• **Current Mood**: ${mood}\n\n` +
+      `**Immediate Stress Relief Sprints:**\n` +
+      `1. **Box Breathing**: Inhale deeply for 4s, hold for 4s, exhale for 4s. Repeat 3 times.\n` +
+      `2. **Simplify & De-scope**: Pick just ONE urgent task to focus on; delegate or postpone less critical items.\n` +
+      `3. **Hydration & Movement**: Step away from your desk for 5 minutes and grab a glass of water.\n\n` +
+      `*Note: Your wellbeing comes first. If work stress persists or becomes severe, consider speaking with a trusted colleague, manager, or professional counselor.*`;
+  } else if (p.includes("balance") || p.includes("break") || intent === "balance") {
+    responseContent = `Maintaining a healthy work-life balance is crucial for long-term productivity and avoiding burnout.\n\n` +
+      `• **Work-Life Balance Score**: ${workLifeBalance}/5\n` +
+      `• **Logged Working Hours**: ${workingHours} hours\n` +
+      `• **Primary Goal**: ${wellnessGoal}\n\n` +
+      `**Actionable Recommendations:**\n` +
+      `• **Micro-Breaks**: Take a 5-minute movement break for every 50 minutes of continuous computer work.\n` +
+      `• **Hard Boundary**: Set a strict log-off time this evening to disconnect from work communications.\n` +
+      `• **Unwind Ritual**: Plan an evening activity completely detached from work (exercise, reading, family time).\n\n` +
+      `Should I remind you to take your next scheduled break?`;
+  } else if (p.includes("prioritize") || p.includes("tasks") || (intent === "planning" && p.includes("priorit"))) {
+    responseContent = `Let's streamline your workload using the Eisenhower Matrix:\n\n` +
+      `1. **Urgent & Important (Do First)**: High-impact deadlines due today. Run a dedicated Focus Session for these.\n` +
+      `2. **Important, Not Urgent (Schedule)**: Strategic planning and deep work. Block time on your calendar.\n` +
+      `3. **Urgent, Not Important (Delegate/Streamline)**: Quick status updates and routine communications.\n` +
+      `4. **Neither (Eliminate)**: Non-essential meetings or low-value tasks.\n\n` +
+      `Which task on your plate right now feels like the biggest roadblock? We can break it down together!`;
+  } else if (p.includes("analyze") || p.includes("productivity") || intent === "analytics") {
+    responseContent = `Here is your personalized workplace productivity & wellbeing synthesis based on your activity data:\n\n` +
+      `• **Focus Session Time**: ${totalFocusMins} minutes across ${sessionCount} completed session(s)\n` +
+      `• **Energy Rating**: ${energyLevel}/5\n` +
+      `• **Focus Rating**: ${focusLevel}/5\n` +
+      `• **Stress Index**: ${stressLevel}/5\n` +
+      `• **Work-Life Balance Rating**: ${workLifeBalance}/5\n\n` +
+      `**Key Insight**: Your recent activity shows consistent focus during structured sessions. To maximize productivity without increasing fatigue, maintain regular micro-breaks between deep work sprints.`;
+  } else if (p.includes("hello") || p.includes("hi") || p.includes("hey")) {
+    responseContent = `Hello! 👋 I'm your NeuroSync AI Companion.\n\n` +
+      `I'm here to help you work smarter while maintaining a healthy work-life balance. How can I support you today? You can ask me to help plan your workday, optimize your focus, manage workplace stress, or analyze your productivity!`;
+  } else {
+    responseContent = `Thank you for sharing. Based on your NeuroSync profile (${jobTitle}, Stress Level: ${stressLevel}/5, Focus Rating: ${focusLevel}/5):\n\n` +
+      `I can help you optimize your workload, design a deep work schedule, or guide you through a stress-reduction strategy.\n\n` +
+      `Would you like to focus on **daily planning**, **focus enhancement**, or **work-life balance** today?`;
+  }
+
+  return {
+    content: responseContent,
+    category: intent,
+  };
+}
+
+/**
+ * Intelligent Fallback Engine for Students.
  */
 function generateContextualFallback(prompt, context) {
+  if (context.role === "Working Professional") {
+    return generateProfessionalFallback(prompt, context);
+  }
+
   const intent = classifyIntent(prompt);
   const p = prompt.toLowerCase();
 
@@ -150,8 +314,7 @@ function generateContextualFallback(prompt, context) {
   const activeGoalsCount = context.goals?.activeCount || 0;
   const topGoal = context.goals?.goals[0]?.title || context.checkIn?.mainGoal || "your academic targets";
 
-  // Intent 1: Study Planning & Revision
-  if (intent === "study" || p.includes("plan my study") || p.includes("create a study plan")) {
+  if (intent === "planning" || p.includes("study") || p.includes("plan my study")) {
     category = "study";
 
     if (p.includes("plan") || p.includes("schedule") || p.includes("create")) {
@@ -184,82 +347,30 @@ function generateContextualFallback(prompt, context) {
           ? `*Note: Since your current stress level is elevated (${stressLevel}/10), remember to take 10-minute breaks between sessions.*`
           : `*Working in focused 30-45 minute blocks will maximize your retention today.*`) +
         `\n\nWould you like me to add these tasks to your Study Planner?`;
-    } else if (p.includes("progress")) {
-      responseContent = `Here is your current study progress:\n\n` +
-        `• **Pending Tasks**: ${pendingCount} task${pendingCount === 1 ? "" : "s"} waiting for review.\n` +
-        `• **Current Mood**: ${currentMood}\n` +
-        `• **Stress Level**: ${stressLevel}/10\n\n` +
-        (pendingCount > 0
-          ? `You have ${pendingCount} pending task(s). Tackling the highest-priority task first will help lower your workload.`
-          : `Awesome work! All your study tasks are up to date. You can use this time to review previous notes or start a focus session.`);
     } else {
       responseContent = `To optimize your study session today:\n\n` +
         `1. **Active Recall**: Quiz yourself on key concepts instead of passive reading.\n` +
         `2. **Spaced Repetition**: Review difficult subjects right before concluding your day.\n` +
-        `3. **Targeted Focus**: Right now you have ${pendingCount} pending task(s). Split them into 25-minute Pomodoro sprints.\n\n` +
-        `Would you like me to generate a structured daily study plan for you?`;
+        `3. **Targeted Focus**: Right now you have ${pendingCount} pending task(s). Split them into 25-minute Pomodoro sprints.`;
     }
-  }
-  // Intent 2: Focus & Productivity
-  else if (intent === "focus") {
+  } else if (intent === "focus") {
     category = "focus";
     responseContent = `Here are tailored techniques to sharpen your focus today:\n\n` +
       `• **Pomodoro Method**: Work for 25 minutes with complete focus, followed by a 5-minute break.\n` +
       `• **Environment Setup**: Eliminate phone notifications and close irrelevant browser tabs.\n` +
-      `• **Single-Tasking**: Focus on one pending task out of your ${pendingCount} tasks instead of multitasking.\n\n` +
-      `You can launch a **Focus Timer** session anytime using the Quick Actions panel on the right!`;
-  }
-  // Intent 3: Emotional Wellness & Stress Support
-  else if (intent === "wellness") {
+      `• **Single-Tasking**: Focus on one pending task out of your ${pendingCount} tasks instead of multitasking.`;
+  } else if (intent === "wellness") {
     category = "wellness";
-
-    if (p.includes("stress") || p.includes("overwhelmed") || p.includes("anxious") || p.includes("sad")) {
-      responseContent = `It sounds like you're having a difficult moment right now, and that is completely okay.\n\n` +
-        `Here are a few quick steps you can try right now:\n` +
-        `1. **Slow Box Breathing**: Inhale deeply for 4 seconds, hold for 4 seconds, exhale for 4 seconds.\n` +
-        `2. **Pace Yourself**: With ${pendingCount} pending tasks, pick just ONE small task or step to focus on.\n` +
-        `3. **Take a Brief Break**: Step away from the screen for 5 minutes and drink a glass of water.\n\n` +
-        `Remember, your emotional well-being comes first. If you ever feel in distress, please talk to a trusted friend, family member, or counselor.`;
-    } else if (p.includes("motivation")) {
-      responseContent = `🌟 **NeuroSync Daily Motivation**\n\n` +
-        `"Small, consistent steps lead to massive results."\n\n` +
-        `You've already logged your check-in today with a mood of **${currentMood}**. Keep pushing forward on **${topGoal}** — every study block you complete moves you closer to success!`;
-    } else {
-      responseContent = `Checking in on your emotional well-being is essential for effective learning.\n\n` +
-        `• **Current Mood Logged**: ${currentMood}\n` +
-        `• **Stress Index**: ${stressLevel}/10\n\n` +
-        `Maintaining balance between your studies and rest will boost your mental energy. Try a short relaxation exercise or log your thoughts in your Journal.`;
-    }
-  }
-  // Intent 4: Goals
-  else if (intent === "goals") {
-    category = "goals";
-    responseContent = `Let's work on your goals!\n\n` +
-      `• **Active Goals Count**: ${activeGoalsCount}\n` +
-      `• **Main Target**: ${topGoal}\n\n` +
-      `To reach large milestones easily:\n` +
-      `1. Break ${topGoal} into 3 smaller weekly milestones.\n` +
-      `2. Assign dedicated 45-minute focus sessions to work on each sub-task.\n` +
-      `3. Track your daily completion rate in the **Goals** module!`;
-  }
-  // Intent 5: General & Conversation
-  else {
+    responseContent = `It sounds like you're having a difficult moment right now, and that is completely okay.\n\n` +
+      `Here are a few quick steps you can try right now:\n` +
+      `1. **Slow Box Breathing**: Inhale deeply for 4 seconds, hold for 4 seconds, exhale for 4 seconds.\n` +
+      `2. **Pace Yourself**: Pick just ONE small task or step to focus on.\n` +
+      `3. **Take a Brief Break**: Step away from the screen for 5 minutes and drink a glass of water.\n\n` +
+      `Remember, your well-being comes first.`;
+  } else {
     category = "general";
-    if (p.includes("hello") || p.includes("hi") || p.includes("hey")) {
-      responseContent = `Hello! 👋 I'm your NeuroSync AI Companion. I'm here to support your cognitive growth, study sessions, focus, and emotional well-being.\n\n` +
-        `How can I assist you today? You can ask me to help plan your study session, give focus techniques, or support your daily goals!`;
-    } else if (p.includes("who are you") || p.includes("what can you do")) {
-      responseContent = `I'm NeuroSync AI, your personal cognitive, emotional, and study companion.\n\n` +
-        `I can help you with:\n` +
-        `• **Study Planning & Task Schedules**\n` +
-        `• **Focus & Pomodoro Productivity**\n` +
-        `• **Stress Support & Wellness Exercises**\n` +
-        `• **Goal Tracking & Actionable Milestones**`;
-    } else {
-      responseContent = `I understand you're asking about "${prompt}".\n\n` +
-        `Based on your NeuroSync context (Mood: **${currentMood}**, Pending Tasks: **${pendingCount}**, Active Goals: **${activeGoalsCount}**), ` +
-        `I can assist you with optimizing your study plan, boosting your focus, or guiding you through a stress reduction exercise. How would you like to proceed?`;
-    }
+    responseContent = `Hello! 👋 I'm your NeuroSync AI Companion.\n\n` +
+      `How can I assist you today? You can ask me to help plan your day, give focus techniques, or support your daily goals!`;
   }
 
   return {
@@ -278,41 +389,77 @@ async function generateAIResponse({ userPrompt, userContext, history = [] }) {
 
   if (apiKey) {
     try {
-      // Build context summary for system prompt
-      const contextSummary = `
-Student NeuroSync Live Context:
-- Current Mood: ${userContext.mood?.mood || userContext.checkIn?.feeling || "Not recorded"}
-- Stress Level: ${userContext.checkIn?.stressLevel || "Not recorded"}/10
-- Sleep & Rest: ${userContext.checkIn?.sleepHours || "Not recorded"}
-- Energy Level: ${userContext.checkIn?.energyLevel || "Not recorded"}
-- Pending Study Tasks: ${userContext.studyTasks?.pendingCount || 0}
-- Active Goals: ${userContext.goals?.activeCount || 0}
-- Top Goal: ${userContext.goals?.goals[0]?.title || userContext.checkIn?.mainGoal || "Academic success"}
-`;
+      const isProf = userContext.role === "Working Professional";
 
-      const systemPrompt = `You are NeuroSync AI Companion, a personal cognitive, emotional, and study companion for students.
-Your guidelines:
+      let systemPrompt = "";
+
+      if (isProf) {
+        systemPrompt = `You are NeuroSync AI Companion, a supportive AI assistant designed specifically for working professionals.
+
+Help users with:
+- workplace productivity
+- focus and concentration
+- task prioritization
+- time management
+- work-life balance
+- break management
+- workplace stress
+- workload organization
+- daily planning
+- productivity habits
+- motivation
+- focus sessions
+
+Be conversational, supportive, practical and concise.
+Do not behave like a generic chatbot.
+Use the user's NeuroSync activity data when available to personalize your responses.
+
+Never diagnose medical or mental-health conditions.
+If a user describes serious distress or an emergency, encourage them to seek appropriate professional or emergency support.
+
+Do not judge the user.
+Ask useful follow-up questions when additional context would improve the advice.
+
+Working Professional NeuroSync Live Context:
+- User Name: ${userContext.userName || "Professional"}
+- Job Title: ${userContext.profProfile?.jobTitle || "Working Professional"}
+- Company: ${userContext.profProfile?.company || "Not specified"}
+- Work Type: ${userContext.profProfile?.workType || "Office"}
+- Latest Logged Mood: ${userContext.profCheckIn?.mood || "Not recorded today"}
+- Stress Level: ${userContext.profCheckIn?.stressLevel || "Not recorded"}/5
+- Energy Level: ${userContext.profCheckIn?.energyLevel || "Not recorded"}/5
+- Focus Level: ${userContext.profCheckIn?.focusLevel || "Not recorded"}/5
+- Work-Life Balance: ${userContext.profCheckIn?.workLifeBalance || "Not recorded"}/5
+- Working Hours Today: ${userContext.profCheckIn?.workingHours || "Not recorded"}h
+- Sleep Hours: ${userContext.profCheckIn?.sleepHours || context.profProfile?.avgSleepHours || "7.5"}h
+- Completed Focus Sessions: ${userContext.focusStats?.sessionCount || 0} session(s) (${userContext.focusStats?.totalMinutes || 0} total focus minutes)
+- Wellness Goal: ${userContext.profProfile?.wellnessGoal || "Maintain Work-Life Balance"}
+`;
+      } else {
+        systemPrompt = `You are NeuroSync AI Companion, a personal cognitive, emotional, and study companion for students.
+Guidelines:
 1. Be concise, friendly, student-focused, supportive, and action-oriented.
 2. Use bullet points and clean markdown formatting where useful.
-3. NEVER claim to be a doctor, therapist, or human. Do NOT diagnose mental health conditions. Use supportive language like "It sounds like you're having a difficult moment."
+3. NEVER claim to be a doctor, therapist, or human. Do NOT diagnose mental health conditions.
 4. Incorporate the student's NeuroSync context naturally when relevant.
-5. If the student asks to create a study plan or schedule for today, suggest 2-3 specific study sessions with subjects and time durations (e.g., "1. DBMS — 45 min", "2. Java — 30 min"). Ask if they want to add them to their Study Planner.
 
-${contextSummary}
+Student Context:
+- Mood: ${userContext.mood?.mood || userContext.checkIn?.feeling || "Not recorded"}
+- Stress Level: ${userContext.checkIn?.stressLevel || "Not recorded"}/10
+- Pending Tasks: ${userContext.studyTasks?.pendingCount || 0}
 `;
+      }
 
-      // Make request to Gemini REST API endpoint
       const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
       const contentsArray = [];
-      // Include system prompt as first context
       contentsArray.push({
         role: "user",
         parts: [{ text: `[SYSTEM INSTRUCTIONS]\n${systemPrompt}` }],
       });
       contentsArray.push({
         role: "model",
-        parts: [{ text: "Understood. I am NeuroSync AI, ready to assist the student." }],
+        parts: [{ text: "Understood. I am NeuroSync AI Companion, ready to assist." }],
       });
 
       // Append last 6 history messages
@@ -341,35 +488,9 @@ ${contextSummary}
 
         if (textResponse) {
           const intent = classifyIntent(userPrompt);
-          let suggestedTasks = null;
-
-          if (userPrompt.toLowerCase().includes("plan") || userPrompt.toLowerCase().includes("schedule")) {
-            // Check if study tasks were suggested
-            const tasksList = [];
-            if (userContext.studyTasks?.tasks?.length > 0) {
-              userContext.studyTasks.tasks.slice(0, 3).forEach((t, idx) => {
-                tasksList.push({
-                  title: t.title,
-                  subject: t.subject || "Study",
-                  duration: idx === 0 ? "45 min" : idx === 1 ? "30 min" : "60 min",
-                  priority: t.priority || "High",
-                  category: t.category || "Study",
-                });
-              });
-            } else {
-              tasksList.push(
-                { title: "Core Subject Revision", subject: "DBMS", duration: "45 min", priority: "High", category: "Revision" },
-                { title: "Practical Code Practice", subject: "Java Programming", duration: "30 min", priority: "Medium", category: "Study" },
-                { title: "Project Review", subject: "NeuroSync Project", duration: "60 min", priority: "High", category: "Project" }
-              );
-            }
-            suggestedTasks = tasksList;
-          }
-
           return {
             content: textResponse,
             category: intent,
-            suggestedTasks: suggestedTasks,
           };
         }
       }
@@ -378,7 +499,10 @@ ${contextSummary}
     }
   }
 
-  // Fallback to contextual natural language generator
+  // Fallback to contextual generator
+  if (userContext.role === "Working Professional") {
+    return generateProfessionalFallback(userPrompt, userContext);
+  }
   return generateContextualFallback(userPrompt, userContext);
 }
 
@@ -387,3 +511,4 @@ module.exports = {
   generateAIResponse,
   classifyIntent,
 };
+

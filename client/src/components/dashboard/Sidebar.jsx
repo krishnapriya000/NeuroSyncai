@@ -12,11 +12,17 @@ import {
   FiUser,
   FiSettings, 
   FiLogOut,
-  FiX
+  FiX,
+  FiUsers,
+  FiHeart,
+  FiBarChart2,
+  FiCompass
 } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import Logo from "../Logo";
 
-const navItemsList = [
+// Student Dashboard Navigation Items
+const studentNavItems = [
   { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/student/dashboard" },
   { id: "mood-tracker", label: "Mood Tracker", icon: FiSmile, path: "/student/mood-tracker" },
   { id: "ai-companion", label: "AI Companion", icon: FiCpu, path: "/student/ai-companion" },
@@ -30,9 +36,45 @@ const navItemsList = [
   { id: "settings", label: "Settings", icon: FiSettings, path: "/student/settings" },
 ];
 
+// Parent Dashboard Navigation Items
+const parentNavItems = [
+  { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/parent/dashboard" },
+  { id: "children", label: "Children", icon: FiUsers, path: "/parent/children" },
+  { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/parent/mood-tracker" },
+  { id: "ai-companion", label: "Parenting AI", icon: FiCpu, path: "/parent/ai-companion" },
+  { id: "insights", label: "Insights", icon: FiBarChart2, path: "/parent/insights" },
+  { id: "notifications", label: "Notifications", icon: FiBell, path: "/parent/notifications" },
+  { id: "journal", label: "Parent Journal", icon: FiBookOpen, path: "/parent/journal" },
+  { id: "guidance", label: "Parenting Guidance", icon: FiCompass, path: "/parent/guidance" },
+  { id: "profile", label: "Profile", icon: FiUser, path: "/parent/profile" },
+  { id: "settings", label: "Settings", icon: FiSettings, path: "/parent/settings" },
+];
+
 function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Determine user role and corresponding sidebar navigation
+  let isParent = false;
+  try {
+    const userStr = localStorage.getItem("neurosync_current_user");
+    if (userStr) {
+      const u = JSON.parse(userStr);
+      if (u.role === "Parent") {
+        isParent = true;
+      }
+    }
+  } catch (e) {
+    console.error("Error parsing user role in Sidebar:", e);
+  }
+
+  // Also fallback to URL path check
+  if (location.pathname.startsWith("/parent")) {
+    isParent = true;
+  }
+
+  const currentNavItems = isParent ? parentNavItems : studentNavItems;
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -52,7 +94,7 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
     };
 
     fetchUnreadCount();
-  }, [activeTab]);
+  }, [activeTab, location.pathname]);
 
   const handleNavClick = (item) => {
     if (setActiveTab) {
@@ -87,12 +129,7 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
         <div>
           {/* Logo & Mobile Close */}
           <div className="d-flex align-items-center justify-content-between mb-4 px-2">
-            <Link to="/" className="ns-brand-logo">
-              <div className="ns-brand-icon">
-                <FiCpu />
-              </div>
-              <span className="ns-brand-text">NeuroSync</span>
-            </Link>
+            <Logo />
             <button 
               className="btn text-white-50 p-1 d-lg-none"
               onClick={() => setIsOpen(false)}
@@ -105,10 +142,13 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
           {/* Navigation Items */}
           <nav>
             <ul className="ns-nav-list">
-              {navItemsList.map((item) => {
+              {currentNavItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
+                const isActive = 
+                  (activeTab && activeTab === item.id) || 
+                  location.pathname === item.path;
                 const showBadge = item.id === "notifications" && unreadCount > 0;
+
                 return (
                   <li key={item.id} className={`ns-nav-item ${isActive ? "active" : ""}`}>
                     <button

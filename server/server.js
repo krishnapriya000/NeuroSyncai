@@ -24,6 +24,7 @@ const aiRoutes = require("./routes/aiRoutes");
 const focusRoutes = require("./routes/focusRoutes");
 const progressRoutes = require("./routes/progressRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const parentRoutes = require("./routes/parentRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const { getLatestCheckIn } = require("./controllers/studentController");
 
@@ -36,6 +37,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/parent", parentRoutes);
 app.use("/api/student/emergency", emergencyRoutes);
 app.use("/api/professional", professionalRoutes);
 app.use("/api/moodtracker", moodTrackerRoutes);

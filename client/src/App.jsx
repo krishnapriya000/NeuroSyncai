@@ -18,11 +18,23 @@ import StudentProgress from "./pages/StudentProgress";
 import StudentNotifications from "./pages/StudentNotifications";
 import StudentSettings from "./pages/StudentSettings";
 import ParentDashboard from "./pages/ParentDashboard";
+import ParentChildren from "./pages/ParentChildren";
+import ParentMoodTracker from "./pages/ParentMoodTracker";
+import ParentAICompanion from "./pages/ParentAICompanion";
+import ParentInsights from "./pages/ParentInsights";
+import ParentNotifications from "./pages/ParentNotifications";
+import ParentJournal from "./pages/ParentJournal";
+import ParentGuidance from "./pages/ParentGuidance";
+import ParentProfile from "./pages/ParentProfile";
+import ParentSettings from "./pages/ParentSettings";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
 import ProfessionalCheckIn from "./pages/ProfessionalCheckIn";
 import ProfessionalMoodStress from "./pages/ProfessionalMoodStress";
 import ProfessionalWorkLifeBalance from "./pages/ProfessionalWorkLifeBalance";
+import ProfessionalFocusSessions from "./pages/ProfessionalFocusSessions";
+import ProfessionalAnalytics from "./pages/ProfessionalAnalytics";
+import ProfessionalAICompanion from "./pages/ProfessionalAICompanion";
 import SeniorDashboard from "./pages/SeniorDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getLoginRedirectPathForUser } from "./utils/roleUtils";
@@ -185,12 +197,84 @@ function App() {
           } 
         />
 
-        {/* Parent Dashboard Route */}
+        {/* Parent Routes */}
         <Route 
           path="/parent/dashboard" 
           element={
             <ProtectedRoute allowedRoles={["Parent"]}>
               <ParentDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/children" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentChildren />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/mood-tracker" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentMoodTracker />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/ai-companion" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentAICompanion />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/insights" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentInsights />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/notifications" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentNotifications />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/journal" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentJournal />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/guidance" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentGuidance />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/profile" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentProfile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/settings" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentSettings />
             </ProtectedRoute>
           } 
         />
@@ -239,6 +323,38 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Working Professional"]}>
               <ProfessionalWorkLifeBalance />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/professional/focus" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <ProfessionalFocusSessions />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/professional/analytics" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <ProfessionalAnalytics />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/professional/ai-companion" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <ProfessionalAICompanion />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/worker/ai-companion" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <ProfessionalAICompanion />
             </ProtectedRoute>
           } 
         />

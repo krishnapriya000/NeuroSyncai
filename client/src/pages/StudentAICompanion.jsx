@@ -77,7 +77,7 @@ function StudentAICompanion() {
       try {
         const u = JSON.parse(storedUser);
         if (u.fullName || u.name) setStudentName(u.fullName || u.name);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     fetchHistory();
@@ -271,7 +271,7 @@ function StudentAICompanion() {
     <div className="dashboard-container ns-ai-companion-page">
       <Sidebar
         activeTab="ai-companion"
-        setActiveTab={() => {}}
+        setActiveTab={() => { }}
         isOpen={sidebarOpen}
         setIsOpen={setSidebarOpen}
       />

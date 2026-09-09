@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Logo from "../Logo";
 import {
   FiGrid,
   FiCheckSquare,
@@ -21,7 +22,7 @@ const workspaceNavItems = [
   { id: "balance", label: "Work-Life Balance", icon: FiCompass },
   { id: "focus", label: "Focus Sessions", icon: FiClock },
   { id: "analytics", label: "Analytics", icon: FiBarChart2 },
-  { id: "ai-recommendations", label: "AI Recommendations", icon: FiCpu },
+  { id: "ai-companion", label: "🤖 AI Companion", icon: FiCpu },
 ];
 
 const personalNavItems = [
@@ -47,6 +48,12 @@ function ProfessionalSidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
       navigate("/professional/mood-stress");
     } else if (id === "balance" || id === "work-life-balance") {
       navigate("/professional/work-life-balance");
+    } else if (id === "focus" || id === "focus-sessions") {
+      navigate("/professional/focus");
+    } else if (id === "analytics") {
+      navigate("/professional/analytics");
+    } else if (id === "ai-companion" || id === "ai-recommendations") {
+      navigate("/professional/ai-companion");
     } else if (id === "overview") {
       navigate("/professional/dashboard");
     }
@@ -62,7 +69,7 @@ function ProfessionalSidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
     <>
       {/* Mobile Backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="ns-sidebar-backdrop d-lg-none"
           onClick={() => setIsOpen && setIsOpen(false)}
         />
@@ -74,18 +81,13 @@ function ProfessionalSidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
           <div>
             {/* Top Brand Header */}
             <div className="d-flex align-items-center justify-content-between mb-4 px-2">
-              <Link to="/professional/dashboard" className="d-flex align-items-center gap-2 text-decoration-none">
-                <div className="ns-brand-icon">
-                  <FiCpu />
-                </div>
-                <div className="d-flex flex-column">
-                  <span className="ns-brand-text fw-bold fs-5 lh-1">NeuroSync</span>
-                  <span className="text-secondary extra-small fw-medium mt-1" style={{ fontSize: "0.7rem", color: "#94A3B8" }}>
-                    For Working Professionals
-                  </span>
-                </div>
-              </Link>
-              <button 
+              <div className="d-flex flex-column">
+                <Logo to="/professional/dashboard" />
+                <span className="text-secondary extra-small fw-medium mt-1 ms-1" style={{ fontSize: "0.68rem", color: "#94A3B8" }}>
+                  For Working Professionals
+                </span>
+              </div>
+              <button
                 className="btn text-white-50 p-1 d-lg-none"
                 onClick={() => setIsOpen && setIsOpen(false)}
                 aria-label="Close Sidebar"

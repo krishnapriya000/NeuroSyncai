@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getDashboardPathForRole, getRoleDisplayInfo } from "../utils/roleUtils";
+import Logo from "./Logo";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -60,9 +61,7 @@ function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-custom">
       <div className="container">
-        <Link className="navbar-brand text-white fw-bold" to="/">
-          <span>🧠 NeuroSync</span>
-        </Link>
+        <Logo />
 
         <button
           className="navbar-toggler border-secondary text-white"

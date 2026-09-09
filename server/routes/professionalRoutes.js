@@ -11,6 +11,7 @@ const {
   updateCheckInById,
   getCheckInHistory,
   getWorkLifeBalanceAnalytics,
+  getProfessionalAnalytics,
 } = require("../controllers/professionalCheckInController");
 
 // Profile Routes
@@ -23,7 +24,8 @@ router.get("/checkin/history", protect, getCheckInHistory);
 router.post("/checkin", protect, createOrUpdateCheckIn);
 router.put("/checkin/:id", protect, updateCheckInById);
 
-// Work-Life Balance Analytics Route
+// Analytics Routes
 router.get("/work-life-balance", protect, getWorkLifeBalanceAnalytics);
+router.get("/analytics", protect, getProfessionalAnalytics);
 
 module.exports = router;

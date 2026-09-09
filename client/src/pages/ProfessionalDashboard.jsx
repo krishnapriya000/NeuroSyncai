@@ -101,8 +101,8 @@ function ProfessionalDashboard() {
     ? todayData.stressLevel <= 2
       ? "Low"
       : todayData.stressLevel === 3
-      ? "Moderate"
-      : "High"
+        ? "Moderate"
+        : "High"
     : "Low";
 
   const computedStressScore = todayData
@@ -122,20 +122,20 @@ function ProfessionalDashboard() {
   return (
     <div className="dashboard-container">
       {/* 1. SIDEBAR */}
-      <ProfessionalSidebar 
-        activeTab={activeTab} 
+      <ProfessionalSidebar
+        activeTab={activeTab}
         setActiveTab={(tab) => {
           setActiveTab(tab);
           if (tab === "checkin") navigate("/professional/checkin");
           if (tab === "profile") navigate("/professional/profile");
-        }} 
-        isOpen={sidebarOpen} 
-        setIsOpen={setSidebarOpen} 
+        }}
+        isOpen={sidebarOpen}
+        setIsOpen={setSidebarOpen}
       />
 
       {/* 2. HEADER */}
-      <ProfessionalNavbar 
-        userName={profName} 
+      <ProfessionalNavbar
+        userName={profName}
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         onTabChange={(tab) => {
           setActiveTab(tab);
@@ -147,15 +147,15 @@ function ProfessionalDashboard() {
       {/* MAIN CONTENT AREA */}
       <main className="ns-main-content">
         {/* 3. HERO SECTION */}
-        <div 
-          className="p-4 mb-4 rounded-4 text-white position-relative overflow-hidden shadow-lg" 
-          style={{ 
-            background: "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%)", 
-            border: "1px solid rgba(255, 255, 255, 0.1)" 
+        <div
+          className="p-4 mb-4 rounded-4 text-white position-relative overflow-hidden shadow-lg"
+          style={{
+            background: "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%)",
+            border: "1px solid rgba(255, 255, 255, 0.1)"
           }}
         >
           {/* Subtle Ambient Glow */}
-          <div 
+          <div
             className="position-absolute"
             style={{
               top: "-50px",
@@ -176,16 +176,16 @@ function ProfessionalDashboard() {
               <p className="text-gray-300 mb-3" style={{ maxWidth: "620px", fontSize: "0.95rem", color: "#CBD5E1" }}>
                 Manage workplace stress, improve focus, maintain work-life balance, and build healthier work habits.
               </p>
-              
+
               {hasTodayCheckIn ? (
-                <button 
+                <button
                   className="btn btn-outline-success rounded-pill px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-1.5 border-opacity-30"
                   onClick={handleStartDailyCheckin}
                 >
                   <FiCheckCircle className="me-1" /> Today's Check-in Completed ✓
                 </button>
               ) : (
-                <button 
+                <button
                   className="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm ns-btn-primary"
                   onClick={handleStartDailyCheckin}
                 >
@@ -197,7 +197,7 @@ function ProfessionalDashboard() {
         </div>
 
         {/* 4. TOP METRIC CARDS */}
-        <ProfessionalStatCards 
+        <ProfessionalStatCards
           focusTime={computedFocusTime}
           stressLevel={computedStressLevel}
           stressScore={computedStressScore}
@@ -224,8 +224,8 @@ function ProfessionalDashboard() {
             <ProfessionalQuickActions onAction={handleQuickAction} />
           </div>
           <div className="col-12 col-lg-7">
-            {/* 9. AI WELLNESS INSIGHT */}
-            <AIWellnessInsightCard onViewRecommendations={handleViewRecommendations} />
+            {/* 9. AI WELLNESS INSIGHT & CHAT COMPANION */}
+            <AIWellnessInsightCard />
           </div>
         </div>
 
@@ -243,13 +243,13 @@ function ProfessionalDashboard() {
 
       {/* MODAL FOR ACTIONS & DETAILED INSIGHTS */}
       {activeModal && (
-        <div 
-          className="modal fade show d-block" 
-          tabIndex="-1" 
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
           style={{ backgroundColor: "rgba(5, 8, 22, 0.8)", backdropFilter: "blur(8px)", zIndex: 1060 }}
         >
           <div className="modal-dialog modal-dialog-centered">
-            <div 
+            <div
               className="modal-content text-white rounded-4 shadow-lg border border-secondary border-opacity-25"
               style={{ background: "#0F172A" }}
             >
@@ -257,9 +257,9 @@ function ProfessionalDashboard() {
                 <h5 className="modal-title fw-bold text-white fs-6 d-flex align-items-center gap-2">
                   <FiBriefcase className="text-primary" /> {modalTitle}
                 </h5>
-                <button 
-                  type="button" 
-                  className="btn-close btn-close-white" 
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
                   onClick={closeModal}
                   aria-label="Close"
                 ></button>

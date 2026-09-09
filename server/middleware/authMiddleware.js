@@ -53,3 +53,16 @@ exports.adminOnly = (req, res, next) => {
     });
   }
 };
+
+// Parent middleware - ensures user has Parent role
+exports.parentOnly = (req, res, next) => {
+  if (req.user && req.user.role === "Parent") {
+    next();
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Parent role required.",
+    });
+  }
+};
+
