@@ -16,7 +16,8 @@ import {
   FiUsers,
   FiHeart,
   FiBarChart2,
-  FiCompass
+  FiCompass,
+  FiCheckSquare
 } from "react-icons/fi";
 import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../Logo";
@@ -40,6 +41,7 @@ const studentNavItems = [
 const parentNavItems = [
   { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/parent/dashboard" },
   { id: "children", label: "Children", icon: FiUsers, path: "/parent/children" },
+  { id: "check-in", label: "Daily Check-in", icon: FiCheckSquare, path: "/parent/check-in" },
   { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/parent/mood-tracker" },
   { id: "ai-companion", label: "Parenting AI", icon: FiCpu, path: "/parent/ai-companion" },
   { id: "insights", label: "Insights", icon: FiBarChart2, path: "/parent/insights" },
@@ -61,7 +63,7 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
     const userStr = localStorage.getItem("neurosync_current_user");
     if (userStr) {
       const u = JSON.parse(userStr);
-      if (u.role === "Parent") {
+      if ((u.role || "").trim().toLowerCase() === "parent") {
         isParent = true;
       }
     }

@@ -11,6 +11,11 @@ const {
   getChildDetails,
   updateChildDetails,
   getChildMoods,
+  getParentCheckInStatus,
+  getTodayCheckInForChild,
+  submitParentCheckIn,
+  saveChildFaceAnalysis,
+  getLatestChildFaceAnalysis,
 } = require("../controllers/parentController");
 
 // All parent routes require JWT auth and Parent role
@@ -29,5 +34,14 @@ router.delete("/children/:id", unlinkChild);
 router.get("/children/:childId", getChildDetails);
 router.put("/children/:id", updateChildDetails);
 router.get("/children/:childId/moods", getChildMoods);
+
+// Child Face Analysis Endpoints
+router.post("/children/:childId/face-analysis", saveChildFaceAnalysis);
+router.get("/children/:childId/face-analysis/latest", getLatestChildFaceAnalysis);
+
+// Parent Daily Check-in Endpoints
+router.get("/check-ins", getParentCheckInStatus);
+router.get("/check-ins/:id/today", getTodayCheckInForChild);
+router.post("/check-ins", submitParentCheckIn);
 
 module.exports = router;

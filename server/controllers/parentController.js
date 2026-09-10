@@ -1,7 +1,18 @@
 const User = require("../models/User");
 const ParentChild = require("../models/ParentChild");
+const ParentCheckIn = require("../models/ParentCheckIn");
 const DailyCheckIn = require("../models/DailyCheckIn");
 const MoodTracker = require("../models/MoodTracker");
+const ChildFaceAnalysis = require("../models/ChildFaceAnalysis");
+
+// Helper to get today's date string YYYY-MM-DD (local server time)
+const getTodayDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 // Helper to calculate age from Date of Birth string (YYYY-MM-DD) or Date
 const calculateAge = (dobStringOrDate) => {
@@ -525,3 +536,358 @@ exports.getChildMoods = async (req, res) => {
     });
   }
 };
+
+// @desc    Get today's check-in status for all linked children
+// @route   GET /api/parent/check-ins
+// @access  Private (Parent)
+exports.getParentCheckInStatus = async (req, res) => {
+  try {
+    const parentId = req.user._id;
+    const todayStr = getTodayDateString();
+
+    // Fetch linked children for this parent
+    const links = await ParentChild.find({ parentId })
+      .populate("childId", "fullName email phone profileImage dob dateOfBirth gender role occupation age")
+      .sort({ createdAt: -1 });
+
+    // Fetch today's check-in records for this parent
+    const todayCheckIns = await ParentCheckIn.find({
+      parentId,
+      date: todayStr,
+    });
+
+    const checkInMap = {};
+    todayCheckIns.forEach((ci) => {
+      checkInMap[ci.parentChildId.toString()] = ci;
+    });
+
+    // Fetch latest face analysis for each linked child
+    const parentChildIds = links.map((link) => link._id);
+    const faceAnalysisRecords = await ChildFaceAnalysis.find({
+      parentId,
+      parentChildId: { $in: parentChildIds },
+    }).sort({ analyzedAt: -1 });
+
+    const latestFaceAnalysisMap = {};
+    faceAnalysisRecords.forEach((record) => {
+      const key = record.parentChildId.toString();
+      if (!latestFaceAnalysisMap[key]) {
+        latestFaceAnalysisMap[key] = record;
+      }
+    });
+
+    let completedCount = 0;
+
+    const childrenData = links.map((link) => {
+      let childName = "";
+      let email = "";
+      let avatar = "";
+      let dobStr = "";
+      let ageVal = "N/A";
+      let gender = "Other";
+      let grade = link.grade || "N/A";
+
+      if (link.childId) {
+        const c = link.childId;
+        childName = c.fullName;
+        email = c.email;
+        avatar = c.profileImage || "";
+        dobStr = c.dob || (c.dateOfBirth ? c.dateOfBirth.toISOString().split("T")[0] : "");
+        ageVal = c.age || calculateAge(dobStr) || "N/A";
+        gender = c.gender || "Other";
+        if (grade === "N/A" && c.occupation) grade = c.occupation;
+      } else {
+        const dep = link.dependentInfo || {};
+        childName = dep.fullName || "Dependent Child";
+        email = "Dependent Profile (No Account)";
+        avatar = "";
+        dobStr = dep.dob || (dep.dateOfBirth ? dep.dateOfBirth.toISOString().split("T")[0] : "");
+        ageVal = calculateAge(dobStr) || "N/A";
+        gender = dep.gender || "Other";
+        if (grade === "N/A" && dep.grade) grade = dep.grade;
+      }
+
+      const existingCheckIn = checkInMap[link._id.toString()];
+      const isCompleted = !!existingCheckIn;
+      if (isCompleted) completedCount++;
+
+      const latestAnalysis = latestFaceAnalysisMap[link._id.toString()] || null;
+
+      return {
+        parentChildId: link._id,
+        childId: link.childId ? link.childId._id : null,
+        name: childName,
+        email,
+        avatar,
+        age: ageVal,
+        dob: dobStr,
+        gender,
+        grade,
+        relationship: link.relationship,
+        status: isCompleted ? "completed" : "pending",
+        checkInRecord: existingCheckIn || null,
+        faceAnalysisRecord: latestAnalysis,
+        faceAnalysisStatus: latestAnalysis ? "completed" : "pending",
+        isDependentOnly: link.isDependentOnly,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      todayDate: todayStr,
+      totalChildren: childrenData.length,
+      completedCount,
+      children: childrenData,
+    });
+  } catch (error) {
+    console.error("Get Parent Check-In Status Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch parent check-in status: " + error.message,
+    });
+  }
+};
+
+// @desc    Get today's check-in record for a specific child
+// @route   GET /api/parent/check-ins/:id/today
+// @access  Private (Parent)
+exports.getTodayCheckInForChild = async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    const parentId = req.user._id;
+    const todayStr = getTodayDateString();
+
+    const link = await ParentChild.findOne({
+      parentId,
+      $or: [{ _id: targetId }, { childId: targetId }],
+    });
+
+    if (!link) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to access this child's information.",
+      });
+    }
+
+    const checkIn = await ParentCheckIn.findOne({
+      parentId,
+      parentChildId: link._id,
+      date: todayStr,
+    });
+
+    return res.status(200).json({
+      success: true,
+      completed: !!checkIn,
+      checkIn: checkIn || null,
+    });
+  } catch (error) {
+    console.error("Get Today Check-In For Child Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch child check-in: " + error.message,
+    });
+  }
+};
+
+// @desc    Submit today's parent check-in for a child
+// @route   POST /api/parent/check-ins
+// @access  Private (Parent)
+exports.submitParentCheckIn = async (req, res) => {
+  try {
+    const parentId = req.user._id;
+    const todayStr = getTodayDateString();
+    const {
+      parentChildId,
+      mood,
+      energy,
+      socialInteraction,
+      unusualBehavior,
+      unusualBehaviorNote,
+      wellbeingScore,
+      additionalNotes,
+    } = req.body;
+
+    if (!parentChildId) {
+      return res.status(400).json({
+        success: false,
+        message: "Child selection is required.",
+      });
+    }
+
+    if (!mood || !energy || !socialInteraction || wellbeingScore === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Please answer all required survey questions.",
+      });
+    }
+
+    // Verify parent ownership over relationship link
+    const link = await ParentChild.findOne({
+      _id: parentChildId,
+      parentId,
+    }).populate("childId", "fullName");
+
+    if (!link) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to access this child's information.",
+      });
+    }
+
+    // Check for existing same-day check-in
+    const existing = await ParentCheckIn.findOne({
+      parentId,
+      parentChildId: link._id,
+      date: todayStr,
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: "Today's check-in has already been completed.",
+      });
+    }
+
+    let childName = "";
+    if (link.childId && link.childId.fullName) {
+      childName = link.childId.fullName;
+    } else if (link.dependentInfo && link.dependentInfo.fullName) {
+      childName = link.dependentInfo.fullName;
+    } else {
+      childName = "Child";
+    }
+
+    const newCheckIn = await ParentCheckIn.create({
+      parentId,
+      childId: link.childId ? link.childId._id : null,
+      parentChildId: link._id,
+      date: todayStr,
+      childName,
+      mood,
+      energy,
+      socialInteraction,
+      unusualBehavior: !!unusualBehavior,
+      unusualBehaviorNote: unusualBehavior ? (unusualBehaviorNote ? unusualBehaviorNote.trim() : "") : "",
+      wellbeingScore: Number(wellbeingScore),
+      additionalNotes: additionalNotes ? additionalNotes.trim() : "",
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Check-in completed successfully.",
+      checkIn: newCheckIn,
+    });
+  } catch (error) {
+    console.error("Submit Parent Check-In Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to submit check-in: " + error.message,
+    });
+  }
+};
+
+// @desc    Save face analysis result for a child
+// @route   POST /api/parent/children/:childId/face-analysis
+// @access  Private (Parent)
+exports.saveChildFaceAnalysis = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const parentId = req.user._id;
+    const { expression, confidence } = req.body;
+
+    if (!expression || confidence === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Expression and confidence are required.",
+      });
+    }
+
+    // Find active child link for this parent
+    const link = await ParentChild.findOne({
+      parentId,
+      $or: [{ _id: childId }, { childId: childId }],
+    }).populate("childId", "fullName");
+
+    if (!link) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to perform analysis for this child.",
+      });
+    }
+
+    let childName = "";
+    if (link.childId && link.childId.fullName) {
+      childName = link.childId.fullName;
+    } else if (link.dependentInfo && link.dependentInfo.fullName) {
+      childName = link.dependentInfo.fullName;
+    } else {
+      childName = "Child";
+    }
+
+    // Format expression capitalized
+    const formattedExpression =
+      expression.charAt(0).toUpperCase() + expression.slice(1).toLowerCase();
+
+    const newAnalysis = await ChildFaceAnalysis.create({
+      parentId,
+      parentChildId: link._id,
+      childId: link.childId ? link.childId._id : null,
+      childName,
+      expression: formattedExpression,
+      confidence: Math.round(Number(confidence)),
+      analyzedAt: new Date(),
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Face analysis saved successfully.",
+      analysis: newAnalysis,
+    });
+  } catch (error) {
+    console.error("Save Child Face Analysis Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to save face analysis: " + error.message,
+    });
+  }
+};
+
+// @desc    Get latest face analysis result for a child
+// @route   GET /api/parent/children/:childId/face-analysis/latest
+// @access  Private (Parent)
+exports.getLatestChildFaceAnalysis = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const parentId = req.user._id;
+
+    const link = await ParentChild.findOne({
+      parentId,
+      $or: [{ _id: childId }, { childId: childId }],
+    });
+
+    if (!link) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to view analysis for this child.",
+      });
+    }
+
+    const latestAnalysis = await ChildFaceAnalysis.findOne({
+      parentId,
+      parentChildId: link._id,
+    }).sort({ analyzedAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      analysis: latestAnalysis || null,
+    });
+  } catch (error) {
+    console.error("Get Latest Child Face Analysis Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch face analysis: " + error.message,
+    });
+  }
+};
+
+

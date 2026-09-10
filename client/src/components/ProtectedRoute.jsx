@@ -12,8 +12,12 @@ const ProtectedRoute = ({ children, allowedRoles = [], adminOnly = false }) => {
   try {
     const user = JSON.parse(userStr);
     const effectiveRoles = allowedRoles.length > 0 ? allowedRoles : (adminOnly ? ["Admin"] : []);
+    const userRoleClean = (user.role || "").trim().toLowerCase();
+    const hasPermission = effectiveRoles.some(
+      (r) => r.trim().toLowerCase() === userRoleClean
+    );
 
-    if (effectiveRoles.length > 0 && !effectiveRoles.includes(user.role)) {
+    if (effectiveRoles.length > 0 && !hasPermission) {
       // User is logged in but does not have permission for this specific dashboard/route
       // Safely redirect them to their own authorized dashboard path
       const userDashboard = getDashboardPathForRole(user.role);
@@ -30,4 +34,3 @@ const ProtectedRoute = ({ children, allowedRoles = [], adminOnly = false }) => {
 };
 
 export default ProtectedRoute;
-

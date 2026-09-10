@@ -19,6 +19,7 @@ import StudentNotifications from "./pages/StudentNotifications";
 import StudentSettings from "./pages/StudentSettings";
 import ParentDashboard from "./pages/ParentDashboard";
 import ParentChildren from "./pages/ParentChildren";
+import ParentCheckInPage from "./pages/ParentCheckInPage";
 import ParentMoodTracker from "./pages/ParentMoodTracker";
 import ParentAICompanion from "./pages/ParentAICompanion";
 import ParentInsights from "./pages/ParentInsights";
@@ -211,6 +212,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Parent"]}>
               <ParentChildren />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/check-in" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentCheckInPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/check-in/:childId" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <ParentCheckInPage />
             </ProtectedRoute>
           } 
         />
