@@ -12,13 +12,18 @@ import {
   FiEdit3,
   FiTrash2,
   FiCalendar,
-  FiClock,
   FiSmile,
   FiCheckCircle,
   FiAlertCircle,
   FiX,
   FiSave,
   FiAlertTriangle,
+  FiTrendingUp,
+  FiPieChart,
+  FiTag,
+  FiCpu,
+  FiRefreshCw,
+  FiActivity,
 } from "react-icons/fi";
 import "../styles/studentDashboard.css";
 
@@ -129,16 +134,26 @@ function StudentJournal() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Journal Insights & Reflection State
+  const [insights, setInsights] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMoodFilter, setSelectedMoodFilter] = useState("All");
 
   // Modal states
   const [showEditorModal, setShowEditorModal] = useState(false);
-  const [editingJournal, setEditingJournal] = useState(null); // null if creating, journal obj if editing
+  const [editingJournal, setEditingJournal] = useState(null);
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingJournal, setViewingJournal] = useState(null);
+
+  // AI Analysis for Viewing Journal Modal
+  const [currentAnalysis, setCurrentAnalysis] = useState(null);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState("");
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingJournalId, setDeletingJournalId] = useState(null);
@@ -165,6 +180,7 @@ function StudentJournal() {
     }
 
     fetchJournals();
+    fetchInsights();
   }, []);
 
   const fetchJournals = async () => {
@@ -214,6 +230,26 @@ function StudentJournal() {
     }
   };
 
+  const fetchInsights = async () => {
+    setLoadingInsights(true);
+    const token = localStorage.getItem("neurosync_token");
+    if (!token) return;
+
+    try {
+      const response = await fetch("http://localhost:5000/api/journal/insights", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setInsights(result.data);
+      }
+    } catch (err) {
+      console.error("Error fetching journal insights:", err);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
   // Open modal for New Entry
   const handleOpenCreateModal = () => {
     setEditingJournal(null);
@@ -235,10 +271,75 @@ function StudentJournal() {
     setShowEditorModal(true);
   };
 
-  // Open modal for View Entry
-  const handleOpenViewModal = (journal) => {
+  // Open modal for View Entry & fetch existing analysis
+  const handleOpenViewModal = async (journal) => {
     setViewingJournal(journal);
     setShowViewModal(true);
+    setCurrentAnalysis(null);
+    setAnalysisError("");
+    setLoadingAnalysis(true);
+
+    const token = localStorage.getItem("neurosync_token");
+    if (!token) {
+      setLoadingAnalysis(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/journal/${journal._id}/analysis`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json();
+      if (response.ok && result.success && result.data) {
+        setCurrentAnalysis(result.data);
+      }
+    } catch (err) {
+      console.error("Error loading journal entry analysis:", err);
+    } finally {
+      setLoadingAnalysis(false);
+    }
+  };
+
+  // Handle Trigger AI Analysis for specific entry
+  const handleAnalyzeEntry = async (forceReanalyze = false) => {
+    if (!viewingJournal) return;
+
+    const token = localStorage.getItem("neurosync_token");
+    if (!token) {
+      setAnalysisError("Authentication session expired.");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisError("");
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/journal/${viewingJournal._id}/analyze`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ forceReanalyze }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        setAnalysisError(result.message || "Unable to analyze this entry right now. Please try again.");
+        setIsAnalyzing(false);
+        return;
+      }
+
+      setCurrentAnalysis(result.data);
+      setIsAnalyzing(false);
+      // Refresh insights summary dynamically
+      fetchInsights();
+    } catch (err) {
+      console.error("AI Analysis error:", err);
+      setAnalysisError("Unable to analyze this entry right now. Please try again.");
+      setIsAnalyzing(false);
+    }
   };
 
   // Open Delete confirmation modal
@@ -320,6 +421,7 @@ function StudentJournal() {
       );
 
       fetchJournals();
+      fetchInsights();
 
       setTimeout(() => {
         setSuccessMessage("");
@@ -370,6 +472,7 @@ function StudentJournal() {
       setSuccessMessage("Journal entry deleted successfully. 🗑️");
 
       fetchJournals();
+      fetchInsights();
 
       setTimeout(() => {
         setSuccessMessage("");
@@ -454,12 +557,12 @@ function StudentJournal() {
                   border: "1px solid rgba(139, 92, 246, 0.3)",
                 }}
               >
-                <FiBookOpen className="me-1" /> Student Reflection Module
+                <FiBookOpen className="me-1" /> Student AI Reflection Journal
               </span>
             </div>
             <h1 className="text-white fw-bold fs-3 mb-1">My Journal</h1>
             <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
-              Write, reflect, and understand your thoughts.
+              Write, reflect, and understand your thoughts with AI wellbeing insights.
             </p>
           </div>
 
@@ -556,6 +659,298 @@ function StudentJournal() {
               className="btn-close btn-close-white"
               onClick={() => setError(null)}
             />
+          </div>
+        )}
+
+        {/* STEP 5: 📊 Journal Insights Section */}
+        {insights && (
+          <div className="mb-4">
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h4 className="text-white fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
+                <FiPieChart className="text-primary" /> 📊 Journal Insights
+              </h4>
+              <span className="text-muted small">Updated real-time from your reflections</span>
+            </div>
+
+            <div className="row g-3 mb-3">
+              {/* Total Entries */}
+              <div className="col-6 col-md-3">
+                <div
+                  className="ns-card p-3 h-100 d-flex flex-column justify-content-between"
+                  style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+                >
+                  <span className="text-muted small fw-medium">Journal Entries</span>
+                  <h3 className="text-white fw-bold fs-2 my-2">{insights.totalEntries}</h3>
+                  <span className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                    Total logged entries
+                  </span>
+                </div>
+              </div>
+
+              {/* Most Frequent Emotion */}
+              <div className="col-6 col-md-3">
+                <div
+                  className="ns-card p-3 h-100 d-flex flex-column justify-content-between"
+                  style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+                >
+                  <span className="text-muted small fw-medium">Most Frequent Emotion</span>
+                  <div className="d-flex align-items-center gap-2 my-2">
+                    <span className="fs-3">{getMoodEmoji(insights.mostFrequentEmotion)}</span>
+                    <h4 className="text-white fw-bold fs-5 mb-0">{insights.mostFrequentEmotion}</h4>
+                  </div>
+                  <span className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                    Based on your entries
+                  </span>
+                </div>
+              </div>
+
+              {/* Most Frequent Sentiment */}
+              <div className="col-6 col-md-3">
+                <div
+                  className="ns-card p-3 h-100 d-flex flex-column justify-content-between"
+                  style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+                >
+                  <span className="text-muted small fw-medium">Most Frequent Sentiment</span>
+                  <div className="my-2">
+                    <span
+                      className="badge rounded-pill px-3 py-1.5 fw-semibold fs-6"
+                      style={{
+                        background:
+                          insights.mostFrequentSentiment === "Positive"
+                            ? "rgba(16, 185, 129, 0.2)"
+                            : insights.mostFrequentSentiment === "Negative"
+                            ? "rgba(239, 68, 68, 0.2)"
+                            : "rgba(148, 163, 184, 0.2)",
+                        color:
+                          insights.mostFrequentSentiment === "Positive"
+                            ? "#34D399"
+                            : insights.mostFrequentSentiment === "Negative"
+                            ? "#FCA5A5"
+                            : "#CBD5E1",
+                        border: `1px solid ${
+                          insights.mostFrequentSentiment === "Positive"
+                            ? "#10B981"
+                            : insights.mostFrequentSentiment === "Negative"
+                            ? "#EF4444"
+                            : "#94A3B8"
+                        }`,
+                      }}
+                    >
+                      {insights.mostFrequentSentiment}
+                    </span>
+                  </div>
+                  <span className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                    Emotional sentiment tone
+                  </span>
+                </div>
+              </div>
+
+              {/* Most Common Theme */}
+              <div className="col-6 col-md-3">
+                <div
+                  className="ns-card p-3 h-100 d-flex flex-column justify-content-between"
+                  style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+                >
+                  <span className="text-muted small fw-medium">Most Common Theme</span>
+                  <h4 className="text-white fw-bold fs-6 my-2 d-flex align-items-center gap-1 text-truncate">
+                    <span>📚</span> <span>{insights.mostCommonTheme}</span>
+                  </h4>
+                  <span className="text-muted small" style={{ fontSize: "0.75rem" }}>
+                    Top topic discussed
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pattern & Mood Tracker Banner */}
+            <div
+              className="p-3 rounded-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
+              style={{
+                background: "rgba(30, 41, 59, 0.6)",
+                border: "1px solid rgba(139, 92, 246, 0.2)",
+              }}
+            >
+              <div className="d-flex align-items-center gap-2">
+                <FiActivity size={18} className="text-info flex-shrink-0" />
+                <div>
+                  <span className="text-white-50 small d-block">Recent Pattern:</span>
+                  <span className="text-white fw-medium small">{insights.recentPatternMessage}</span>
+                </div>
+              </div>
+
+              {/* STEP 8: Mood Tracker Connection */}
+              {insights.moodTrackerCorrelation && (
+                <div
+                  className="px-3 py-1.5 rounded-pill d-inline-flex align-items-center gap-2 flex-shrink-0"
+                  style={{
+                    background: insights.moodTrackerCorrelation.hasCorrelation
+                      ? "rgba(139, 92, 246, 0.15)"
+                      : "rgba(255, 255, 255, 0.05)",
+                    border: "1px solid rgba(139, 92, 246, 0.3)",
+                    fontSize: "0.8rem",
+                    color: "#C084FC",
+                  }}
+                >
+                  <span>🔗</span>
+                  <span>{insights.moodTrackerCorrelation.correlationMessage}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 6 & STEP 7: Weekly Reflection & Recurring Themes Grid */}
+        {insights && (
+          <div className="row g-4 mb-4">
+            {/* STEP 6: ✨ Weekly Reflection Card */}
+            <div className="col-12 col-lg-7">
+              <div
+                className="ns-card p-4 h-100 d-flex flex-column justify-content-between"
+                style={{
+                  background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.4) 100%)",
+                  border: "1px solid rgba(168, 85, 247, 0.3)",
+                }}
+              >
+                <div>
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h4 className="text-white fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
+                      <FiCpu className="text-purple" style={{ color: "#C084FC" }} /> ✨ Your Weekly Reflection
+                    </h4>
+                    <span className="badge rounded-pill bg-purple bg-opacity-25 text-purple px-3 py-1 border border-purple border-opacity-25 small">
+                      Recent 7 Days
+                    </span>
+                  </div>
+
+                  {insights.weeklyReflection && insights.weeklyReflection.hasSufficientData ? (
+                    <>
+                      <p className="text-white-50 mb-3 small">
+                        You wrote <strong className="text-white">{insights.weeklyReflection.entryCount} journal entries</strong> this week.
+                      </p>
+
+                      <div className="row g-2 mb-3">
+                        <div className="col-6">
+                          <div className="p-2.5 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
+                            <span className="text-muted d-block" style={{ fontSize: "0.75rem" }}>Most common emotion:</span>
+                            <span className="text-white fw-semibold small d-flex align-items-center gap-1 mt-1">
+                              {getMoodEmoji(insights.weeklyReflection.mostCommonEmotion)} {insights.weeklyReflection.mostCommonEmotion}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="col-6">
+                          <div className="p-2.5 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
+                            <span className="text-muted d-block" style={{ fontSize: "0.75rem" }}>Common themes:</span>
+                            <div className="d-flex flex-wrap gap-1 mt-1">
+                              {insights.weeklyReflection.commonThemes.map((t, idx) => (
+                                <span key={idx} className="badge bg-secondary bg-opacity-25 text-white-50" style={{ fontSize: "0.7rem" }}>
+                                  📚 {t}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* AI Weekly Reflection */}
+                      <div
+                        className="p-3 rounded-3 mb-3"
+                        style={{
+                          background: "rgba(139, 92, 246, 0.1)",
+                          borderLeft: "3px solid #8B5CF6",
+                        }}
+                      >
+                        <span className="text-purple fw-semibold small d-block mb-1">AI Reflection:</span>
+                        <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.5" }}>
+                          "{insights.weeklyReflection.reflection}"
+                        </p>
+                      </div>
+
+                      {/* Recommendation */}
+                      <div
+                        className="p-3 rounded-3"
+                        style={{
+                          background: "rgba(245, 158, 11, 0.1)",
+                          borderLeft: "3px solid #F59E0B",
+                        }}
+                      >
+                        <span className="text-warning fw-semibold small d-block mb-1">💡 Recommendation:</span>
+                        <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.5" }}>
+                          "{insights.weeklyReflection.suggestion}"
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-4 text-center">
+                      <p className="text-muted mb-2 small">
+                        Write more journal entries this week to unlock your AI weekly reflection insights!
+                      </p>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary text-info border-info border-opacity-25 rounded-3"
+                        onClick={handleOpenCreateModal}
+                      >
+                        <FiPlus className="me-1" /> Add Entry Now
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* STEP 7: 📌 Recurring Themes Card */}
+            <div className="col-12 col-lg-5">
+              <div
+                className="ns-card p-4 h-100 d-flex flex-column justify-content-between"
+                style={{
+                  background: "rgba(15, 23, 42, 0.8)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <div>
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h4 className="text-white fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
+                      <FiTag className="text-warning" /> 📌 Recurring Themes
+                    </h4>
+                    <span className="text-muted small">Historical Topics</span>
+                  </div>
+
+                  {insights.recurringThemes && insights.recurringThemes.length > 0 ? (
+                    <div className="d-flex flex-column gap-2.5">
+                      {insights.recurringThemes.slice(0, 5).map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="d-flex align-items-center justify-content-between p-2.5 rounded-3"
+                          style={{
+                            background: "rgba(255, 255, 255, 0.03)",
+                            border: "1px solid rgba(255, 255, 255, 0.05)",
+                          }}
+                        >
+                          <span className="text-white-50 small fw-medium d-flex align-items-center gap-2">
+                            <span className="text-muted">{idx + 1}.</span> {item.theme}
+                          </span>
+                          <span
+                            className="badge rounded-pill px-2.5 py-1"
+                            style={{
+                              background: "rgba(59, 130, 246, 0.15)",
+                              color: "#60A5FA",
+                              border: "1px solid rgba(59, 130, 246, 0.3)",
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            {item.count} {item.count === 1 ? "entry" : "entries"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-4 text-center">
+                      <p className="text-muted small mb-0">
+                        Themes will automatically appear as you create and analyze journal entries.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -754,7 +1149,7 @@ function StudentJournal() {
                               fontSize: "0.78rem",
                             }}
                           >
-                            <FiSmile me={1} /> Reflection
+                            <FiSmile className="me-1" /> Reflection
                           </span>
                         )}
 
@@ -1013,7 +1408,7 @@ function StudentJournal() {
         </div>
       )}
 
-      {/* ==================== VIEW MODAL ==================== */}
+      {/* ==================== VIEW MODAL (ENHANCED WITH ✨ AI JOURNAL ANALYSIS) ==================== */}
       {showViewModal && viewingJournal && (
         <div
           className="modal fade show d-block"
@@ -1071,8 +1466,9 @@ function StudentJournal() {
                   </div>
                 )}
 
+                {/* Journal Raw Content Box */}
                 <div
-                  className="p-3 rounded-3"
+                  className="p-3.5 rounded-3 mb-4"
                   style={{
                     background: "rgba(255, 255, 255, 0.03)",
                     border: "1px solid rgba(255, 255, 255, 0.06)",
@@ -1083,6 +1479,159 @@ function StudentJournal() {
                   }}
                 >
                   {viewingJournal.content}
+                </div>
+
+                {/* STEP 2: ✨ AI Journal Analysis Section */}
+                <div
+                  className="p-4 rounded-4 position-relative overflow-hidden mb-2"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(88, 28, 135, 0.25) 100%)",
+                    border: "1px solid rgba(168, 85, 247, 0.3)",
+                  }}
+                >
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h5 className="text-white fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+                      ✨ AI Journal Analysis
+                    </h5>
+
+                    {currentAnalysis && !isAnalyzing && (
+                      <button
+                        type="button"
+                        className="btn btn-sm text-purple rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1"
+                        style={{
+                          background: "rgba(168, 85, 247, 0.15)",
+                          border: "1px solid rgba(168, 85, 247, 0.3)",
+                          fontSize: "0.78rem",
+                          color: "#C084FC",
+                        }}
+                        onClick={() => handleAnalyzeEntry(true)}
+                      >
+                        <FiRefreshCw size={13} /> Re-analyze
+                      </button>
+                    )}
+                  </div>
+
+                  {analysisError && (
+                    <div className="alert alert-danger py-2 px-3 small rounded-3 mb-3 border-0" style={{ background: "rgba(239, 68, 68, 0.2)", color: "#FCA5A5" }}>
+                      {analysisError}
+                    </div>
+                  )}
+
+                  {loadingAnalysis ? (
+                    <div className="text-center py-3">
+                      <div className="spinner-border spinner-border-sm text-purple mb-2" role="status"></div>
+                      <p className="text-muted small mb-0">Checking stored AI analysis...</p>
+                    </div>
+                  ) : isAnalyzing ? (
+                    <div className="text-center py-4">
+                      <div className="spinner-border text-purple mb-2" role="status"></div>
+                      <p className="text-white fw-semibold small mb-1">Analyzing with AI...</p>
+                      <span className="text-muted style-italic" style={{ fontSize: "0.78rem" }}>
+                        Evaluating emotional sentiment & key themes safely
+                      </span>
+                    </div>
+                  ) : currentAnalysis ? (
+                    <div className="d-flex flex-column gap-3">
+                      {/* Emotion & Sentiment row */}
+                      <div className="row g-3">
+                        <div className="col-6">
+                          <span className="text-muted d-block small mb-1">Detected Emotion:</span>
+                          <span className="text-white fw-bold fs-6 d-inline-flex align-items-center gap-1.5">
+                            {getMoodEmoji(currentAnalysis.emotion)} {currentAnalysis.emotion}
+                          </span>
+                        </div>
+                        <div className="col-6">
+                          <span className="text-muted d-block small mb-1">Sentiment:</span>
+                          <span
+                            className="badge rounded-pill px-3 py-1.5 fw-semibold"
+                            style={{
+                              background:
+                                currentAnalysis.sentiment === "Positive"
+                                  ? "rgba(16, 185, 129, 0.2)"
+                                  : currentAnalysis.sentiment === "Negative"
+                                  ? "rgba(239, 68, 68, 0.2)"
+                                  : "rgba(148, 163, 184, 0.2)",
+                              color:
+                                currentAnalysis.sentiment === "Positive"
+                                  ? "#34D399"
+                                  : currentAnalysis.sentiment === "Negative"
+                                  ? "#FCA5A5"
+                                  : "#CBD5E1",
+                              border: `1px solid ${
+                                currentAnalysis.sentiment === "Positive"
+                                  ? "#10B981"
+                                  : currentAnalysis.sentiment === "Negative"
+                                  ? "#EF4444"
+                                  : "#94A3B8"
+                              }`,
+                            }}
+                          >
+                            {currentAnalysis.sentiment}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Key Themes */}
+                      <div>
+                        <span className="text-muted d-block small mb-1">Key Themes:</span>
+                        <div className="d-flex flex-wrap gap-2">
+                          {currentAnalysis.themes && currentAnalysis.themes.length > 0 ? (
+                            currentAnalysis.themes.map((theme, idx) => (
+                              <span
+                                key={idx}
+                                className="badge rounded-pill px-3 py-1 font-normal"
+                                style={{
+                                  background: "rgba(255, 255, 255, 0.05)",
+                                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                                  color: "#E2E8F0",
+                                  fontSize: "0.8rem",
+                                }}
+                              >
+                                • {theme}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-muted small">• General reflection</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* AI Reflection */}
+                      <div className="p-3 rounded-3" style={{ background: "rgba(0, 0, 0, 0.2)", borderLeft: "3px solid #A855F7" }}>
+                        <span className="text-purple fw-semibold small d-block mb-1" style={{ color: "#C084FC" }}>AI Reflection:</span>
+                        <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6" }}>
+                          "{currentAnalysis.reflection}"
+                        </p>
+                      </div>
+
+                      {/* Suggested Action */}
+                      <div className="p-3 rounded-3" style={{ background: "rgba(0, 0, 0, 0.2)", borderLeft: "3px solid #F59E0B" }}>
+                        <span className="text-warning fw-semibold small d-block mb-1">💡 Suggested Action:</span>
+                        <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6" }}>
+                          "{currentAnalysis.suggestion}"
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Button to trigger initial AI Analysis */
+                    <div className="text-center py-3">
+                      <p className="text-muted small mb-3">
+                        Gain AI wellbeing reflection, emotion analysis, and personalized suggestions for this entry.
+                      </p>
+                      <button
+                        type="button"
+                        className="btn px-4 py-2 rounded-3 text-white fw-bold d-inline-flex align-items-center gap-2 shadow-lg"
+                        style={{
+                          background: "linear-gradient(135deg, #8B5CF6, #EC4899)",
+                          border: "none",
+                        }}
+                        onClick={() => handleAnalyzeEntry(false)}
+                      >
+                        <FiCpu size={18} />
+                        <span>Analyze with AI</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 

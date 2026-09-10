@@ -17,7 +17,9 @@ import {
   FiHeart,
   FiBarChart2,
   FiCompass,
-  FiCheckSquare
+  FiCheckSquare,
+  FiLayers,
+  FiSun
 } from "react-icons/fi";
 import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../Logo";
@@ -33,7 +35,7 @@ const studentNavItems = [
   { id: "focus-timer", label: "Focus Timer", icon: FiClock, path: "/student/focus-timer" },
   { id: "progress", label: "Progress", icon: FiTrendingUp, path: "/student/progress" },
   { id: "notifications", label: "Notifications", icon: FiBell, path: "/student/notifications" },
-  { id: "profile", label: "Profile", icon: FiUser, path: "/student/profile" },
+  { id: "profile", label: "Profile", icon: FiUser, path: "/student/profile", hasSeparatorBefore: true },
   { id: "settings", label: "Settings", icon: FiSettings, path: "/student/settings" },
 ];
 
@@ -48,8 +50,23 @@ const parentNavItems = [
   { id: "notifications", label: "Notifications", icon: FiBell, path: "/parent/notifications" },
   { id: "journal", label: "Parent Journal", icon: FiBookOpen, path: "/parent/journal" },
   { id: "guidance", label: "Parenting Guidance", icon: FiCompass, path: "/parent/guidance" },
-  { id: "profile", label: "Profile", icon: FiUser, path: "/parent/profile" },
+  { id: "profile", label: "Profile", icon: FiUser, path: "/parent/profile", hasSeparatorBefore: true },
   { id: "settings", label: "Settings", icon: FiSettings, path: "/parent/settings" },
+];
+
+// Senior Citizen Dashboard Navigation Items
+const seniorNavItems = [
+  { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/senior/dashboard" },
+  { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/senior/mood-tracker" },
+  { id: "cognitive-games", label: "Cognitive Games", icon: FiLayers, path: "/senior/cognitive-games" },
+  { id: "memory-exercises", label: "Memory Exercises", icon: FiCpu, path: "/senior/memory-exercises" },
+  { id: "ai-companion", label: "AI Companion", icon: FiCpu, path: "/senior/ai-companion" },
+  { id: "daily-wellness", label: "Daily Wellness", icon: FiSun, path: "/senior/daily-wellness" },
+  { id: "journal", label: "Journal", icon: FiBookOpen, path: "/senior/journal" },
+  { id: "progress", label: "Progress & Insights", icon: FiTrendingUp, path: "/senior/progress" },
+  { id: "notifications", label: "Notifications", icon: FiBell, path: "/senior/notifications" },
+  { id: "profile", label: "Profile", icon: FiUser, path: "/senior/profile", hasSeparatorBefore: true },
+  { id: "settings", label: "Settings", icon: FiSettings, path: "/senior/settings" },
 ];
 
 function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
@@ -58,12 +75,16 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Determine user role and corresponding sidebar navigation
+  let isSenior = false;
   let isParent = false;
   try {
     const userStr = localStorage.getItem("neurosync_current_user");
     if (userStr) {
       const u = JSON.parse(userStr);
-      if ((u.role || "").trim().toLowerCase() === "parent") {
+      const roleClean = (u.role || "").trim().toLowerCase();
+      if (roleClean === "senior citizen" || roleClean === "senior") {
+        isSenior = true;
+      } else if (roleClean === "parent") {
         isParent = true;
       }
     }
@@ -72,11 +93,19 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
   }
 
   // Also fallback to URL path check
-  if (location.pathname.startsWith("/parent")) {
+  if (location.pathname.startsWith("/senior")) {
+    isSenior = true;
+    isParent = false;
+  } else if (location.pathname.startsWith("/parent")) {
     isParent = true;
+    isSenior = false;
   }
 
-  const currentNavItems = isParent ? parentNavItems : studentNavItems;
+  const currentNavItems = isSenior 
+    ? seniorNavItems 
+    : isParent 
+    ? parentNavItems 
+    : studentNavItems;
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -152,20 +181,25 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
                 const showBadge = item.id === "notifications" && unreadCount > 0;
 
                 return (
-                  <li key={item.id} className={`ns-nav-item ${isActive ? "active" : ""}`}>
-                    <button
-                      type="button"
-                      onClick={() => handleNavClick(item)}
-                    >
-                      <Icon className="ns-nav-icon" />
-                      <span className="flex-grow-1">{item.label}</span>
-                      {showBadge && (
-                        <span className="badge rounded-pill bg-primary px-2 py-1" style={{ fontSize: "0.7rem" }}>
-                          {unreadCount}
-                        </span>
-                      )}
-                    </button>
-                  </li>
+                  <React.Fragment key={item.id}>
+                    {item.hasSeparatorBefore && (
+                      <li className="my-2 border-top border-secondary border-opacity-25" style={{ listStyle: "none" }} />
+                    )}
+                    <li className={`ns-nav-item ${isActive ? "active" : ""}`}>
+                      <button
+                        type="button"
+                        onClick={() => handleNavClick(item)}
+                      >
+                        <Icon className="ns-nav-icon" />
+                        <span className="flex-grow-1">{item.label}</span>
+                        {showBadge && (
+                          <span className="badge rounded-pill bg-primary px-2 py-1" style={{ fontSize: "0.7rem" }}>
+                            {unreadCount}
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  </React.Fragment>
                 );
               })}
             </ul>

@@ -37,6 +37,10 @@ import ProfessionalFocusSessions from "./pages/ProfessionalFocusSessions";
 import ProfessionalAnalytics from "./pages/ProfessionalAnalytics";
 import ProfessionalAICompanion from "./pages/ProfessionalAICompanion";
 import SeniorDashboard from "./pages/SeniorDashboard";
+import SeniorCognitiveGames from "./pages/SeniorCognitiveGames";
+import SeniorMemoryExercises from "./pages/SeniorMemoryExercises";
+import SeniorDailyWellness from "./pages/SeniorDailyWellness";
+import SeniorProgress from "./pages/SeniorProgress";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getLoginRedirectPathForUser } from "./utils/roleUtils";
 
@@ -376,12 +380,92 @@ function App() {
           } 
         />
 
-        {/* Senior Citizen Dashboard Route */}
+        {/* Senior Citizen Routes */}
         <Route 
           path="/senior/dashboard" 
           element={
             <ProtectedRoute allowedRoles={["Senior Citizen"]}>
               <SeniorDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/mood-tracker" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <StudentMoodTracker />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/cognitive-games" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <SeniorCognitiveGames />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/memory-exercises" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <SeniorMemoryExercises />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/ai-companion" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <StudentAICompanion />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/daily-wellness" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <SeniorDailyWellness />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/journal" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <StudentJournal />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/progress" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <SeniorProgress />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/notifications" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <StudentNotifications />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/profile" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <StudentProfile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/settings" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <StudentSettings />
             </ProtectedRoute>
           } 
         />

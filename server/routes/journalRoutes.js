@@ -7,15 +7,27 @@ const {
   getJournalEntryById,
   updateJournalEntry,
   deleteJournalEntry,
+  getJournalAnalysis,
+  analyzeJournalEntry,
+  getJournalInsights,
 } = require("../controllers/journalController");
 
 // All journal routes require JWT authentication
 router.use(protect);
 
+// Journal Insights & Summary Route
+router.get("/insights", getJournalInsights);
+
+// Main Journal CRUD
 router.route("/")
   .post(createJournalEntry)
   .get(getJournalEntries);
 
+// Single Journal AI Analysis Routes
+router.get("/:id/analysis", getJournalAnalysis);
+router.post("/:id/analyze", analyzeJournalEntry);
+
+// Single Journal Entry Operations
 router.route("/:id")
   .get(getJournalEntryById)
   .put(updateJournalEntry)
