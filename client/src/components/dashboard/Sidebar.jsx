@@ -19,20 +19,25 @@ import {
   FiCompass,
   FiCheckSquare,
   FiLayers,
-  FiSun
+  FiSun,
+  FiActivity
 } from "react-icons/fi";
 import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../Logo";
+import SeniorMedicationReminderManager from "../senior/SeniorMedicationReminderManager";
 
 // Student Dashboard Navigation Items
 const studentNavItems = [
   { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/student/dashboard" },
+  { id: "checkin", label: "Daily Check-in", icon: FiCheckSquare, path: "/student/checkin" },
   { id: "mood-tracker", label: "Mood Tracker", icon: FiSmile, path: "/student/mood-tracker" },
-  { id: "ai-companion", label: "AI Companion", icon: FiCpu, path: "/student/ai-companion" },
   { id: "journal", label: "Journal", icon: FiBookOpen, path: "/student/journal" },
+  { id: "cognitive-games", label: "🧠 Cognitive Games", icon: FiLayers, path: "/student/cognitive-games" },
+  { id: "memory-exercises", label: "🎯 Memory Exercises", icon: FiCpu, path: "/student/memory-exercises" },
+  { id: "ai-companion", label: "AI Recommendations", icon: FiCpu, path: "/student/ai-companion" },
   { id: "study-planner", label: "Study Planner", icon: FiCalendar, path: "/student/study-planner" },
   { id: "goals", label: "Goals", icon: FiTarget, path: "/student/goals" },
-  { id: "focus-timer", label: "Focus Timer", icon: FiClock, path: "/student/focus-timer" },
+  { id: "focus-timer", label: "Focus Session", icon: FiClock, path: "/student/focus-timer" },
   { id: "progress", label: "Progress", icon: FiTrendingUp, path: "/student/progress" },
   { id: "notifications", label: "Notifications", icon: FiBell, path: "/student/notifications" },
   { id: "profile", label: "Profile", icon: FiUser, path: "/student/profile", hasSeparatorBefore: true },
@@ -57,12 +62,13 @@ const parentNavItems = [
 // Senior Citizen Dashboard Navigation Items
 const seniorNavItems = [
   { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/senior/dashboard" },
-  { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/senior/mood-tracker" },
-  { id: "cognitive-games", label: "Cognitive Games", icon: FiLayers, path: "/senior/cognitive-games" },
-  { id: "memory-exercises", label: "Memory Exercises", icon: FiCpu, path: "/senior/memory-exercises" },
+  { id: "daily-checkin", label: "Daily Check-in", icon: FiCheckSquare, path: "/senior/daily-checkin" },
+  { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/senior/mood" },
+  { id: "health-activity", label: "Health & Activity", icon: FiActivity, path: "/senior/health-activity" },
   { id: "ai-companion", label: "AI Companion", icon: FiCpu, path: "/senior/ai-companion" },
-  { id: "daily-wellness", label: "Daily Wellness", icon: FiSun, path: "/senior/daily-wellness" },
+  { id: "medications", label: "Medication & Reminders", icon: FiClock, path: "/senior/medications" },
   { id: "journal", label: "Journal", icon: FiBookOpen, path: "/senior/journal" },
+  { id: "family-emergency", label: "Family & Emergency", icon: FiUsers, path: "/senior/family-emergency" },
   { id: "progress", label: "Progress & Insights", icon: FiTrendingUp, path: "/senior/progress" },
   { id: "notifications", label: "Notifications", icon: FiBell, path: "/senior/notifications" },
   { id: "profile", label: "Profile", icon: FiUser, path: "/senior/profile", hasSeparatorBefore: true },
@@ -125,6 +131,13 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
     };
 
     fetchUnreadCount();
+
+    const handleUpdateEvent = () => fetchUnreadCount();
+    window.addEventListener("neurosync_unread_notifications_updated", handleUpdateEvent);
+
+    return () => {
+      window.removeEventListener("neurosync_unread_notifications_updated", handleUpdateEvent);
+    };
   }, [activeTab, location.pathname]);
 
   const handleNavClick = (item) => {
@@ -222,6 +235,8 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
           </ul>
         </div>
       </aside>
+
+      <SeniorMedicationReminderManager />
     </>
   );
 }

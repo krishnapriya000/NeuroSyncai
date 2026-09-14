@@ -37,10 +37,15 @@ import ProfessionalFocusSessions from "./pages/ProfessionalFocusSessions";
 import ProfessionalAnalytics from "./pages/ProfessionalAnalytics";
 import ProfessionalAICompanion from "./pages/ProfessionalAICompanion";
 import SeniorDashboard from "./pages/SeniorDashboard";
-import SeniorCognitiveGames from "./pages/SeniorCognitiveGames";
-import SeniorMemoryExercises from "./pages/SeniorMemoryExercises";
-import SeniorDailyWellness from "./pages/SeniorDailyWellness";
+import SeniorDailyCheckIn from "./pages/SeniorDailyCheckIn";
+import SeniorMoodTracker from "./pages/SeniorMoodTracker";
+import SeniorHealthActivity from "./pages/SeniorHealthActivity";
+import SeniorAICompanion from "./pages/SeniorAICompanion";
+import SeniorMedications from "./pages/SeniorMedications";
+import SeniorFamilyEmergency from "./pages/SeniorFamilyEmergency";
 import SeniorProgress from "./pages/SeniorProgress";
+import StudentCognitiveGames from "./pages/StudentCognitiveGames";
+import StudentMemoryExercises from "./pages/StudentMemoryExercises";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getLoginRedirectPathForUser } from "./utils/roleUtils";
 
@@ -190,6 +195,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Student", "User"]}>
               <StudentNotifications />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/cognitive-games" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentCognitiveGames />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/memory-exercises" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <StudentMemoryExercises />
             </ProtectedRoute>
           } 
         />
@@ -390,26 +411,34 @@ function App() {
           } 
         />
         <Route 
+          path="/senior/daily-checkin" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <SeniorDailyCheckIn />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/mood" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <SeniorMoodTracker />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
           path="/senior/mood-tracker" 
           element={
             <ProtectedRoute allowedRoles={["Senior Citizen"]}>
-              <StudentMoodTracker />
+              <SeniorMoodTracker />
             </ProtectedRoute>
           } 
         />
         <Route 
-          path="/senior/cognitive-games" 
+          path="/senior/health-activity" 
           element={
             <ProtectedRoute allowedRoles={["Senior Citizen"]}>
-              <SeniorCognitiveGames />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/senior/memory-exercises" 
-          element={
-            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
-              <SeniorMemoryExercises />
+              <SeniorHealthActivity />
             </ProtectedRoute>
           } 
         />
@@ -417,15 +446,15 @@ function App() {
           path="/senior/ai-companion" 
           element={
             <ProtectedRoute allowedRoles={["Senior Citizen"]}>
-              <StudentAICompanion />
+              <SeniorAICompanion />
             </ProtectedRoute>
           } 
         />
         <Route 
-          path="/senior/daily-wellness" 
+          path="/senior/medications" 
           element={
             <ProtectedRoute allowedRoles={["Senior Citizen"]}>
-              <SeniorDailyWellness />
+              <SeniorMedications />
             </ProtectedRoute>
           } 
         />
@@ -434,6 +463,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Senior Citizen"]}>
               <StudentJournal />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/family-emergency" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <SeniorFamilyEmergency />
             </ProtectedRoute>
           } 
         />

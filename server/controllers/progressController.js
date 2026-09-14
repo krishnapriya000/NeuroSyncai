@@ -4,6 +4,7 @@ const Journal = require("../models/Journal");
 const StudyTask = require("../models/StudyTask");
 const Goal = require("../models/Goal");
 const FocusSession = require("../models/FocusSession");
+const GameResult = require("../models/GameResult");
 const { getUserContext } = require("../services/aiService");
 
 // Helper to convert Date to YYYY-MM-DD string
@@ -191,9 +192,37 @@ const computePeriodMetrics = async (userId, startDate, endDate, daysCount) => {
   const distinctCheckInDays = new Set(checkIns.map((c) => formatDateStr(c.createdAt))).size;
   const checkInScore = Math.min(100, Math.round((distinctCheckInDays / Math.max(1, daysCount)) * 100));
 
+  // 7. Cognitive & Memory Games
+  const gameResults = await GameResult.find({
+    userId,
+    completedAt: { $gte: startDate, $lte: endDate },
+  }).sort({ completedAt: -1 }).lean();
+
+  const gamesCount = gameResults.length;
+  const totalGamePoints = gameResults.reduce((acc, g) => acc + (g.pointsEarned || 0), 0);
+  const totalGameTime = gameResults.reduce((acc, g) => acc + (g.timeTaken || 0), 0);
+  const avgGameScore = gamesCount > 0 ? Math.round(gameResults.reduce((a, g) => a + g.score, 0) / gamesCount) : 0;
+  const avgGameAccuracy = gamesCount > 0 ? Math.round(gameResults.reduce((a, g) => a + g.accuracy, 0) / gamesCount) : 0;
+  const bestGameScore = gamesCount > 0 ? Math.max(...gameResults.map((g) => g.score)) : 0;
+
+  const cognitiveGames = gameResults.filter((g) => g.category === "cognitive");
+  const memoryExercises = gameResults.filter((g) => g.category === "memory");
+
+  const cognitivePerformance = {
+    totalPlayed: cognitiveGames.length,
+    avgScore: cognitiveGames.length > 0 ? Math.round(cognitiveGames.reduce((a, g) => a + g.score, 0) / cognitiveGames.length) : 0,
+    avgAccuracy: cognitiveGames.length > 0 ? Math.round(cognitiveGames.reduce((a, g) => a + g.accuracy, 0) / cognitiveGames.length) : 0,
+  };
+
+  const memoryPerformance = {
+    totalPlayed: memoryExercises.length,
+    avgScore: memoryExercises.length > 0 ? Math.round(memoryExercises.reduce((a, g) => a + g.score, 0) / memoryExercises.length) : 0,
+    avgAccuracy: memoryExercises.length > 0 ? Math.round(memoryExercises.reduce((a, g) => a + g.accuracy, 0) / memoryExercises.length) : 0,
+  };
+
   // Weighted Overall Score Calculation
   // Study: 30%, Goals: 20%, Focus: 20%, Mood/Wellness: 15%, Journal: 10%, Check-in: 5%
-  const hasAnyActivity = totalStudyTasks > 0 || totalGoals > 0 || focusSessionCount > 0 || moodCount > 0 || totalJournalEntries > 0 || checkIns.length > 0;
+  const hasAnyActivity = totalStudyTasks > 0 || totalGoals > 0 || focusSessionCount > 0 || moodCount > 0 || totalJournalEntries > 0 || checkIns.length > 0 || gamesCount > 0;
 
   const overallScore = hasAnyActivity
     ? Math.min(
@@ -250,6 +279,26 @@ const computePeriodMetrics = async (userId, startDate, endDate, daysCount) => {
     },
     checkIn: {
       total: checkIns.length,
+    },
+    games: {
+      totalPlayed: gamesCount,
+      avgScore: avgGameScore,
+      avgAccuracy: avgGameAccuracy,
+      bestScore: bestGameScore,
+      totalPoints: totalGamePoints,
+      totalTime: totalGameTime,
+      cognitivePerformance,
+      memoryPerformance,
+      recentGames: gameResults.slice(0, 5).map((g) => ({
+        id: g._id,
+        gameType: g.gameType,
+        category: g.category,
+        difficulty: g.difficulty,
+        score: g.score,
+        accuracy: g.accuracy,
+        timeTaken: g.timeTaken,
+        completedAt: g.completedAt,
+      })),
     },
   };
 };

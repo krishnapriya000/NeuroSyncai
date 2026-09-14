@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
 import DashboardFooter from "../components/dashboard/DashboardFooter";
-import { FiTrendingUp, FiAward, FiSmile, FiActivity, FiPieChart, FiCheckCircle, FiCpu } from "react-icons/fi";
+import { FiTrendingUp, FiSmile, FiCheckSquare, FiClock, FiActivity, FiBookOpen, FiZap, FiPieChart } from "react-icons/fi";
 import "../styles/studentDashboard.css";
 
 function SeniorProgress() {
@@ -10,8 +10,7 @@ function SeniorProgress() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [seniorName, setSeniorName] = useState("Senior User");
 
-  const [stats, setStats] = useState(null);
-  const [memoryStats, setMemoryStats] = useState(null);
+  const [progressData, setProgressData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,10 +26,10 @@ function SeniorProgress() {
       }
     }
 
-    fetchAllStats();
+    fetchSeniorProgress();
   }, []);
 
-  const fetchAllStats = async () => {
+  const fetchSeniorProgress = async () => {
     setLoading(true);
     const token = localStorage.getItem("neurosync_token");
     if (!token) {
@@ -39,26 +38,15 @@ function SeniorProgress() {
     }
 
     try {
-      const [resCognitive, resMemory] = await Promise.all([
-        fetch("http://localhost:5000/api/senior/cognitive-games/stats", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("http://localhost:5000/api/senior/memory-exercises/stats", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      const dataCognitive = await resCognitive.json();
-      const dataMemory = await resMemory.json();
-
-      if (resCognitive.ok && dataCognitive.success) {
-        setStats(dataCognitive.data);
-      }
-      if (resMemory.ok && dataMemory.success) {
-        setMemoryStats(dataMemory.data);
+      const res = await fetch("http://localhost:5000/api/senior/progress", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setProgressData(json.data);
       }
     } catch (err) {
-      console.error("Error fetching senior progress stats:", err);
+      console.error("Error fetching senior progress data:", err);
     } finally {
       setLoading(false);
     }
@@ -79,6 +67,7 @@ function SeniorProgress() {
       />
 
       <main className="ns-main-content">
+        {/* Header */}
         <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
           <div>
             <div className="d-flex align-items-center gap-2 mb-1">
@@ -90,182 +79,140 @@ function SeniorProgress() {
                   border: "1px solid rgba(168, 85, 247, 0.3)",
                 }}
               >
-                📊 Vitality & Performance Insights
+                📊 Senior Wellness Analytics
               </span>
             </div>
-            <h1 className="text-white fw-bold fs-3 mb-1">Progress & Insights</h1>
-            <p className="text-muted mb-0" style={{ fontSize: "0.92rem" }}>
-              Track your cognitive exercise scores, memory recall trends, and overall vitality.
+            <h1 className="text-white fw-extrabold fs-2 mb-1">Progress & Insights</h1>
+            <p className="text-muted mb-0" style={{ fontSize: "1rem" }}>
+              Track your weekly mood, check-in completion, medication adherence, and wellness streak.
             </p>
           </div>
         </div>
 
-        {/* TOP STATS CARDS */}
-        <div className="row g-3 mb-4">
-          <div className="col-12 col-sm-6 col-xl-3">
-            <div className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between">
-              <span className="text-muted small fw-medium">Games Played</span>
-              <h3 className="text-white fw-bold fs-2 my-2">{stats ? stats.totalGamesPlayed : 0}</h3>
-              <span className="text-muted small" style={{ fontSize: "0.75rem" }}>Total completed games</span>
-            </div>
+        {loading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary mb-2" role="status"></div>
+            <p className="text-muted small">Loading senior progress data...</p>
           </div>
-
-          <div className="col-12 col-sm-6 col-xl-3">
-            <div className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between">
-              <span className="text-muted small fw-medium">Average Score</span>
-              <h3 className="text-emerald-400 fw-bold fs-2 my-2" style={{ color: "#34D399" }}>
-                {stats ? stats.averageScore : 0}%
-              </h3>
-              <span className="text-muted small" style={{ fontSize: "0.75rem" }}>Cognitive accuracy rating</span>
-            </div>
-          </div>
-
-          <div className="col-12 col-sm-6 col-xl-3">
-            <div className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between">
-              <span className="text-muted small fw-medium">Memory Exercises</span>
-              <h3 className="text-info fw-bold fs-2 my-2">{memoryStats ? memoryStats.exercisesCompleted : 0}</h3>
-              <span className="text-muted small" style={{ fontSize: "0.75rem" }}>Completed memory sessions</span>
-            </div>
-          </div>
-
-          <div className="col-12 col-sm-6 col-xl-3">
-            <div className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between">
-              <span className="text-muted small fw-medium">Recommended Difficulty</span>
-              <div className="my-2">
-                <span
-                  className="badge rounded-pill px-3 py-1.5 fw-semibold fs-6"
-                  style={{
-                    background: "rgba(139, 92, 246, 0.2)",
-                    color: "#C084FC",
-                    border: "1px solid #8B5CF6",
-                  }}
-                >
-                  {stats ? stats.recommendedDifficulty : "Easy"}
-                </span>
+        ) : progressData ? (
+          <>
+            {/* 4 SUMMARY STAT CARDS */}
+            <div className="row g-3 mb-4">
+              <div className="col-12 col-sm-6 col-xl-3">
+                <div className="ns-card p-4 h-100 d-flex flex-column justify-content-between">
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <span className="text-muted small fw-medium">Weekly Mood</span>
+                    <FiSmile className="text-success fs-4" />
+                  </div>
+                  <h3 className="text-white fw-bold fs-3 my-1">{progressData.weeklyMood}</h3>
+                  <span className="text-success small fw-semibold">Observational Mood Trend</span>
+                </div>
               </div>
-              <span className="text-muted small" style={{ fontSize: "0.75rem" }}>Suggested difficulty</span>
-            </div>
-          </div>
-        </div>
 
-        {/* 🧠 MEMORY EXERCISE PROGRESS CARD */}
-        <div className="ns-card p-4 mb-4">
-          <div className="d-flex align-items-center justify-content-between mb-3">
-            <h4 className="text-white fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
-              <FiCpu className="text-info" /> 🧠 Memory Exercise Progress
-            </h4>
-
-            {memoryStats && (
-              <span className="badge rounded-pill bg-info bg-opacity-25 text-info px-3 py-1 border border-info border-opacity-25 small">
-                {memoryStats.trendBadge}
-              </span>
-            )}
-          </div>
-
-          <div className="row g-3 mb-3">
-            <div className="col-6 col-md-3">
-              <div className="p-3 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
-                <span className="text-muted d-block small">Exercises Completed</span>
-                <span className="text-white fw-bold fs-4">{memoryStats ? memoryStats.exercisesCompleted : 0}</span>
+              <div className="col-12 col-sm-6 col-xl-3">
+                <div className="ns-card p-4 h-100 d-flex flex-column justify-content-between">
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <span className="text-muted small fw-medium">Daily Check-ins</span>
+                    <FiCheckSquare className="text-primary fs-4" />
+                  </div>
+                  <h3 className="text-white fw-bold fs-3 my-1">
+                    {progressData.checkInStats.recentCount} / {progressData.checkInStats.total}
+                  </h3>
+                  <div className="progress bg-dark" style={{ height: "6px" }}>
+                    <div
+                      className="progress-bar bg-primary rounded"
+                      style={{ width: `${progressData.checkInStats.percentage}%` }}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="col-6 col-md-3">
-              <div className="p-3 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
-                <span className="text-muted d-block small">Average Accuracy</span>
-                <span className="text-emerald-400 fw-bold fs-4" style={{ color: "#34D399" }}>
-                  {memoryStats ? memoryStats.averageAccuracy : 0}%
-                </span>
+              <div className="col-12 col-sm-6 col-xl-3">
+                <div className="ns-card p-4 h-100 d-flex flex-column justify-content-between">
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <span className="text-muted small fw-medium">Medication Adherence</span>
+                    <FiClock className="text-warning fs-4" />
+                  </div>
+                  <h3 className="text-warning fw-bold fs-3 my-1">{progressData.medicationAdherence}%</h3>
+                  <div className="progress bg-dark" style={{ height: "6px" }}>
+                    <div
+                      className="progress-bar bg-warning rounded"
+                      style={{ width: `${progressData.medicationAdherence}%` }}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="col-6 col-md-3">
-              <div className="p-3 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
-                <span className="text-muted d-block small">Best Score</span>
-                <span className="text-warning fw-bold fs-4">{memoryStats ? memoryStats.bestScore : 0}%</span>
-              </div>
-            </div>
-
-            <div className="col-6 col-md-3">
-              <div className="p-3 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
-                <span className="text-muted d-block small">Recent Trend</span>
-                <span className="text-info fw-bold fs-6">{memoryStats ? memoryStats.trendBadge : "New"}</span>
-              </div>
-            </div>
-          </div>
-
-          {memoryStats && (
-            <p className="text-white-50 small mb-0 p-2.5 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
-              <strong>Memory Trend Note:</strong> {memoryStats.recentTrend}
-            </p>
-          )}
-        </div>
-
-        {/* COGNITIVE PERFORMANCE BY GAME TYPE */}
-        <div className="ns-card p-4 mb-4">
-          <h4 className="text-white fw-bold fs-5 mb-3 d-flex align-items-center gap-2">
-            <FiPieChart className="text-primary" /> Cognitive Games Breakdown
-          </h4>
-
-          <div className="row g-3">
-            {/* Memory Performance */}
-            <div className="col-12 col-md-4">
-              <div className="p-3 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
-                <div className="d-flex align-items-center justify-content-between mb-2">
-                  <span className="text-white fw-semibold small">🧠 Memory Match</span>
-                  <span className="text-emerald-400 fw-bold" style={{ color: "#34D399" }}>
-                    {stats ? stats.memoryPerformance : 0}%
+              <div className="col-12 col-sm-6 col-xl-3">
+                <div className="ns-card p-4 h-100 d-flex flex-column justify-content-between">
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <span className="text-muted small fw-medium">Wellness Streak</span>
+                    <FiZap className="text-purple-300 fs-4" style={{ color: "#c084fc" }} />
+                  </div>
+                  <h3 className="text-white fw-bold fs-3 my-1">{progressData.wellnessStreak} Days 🔥</h3>
+                  <span className="text-purple-300 small fw-semibold" style={{ color: "#c084fc" }}>
+                    Active Routine Streak
                   </span>
                 </div>
-                <div className="progress" style={{ height: "8px", background: "rgba(255, 255, 255, 0.1)" }}>
-                  <div
-                    className="progress-bar bg-success rounded-pill"
-                    role="progressbar"
-                    style={{ width: `${stats ? stats.memoryPerformance : 0}%` }}
-                  ></div>
-                </div>
               </div>
             </div>
 
-            {/* Attention Performance */}
-            <div className="col-12 col-md-4">
-              <div className="p-3 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
-                <div className="d-flex align-items-center justify-content-between mb-2">
-                  <span className="text-white fw-semibold small">🎯 Attention Challenge</span>
-                  <span className="text-info fw-bold">
-                    {stats ? stats.attentionPerformance : 0}%
-                  </span>
-                </div>
-                <div className="progress" style={{ height: "8px", background: "rgba(255, 255, 255, 0.1)" }}>
-                  <div
-                    className="progress-bar bg-info rounded-pill"
-                    role="progressbar"
-                    style={{ width: `${stats ? stats.attentionPerformance : 0}%` }}
-                  ></div>
+            {/* RECENT CHECK-IN & ACTIVITY INSIGHTS */}
+            <div className="row g-4 mb-4">
+              <div className="col-lg-6">
+                <div className="ns-card p-4 h-100">
+                  <h4 className="text-white fw-bold fs-5 mb-3 d-flex align-items-center gap-2">
+                    <FiCheckSquare className="text-primary" /> Check-in History
+                  </h4>
+                  {progressData.recentCheckIns.length === 0 ? (
+                    <p className="text-muted small py-3">No recent check-ins logged.</p>
+                  ) : (
+                    <div className="d-flex flex-column gap-2">
+                      {progressData.recentCheckIns.map((c) => (
+                        <div key={c._id} className="p-3 rounded bg-dark border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                          <div>
+                            <div className="text-white fw-semibold">Feeling: {c.feeling}</div>
+                            <div className="text-muted small">Sleep: {c.sleepQuality} • Energy: {c.energyLevel}</div>
+                          </div>
+                          <span className="text-muted small">
+                            {new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
 
-            {/* Number Sequence Performance */}
-            <div className="col-12 col-md-4">
-              <div className="p-3 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
-                <div className="d-flex align-items-center justify-content-between mb-2">
-                  <span className="text-white fw-semibold small">🔢 Number Sequence</span>
-                  <span className="text-purple fw-bold" style={{ color: "#C084FC" }}>
-                    {stats ? stats.numberPerformance : 0}%
-                  </span>
-                </div>
-                <div className="progress" style={{ height: "8px", background: "rgba(255, 255, 255, 0.1)" }}>
-                  <div
-                    className="progress-bar bg-purple rounded-pill"
-                    role="progressbar"
-                    style={{ width: `${stats ? stats.numberPerformance : 0}%`, background: "#8B5CF6" }}
-                  ></div>
+              <div className="col-lg-6">
+                <div className="ns-card p-4 h-100">
+                  <h4 className="text-white fw-bold fs-5 mb-3 d-flex align-items-center gap-2">
+                    <FiActivity className="text-success" /> Activity & Health Logs
+                  </h4>
+                  {progressData.recentActivities.length === 0 ? (
+                    <p className="text-muted small py-3">No recent activity logs recorded.</p>
+                  ) : (
+                    <div className="d-flex flex-column gap-2">
+                      {progressData.recentActivities.map((a) => (
+                        <div key={a._id} className="p-3 rounded bg-dark border border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                          <div>
+                            <div className="text-white fw-semibold">🏃 {a.steps} Steps • 😴 {a.sleepHours}h Sleep</div>
+                            <div className="text-muted small">💧 Water: {a.waterGlasses} glasses • Energy: {a.energyLevel}</div>
+                          </div>
+                          <span className="text-muted small">
+                            {new Date(a.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </>
+        ) : (
+          <div className="text-muted text-center py-5">Unable to load senior progress analytics.</div>
+        )}
       </main>
 
       <DashboardFooter />

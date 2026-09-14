@@ -10,7 +10,7 @@ const notificationSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["Study", "Goals", "Wellness", "Journal", "Focus", "AI Insights", "System"],
+      enum: ["Study", "Goals", "Wellness", "Journal", "Focus", "AI Insights", "System", "Medication"],
       required: true,
       default: "System",
     },

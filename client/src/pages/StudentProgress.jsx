@@ -737,6 +737,108 @@ function StudentProgress() {
               </div>
             </div>
 
+            {/* COGNITIVE & MEMORY PERFORMANCE SECTION */}
+            {data.games && (
+              <div className="row g-4 mb-4">
+                <div className="col-12">
+                  <div className="ns-card p-4">
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                      <h5 className="text-white fw-bold mb-0 d-flex align-items-center gap-2">
+                        <FiCpu className="text-purple-400" style={{ color: "#c084fc" }} /> Cognitive & Memory Performance
+                      </h5>
+                      <div className="d-flex gap-2">
+                        <button className="btn btn-sm btn-outline-primary rounded-pill px-3" onClick={() => navigate("/student/cognitive-games")}>
+                          🧠 Games Hub
+                        </button>
+                        <button className="btn btn-sm btn-outline-purple rounded-pill px-3" style={{ color: "#c084fc", borderColor: "rgba(192, 132, 252, 0.4)" }} onClick={() => navigate("/student/memory-exercises")}>
+                          🎯 Exercises Hub
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Quick Stats Grid */}
+                    <div className="row g-3 text-center mb-4">
+                      <div className="col-md-2 col-6">
+                        <div className="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                          <div className="text-white fw-bold fs-4">{data.games.totalPlayed}</div>
+                          <div className="text-muted small">Games Played</div>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6">
+                        <div className="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                          <div className="text-primary fw-bold fs-4">{data.games.avgScore} pts</div>
+                          <div className="text-muted small">Average Score</div>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6">
+                        <div className="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                          <div className="text-success fw-bold fs-4">{data.games.avgAccuracy}%</div>
+                          <div className="text-muted small">Average Accuracy</div>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6">
+                        <div className="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                          <div className="text-warning fw-bold fs-4">{data.games.bestScore} pts</div>
+                          <div className="text-muted small">Best Score</div>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6">
+                        <div className="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                          <div className="text-purple-300 fw-bold fs-4" style={{ color: "#c084fc" }}>{data.games.totalPoints || 0}</div>
+                          <div className="text-muted small">Gamification XP</div>
+                        </div>
+                      </div>
+                      <div className="col-md-2 col-6">
+                        <div className="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                          <div className="text-info fw-bold fs-4">{data.games.totalTime}s</div>
+                          <div className="text-muted small">Total Training Time</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Breakdown Cards */}
+                    <div className="row g-4">
+                      <div className="col-md-6">
+                        <div className="p-3 rounded bg-dark bg-opacity-60 border border-secondary border-opacity-25 h-100">
+                          <div className="d-flex align-items-center justify-content-between mb-2">
+                            <span className="text-white fw-bold">🧠 Cognitive Game Performance</span>
+                            <span className="badge bg-primary rounded-pill px-2.5 py-1">
+                              {data.games.cognitivePerformance.totalPlayed} Played
+                            </span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center text-muted small mb-2">
+                            <span>Average Score: <strong className="text-white">{data.games.cognitivePerformance.avgScore} pts</strong></span>
+                            <span>Average Accuracy: <strong className="text-success">{data.games.cognitivePerformance.avgAccuracy}%</strong></span>
+                          </div>
+                          <div className="progress bg-dark" style={{ height: "8px" }}>
+                            <div className="progress-bar bg-primary rounded" style={{ width: `${data.games.cognitivePerformance.avgAccuracy}%` }} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="col-md-6">
+                        <div className="p-3 rounded bg-dark bg-opacity-60 border border-secondary border-opacity-25 h-100">
+                          <div className="d-flex align-items-center justify-content-between mb-2">
+                            <span className="text-white fw-bold">🎯 Memory Exercise Performance</span>
+                            <span className="badge rounded-pill px-2.5 py-1" style={{ background: "rgba(192, 132, 252, 0.2)", color: "#c084fc", border: "1px solid rgba(192, 132, 252, 0.4)" }}>
+                              {data.games.memoryPerformance.totalPlayed} Played
+                            </span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center text-muted small mb-2">
+                            <span>Average Score: <strong className="text-white">{data.games.memoryPerformance.avgScore} pts</strong></span>
+                            <span>Average Accuracy: <strong className="text-purple-300" style={{ color: "#c084fc" }}>{data.games.memoryPerformance.avgAccuracy}%</strong></span>
+                          </div>
+                          <div className="progress bg-dark" style={{ height: "8px" }}>
+                            <div className="progress-bar rounded" style={{ width: `${data.games.memoryPerformance.avgAccuracy}%`, backgroundColor: "#8b5cf6" }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 10. AI PROGRESS INSIGHT CARD */}
             <div className="row g-4 mb-4">
               <div className="col-12">

@@ -24,6 +24,8 @@ import {
 // Category icon helper
 const getCategoryIcon = (category) => {
   switch (category) {
+    case "Medication":
+      return <span style={{ fontSize: "1.2rem" }}>💊</span>;
     case "Study":
       return <FiCalendar className="text-primary" />;
     case "Goals":
@@ -65,7 +67,7 @@ function StudentNotifications() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [studentName, setStudentName] = useState("Student");
 
-  const [activeFilter, setActiveFilter] = useState("All"); // All | Unread | Study | Goals | Wellness | Journal | Focus | AI Insights | System
+  const [activeFilter, setActiveFilter] = useState("All"); // All | Unread | Medication | Study | Goals | Wellness | Journal | Focus | AI Insights | System
   const [unreadCount, setUnreadCount] = useState(0);
 
   const [notificationState, setNotificationState] = useState({
@@ -77,6 +79,7 @@ function StudentNotifications() {
   const categories = [
     "All",
     "Unread",
+    "Medication",
     "Study",
     "Goals",
     "Wellness",
@@ -385,11 +388,27 @@ function StudentNotifications() {
                               <span className="p-1 bg-primary rounded-circle" style={{ width: "8px", height: "8px" }} title="Unread" />
                             )}
                             {item.priority === "High" && (
-                              <span className="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-30 px-2 py-0.5" style={{ fontSize: "0.7rem" }}>
-                                High Priority
+                              <span
+                                className="badge rounded-pill px-2.5 py-1 fw-semibold"
+                                style={{
+                                  background: "rgba(239, 68, 68, 0.25)",
+                                  color: "#FCA5A5",
+                                  border: "1px solid rgba(239, 68, 68, 0.5)",
+                                  fontSize: "0.75rem",
+                                }}
+                              >
+                                🔥 High Priority
                               </span>
                             )}
-                            <span className="badge bg-dark text-muted border border-secondary border-opacity-25 px-2 py-0.5 ms-auto" style={{ fontSize: "0.72rem" }}>
+                            <span
+                              className="badge rounded-pill px-2.5 py-1 ms-auto"
+                              style={{
+                                background: "rgba(255, 255, 255, 0.08)",
+                                color: "#CBD5E1",
+                                border: "1px solid rgba(255, 255, 255, 0.12)",
+                                fontSize: "0.75rem",
+                              }}
+                            >
                               {item.category}
                             </span>
                           </div>

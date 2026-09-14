@@ -7,15 +7,58 @@ const User = require("../models/User");
 const ProfessionalCheckIn = require("../models/ProfessionalCheckIn");
 const ProfessionalProfile = require("../models/ProfessionalProfile");
 const FocusSession = require("../models/FocusSession");
+const SeniorDailyCheckIn = require("../models/SeniorDailyCheckIn");
+const SeniorHealthActivity = require("../models/SeniorHealthActivity");
+const SeniorMedication = require("../models/SeniorMedication");
+const SeniorFamilyContact = require("../models/SeniorFamilyContact");
 
 /**
  * Retrieves authenticated user context safely for AI personalized responses.
- * Detects whether the user is a Working Professional or Student and builds appropriate context.
+ * Detects whether the user is a Working Professional, Senior Citizen, or Student and builds appropriate context.
  */
 async function getUserContext(userId) {
   try {
     const user = await User.findById(userId).select("fullName email role").lean();
     const isProfessional = user?.role === "Working Professional";
+    const isSenior = user?.role === "Senior Citizen" || (user?.role || "").toLowerCase().includes("senior");
+
+    if (isSenior) {
+      const [latestSeniorCheckIn, latestSeniorHealth, medications, familyContacts, latestMood] = await Promise.all([
+        SeniorDailyCheckIn.findOne({ userId }).sort({ createdAt: -1 }).lean(),
+        SeniorHealthActivity.findOne({ userId }).sort({ createdAt: -1 }).lean(),
+        SeniorMedication.find({ userId, status: "active" }).lean(),
+        SeniorFamilyContact.find({ userId }).lean(),
+        MoodTracker.findOne({ studentId: userId }).sort({ createdAt: -1 }).lean(),
+      ]);
+
+      return {
+        role: "Senior Citizen",
+        userName: user?.fullName || "Senior Citizen",
+        seniorCheckIn: latestSeniorCheckIn
+          ? {
+              feeling: latestSeniorCheckIn.feeling,
+              sleepQuality: latestSeniorCheckIn.sleepQuality,
+              activityLevel: latestSeniorCheckIn.activityLevel,
+              energyLevel: latestSeniorCheckIn.energyLevel,
+              routineCompleted: latestSeniorCheckIn.routineCompleted,
+              notes: latestSeniorCheckIn.notes,
+              date: latestSeniorCheckIn.date,
+            }
+          : null,
+        seniorHealth: latestSeniorHealth
+          ? {
+              steps: latestSeniorHealth.steps,
+              sleepHours: latestSeniorHealth.sleepHours,
+              waterGlasses: latestSeniorHealth.waterGlasses,
+              energyLevel: latestSeniorHealth.energyLevel,
+            }
+          : null,
+        medicationCount: medications.length,
+        medicationList: medications.map((m) => `${m.medicineName} (${m.time})`),
+        emergencyContactCount: familyContacts.filter((c) => c.isEmergencyContact).length,
+        mood: latestMood ? latestMood.mood : "Calm",
+      };
+    }
 
     if (isProfessional) {
       const todayStr = new Date().toISOString().split("T")[0];
@@ -294,11 +337,96 @@ function generateProfessionalFallback(prompt, context) {
 }
 
 /**
+ * Intelligent Fallback Engine for Senior Citizens.
+ */
+function generateSeniorFallback(prompt, context) {
+  const p = prompt.toLowerCase();
+  const intent = classifyIntent(prompt);
+
+  const mood = context.mood || "Calm";
+  const feeling = context.seniorCheckIn?.feeling || "Good";
+  const sleepQuality = context.seniorCheckIn?.sleepQuality || "Restful";
+  const energyLevel = context.seniorCheckIn?.energyLevel || "Normal";
+  const medCount = context.medicationCount || 0;
+  const medList = (context.medicationList || []).join(", ");
+
+  let responseContent = "";
+
+  if (p.includes("exercise") || p.includes("mobility") || p.includes("activity") || p.includes("walk")) {
+    responseContent = `Here are some safe, gentle physical activity suggestions for your daily routine:\n\n` +
+      `🌿 **Morning Light Stretch (10-15 minutes)**\n` +
+      `• Gentle seated ankle rolls, shoulder rolls, and slow neck turns.\n` +
+      `• Seated leg lifts to promote joint mobility and circulation.\n\n` +
+      `🚶‍♂️ **Gentle Garden or Neighborhood Walk**\n` +
+      `• A relaxing 15-20 minute walk in comfortable shoes during morning sunshine.\n` +
+      `• Rest whenever needed and carry a bottle of water.\n\n` +
+      `🧘‍♀️ **Breathing & Balance Exercise**\n` +
+      `• Stand near a sturdy chair for balance support and perform slow heel-to-toe raises.\n\n` +
+      `*Remember to listen to your body and rest if you feel fatigued!*`;
+  } else if (p.includes("medication") || p.includes("pill") || p.includes("reminder") || p.includes("medicine")) {
+    responseContent = `Managing medications consistently is key to your peace of mind.\n\n` +
+      `• **Your Active Reminders**: ${medCount > 0 ? `${medCount} medicine(s) logged: ${medList}` : "No active medication reminders logged yet."}\n\n` +
+      `**Best Practices for Medication Safety:**\n` +
+      `1. **Daily Pill Organizer**: Use a clear 7-day pill box labeled with morning, afternoon, and evening slots.\n` +
+      `2. **NeuroSync Reminders**: Log your daily doses under **Medication & Reminders** tab to receive automatic prompts.\n` +
+      `3. **Water & Food**: Always take pills with a full glass of water, and check if food is required.\n\n` +
+      `*Note: If you have questions about dosages or side effects, please consult your prescribing physician or pharmacist.*`;
+  } else if (p.includes("sleep") || p.includes("rest") || p.includes("routine") || p.includes("night")) {
+    responseContent = `Good sleep quality nourishes your mind and restores your daily energy.\n\n` +
+      `• **Recent Sleep Quality**: ${sleepQuality}\n` +
+      `• **Logged Energy**: ${energyLevel}\n\n` +
+      `**Tips for Restful Sleep:**\n` +
+      `1. **Consistent Bedtime**: Go to bed and wake up at the same hour every day.\n` +
+      `2. **Relaxing Evening Wind-down**: Sip warm herbal tea, listen to soothing music, or read a book.\n` +
+      `3. **Comfortable Environment**: Keep your bedroom cool, dark, and quiet.\n` +
+      `4. **Limit Evening Screen Time**: Turn off bright screens 1 hour before sleeping.`;
+  } else if (p.includes("memory") || p.includes("mind") || p.includes("brain") || p.includes("cognitive")) {
+    responseContent = `Keeping your brain active is a wonderful way to maintain cognitive vitality!\n\n` +
+      `**Recommended Brain & Memory Activities:**\n` +
+      `1. **Daily Puzzles**: Solve crosswords, Sudoku, or word search puzzles.\n` +
+      `2. **Storytelling & Memory Recall**: Browse old photo albums and recount stories from your youth.\n` +
+      `3. **Learn Something New**: Try learning a new song, recipe, or hobby.\n` +
+      `4. **NeuroSync Memory Exercises**: Try our Student Memory Exercises module to challenge your mind!\n\n` +
+      `Would you like me to recommend a fun daily memory trivia exercise?`;
+  } else if (p.includes("family") || p.includes("connected") || p.includes("grandchild") || p.includes("children")) {
+    responseContent = `Staying connected with family brings joy and warmth to every day ❤️\n\n` +
+      `• **Emergency Contacts**: You have ${context.emergencyContactCount || 0} trusted emergency contacts saved in NeuroSync.\n\n` +
+      `**Ways to Stay Close:**\n` +
+      `1. **Scheduled Video Calls**: Pick a set time each week for a video call with your children or grandchildren.\n` +
+      `2. **Share Memories**: Send a short voice note or message recalling a family story.\n` +
+      `3. **Family Journal**: Record your thoughts in the **Journal** section and share highlights with family.`;
+  } else if (p.includes("lonely") || p.includes("anxious") || p.includes("sad") || p.includes("stressed")) {
+    responseContent = `I am here with you, and it is completely natural to feel this way sometimes ❤️\n\n` +
+      `• **Current Mood**: ${mood}\n\n` +
+      `**Gentle Steps for Comfort:**\n` +
+      `1. **Deep Slow Breathing**: Inhale gently through your nose for 4 seconds, and exhale slowly for 4 seconds.\n` +
+      `2. **Comforting Cup of Tea**: Enjoy a warm drink while listening to relaxing music or nature sounds.\n` +
+      `3. **Reach Out**: Call a family member or friend for a warm chat.\n\n` +
+      `*Remember: You are valued, loved, and never alone.*`;
+  } else if (p.includes("hello") || p.includes("hi") || p.includes("hey")) {
+    responseContent = `Hello! 🌿 I am your NeuroSync Senior AI Companion.\n\n` +
+      `I am here to assist you with daily routines, health & medication reminders, family connections, emotional wellbeing, and gentle conversation. How can I help you today?`;
+  } else {
+    responseContent = `Thank you for reaching out! 🌿\n\n` +
+      `As your Senior AI Companion, I am here to support your daily health, medication schedules, memory exercises, and emotional well-being.\n\n` +
+      `Feel free to ask me about **gentle daily exercises**, **sleep tips**, **medication reminders**, or **ideas to stay connected with family**!`;
+  }
+
+  return {
+    content: responseContent,
+    category: intent,
+  };
+}
+
+/**
  * Intelligent Fallback Engine for Students.
  */
 function generateContextualFallback(prompt, context) {
   if (context.role === "Working Professional") {
     return generateProfessionalFallback(prompt, context);
+  }
+  if (context.role === "Senior Citizen") {
+    return generateSeniorFallback(prompt, context);
   }
 
   const intent = classifyIntent(prompt);
@@ -390,6 +518,7 @@ async function generateAIResponse({ userPrompt, userContext, history = [] }) {
   if (apiKey) {
     try {
       const isProf = userContext.role === "Working Professional";
+      const isSenior = userContext.role === "Senior Citizen";
 
       let systemPrompt = "";
 
@@ -434,6 +563,29 @@ Working Professional NeuroSync Live Context:
 - Sleep Hours: ${userContext.profCheckIn?.sleepHours || context.profProfile?.avgSleepHours || "7.5"}h
 - Completed Focus Sessions: ${userContext.focusStats?.sessionCount || 0} session(s) (${userContext.focusStats?.totalMinutes || 0} total focus minutes)
 - Wellness Goal: ${userContext.profProfile?.wellnessGoal || "Maintain Work-Life Balance"}
+`;
+      } else if (isSenior) {
+        systemPrompt = `You are NeuroSync Senior AI Companion, a warm, supportive, respectful AI companion designed specifically for senior citizens.
+
+Guidelines:
+1. Be extremely clear, warm, patient, encouraging, and easy to read.
+2. Provide practical wellness advice on:
+   - Gentle physical activities & mobility
+   - Sleep routine & relaxation
+   - Medication organization & reminder tips
+   - Staying connected with family, friends, and community
+   - Fun ways to keep the mind and memory active
+   - Emotional wellbeing, overcoming loneliness or anxiety
+3. NEVER provide clinical medical diagnoses, prescribe medications, or alter dosages.
+4. Always remind seniors to consult their healthcare provider or trusted family member for medical decisions.
+
+Senior Citizen NeuroSync Context:
+- Name: ${userContext.userName || "Senior"}
+- Current Mood: ${userContext.mood || "Calm"}
+- Recent Daily Check-in Feeling: ${userContext.seniorCheckIn?.feeling || "Good"}
+- Sleep Quality: ${userContext.seniorCheckIn?.sleepQuality || "Restful"}
+- Activity Level: ${userContext.seniorCheckIn?.activityLevel || "Moderate"}
+- Active Medications: ${userContext.medicationCount || 0} (${(userContext.medicationList || []).join(", ") || "None"})
 `;
       } else {
         systemPrompt = `You are NeuroSync AI Companion, a personal cognitive, emotional, and study companion for students.
@@ -502,6 +654,9 @@ Student Context:
   // Fallback to contextual generator
   if (userContext.role === "Working Professional") {
     return generateProfessionalFallback(userPrompt, userContext);
+  }
+  if (userContext.role === "Senior Citizen") {
+    return generateSeniorFallback(userPrompt, userContext);
   }
   return generateContextualFallback(userPrompt, userContext);
 }
