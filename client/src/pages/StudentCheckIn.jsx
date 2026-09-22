@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/dashboard/Sidebar";
+import TopNavbar from "../components/dashboard/TopNavbar";
+import DashboardFooter from "../components/dashboard/DashboardFooter";
 import { 
   FiSmile, 
   FiMoon, 
@@ -11,7 +14,12 @@ import {
   FiMessageSquare,
   FiArrowLeft,
   FiArrowRight,
-  FiCheckCircle
+  FiCheckCircle,
+  FiEdit3,
+  FiCheckSquare,
+  FiCalendar,
+  FiRefreshCw,
+  FiGrid
 } from "react-icons/fi";
 import "../styles/studentDashboard.css";
 
@@ -24,12 +32,90 @@ const getTodayString = () => {
   return `${year}-${month}-${day}`;
 };
 
+// Display mapping helpers for clean emoji labels and high-contrast text
+const formatFeeling = (val) => {
+  if (!val) return "Not specified";
+  const map = {
+    "Very Happy": "😊 Very Happy",
+    "Happy": "🙂 Happy",
+    "Neutral": "😐 Neutral",
+    "Stressed": "😟 Stressed",
+    "Sad": "😢 Sad",
+  };
+  return map[val] || val;
+};
+
+const formatSleep = (val) => {
+  if (!val) return "Not specified";
+  const map = {
+    "Less than 4 hours": "🌙 Less than 4 hours",
+    "4–6 hours": "💤 4–6 hours",
+    "6–8 hours": "🛌 6–8 hours",
+    "More than 8 hours": "✨ More than 8 hours",
+  };
+  return map[val] || val;
+};
+
+const formatChallenge = (val) => {
+  if (!val) return "Not specified";
+  const map = {
+    "Exams": "📝 Exams",
+    "Assignments": "📚 Assignments",
+    "Time Management": "⏰ Time Management",
+    "Personal Problems": "💭 Personal Problems",
+    "Health": "🏥 Health",
+    "No Challenges": "✨ No Challenges",
+  };
+  return map[val] || val;
+};
+
+const formatEnergy = (val) => {
+  if (!val) return "Not specified";
+  const map = {
+    "Very High": "⚡ Very High",
+    "High": "🔋 High",
+    "Moderate": "⚖️ Moderate",
+    "Low": "🪫 Low",
+    "Very Low": "💤 Very Low",
+  };
+  return map[val] || val;
+};
+
+const formatGoal = (val) => {
+  if (!val) return "Not specified";
+  const map = {
+    "Complete Assignments": "✅ Complete Assignments",
+    "Prepare for Exams": "📖 Prepare for Exams",
+    "Practice Coding": "💻 Practice Coding",
+    "Learn Something New": "💡 Learn Something New",
+    "Relax and Recharge": "🌿 Relax and Recharge",
+  };
+  return map[val] || val;
+};
+
+const formatTalkAI = (val) => {
+  if (!val) return "Not specified";
+  const map = {
+    "Yes": "🤖 Yes, start conversation",
+    "Maybe Later": "⏳ Maybe Later",
+    "No": "🚫 No, not today",
+  };
+  return map[val] || val;
+};
+
 function StudentCheckIn() {
   const navigate = useNavigate();
+  const [activeTab] = useState("checkin");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [studentName, setStudentName] = useState("Student");
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [loadingCheckIn, setLoadingCheckIn] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [lastCheckInDateStr, setLastCheckInDateStr] = useState("");
 
   // Form State
   const [answers, setAnswers] = useState({
@@ -43,47 +129,65 @@ function StudentCheckIn() {
     talkToAI: "",
   });
 
-  // Check if today's check-in was already completed locally or on backend
+  // Fetch logged in student info and latest check-in data on mount
   useEffect(() => {
-    const checkStatus = async () => {
-      const token = localStorage.getItem("neurosync_token");
-      const storedUser = localStorage.getItem("neurosync_current_user");
+    const token = localStorage.getItem("neurosync_token");
+    const storedUser = localStorage.getItem("neurosync_current_user");
 
-      if (!token || !storedUser) {
-        navigate("/login", { replace: true });
-        return;
+    if (!token || !storedUser) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(storedUser);
+      if (parsed.fullName || parsed.name) {
+        setStudentName(parsed.fullName || parsed.name);
       }
+    } catch (e) {
+      console.error("Error parsing stored user:", e);
+    }
 
+    const fetchCheckInStatus = async () => {
+      setLoadingCheckIn(true);
       try {
-        const parsed = JSON.parse(storedUser);
-        const todayStr = getTodayString();
-
-        // If local user object shows today's checkin is already done, redirect to dashboard immediately
-        if (parsed.lastCheckInDate === todayStr) {
-          navigate("/student/dashboard", { replace: true });
-          return;
-        }
-
-        // Verify with backend API
-        const response = await fetch("http://localhost:5000/api/student/checkin-status", {
+        const response = await fetch("http://localhost:5000/api/student/dailycheckin/latest", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         const data = await response.json();
-        if (data.success && data.completedToday) {
-          // Update local user object
-          parsed.lastCheckInDate = todayStr;
-          localStorage.setItem("neurosync_current_user", JSON.stringify(parsed));
-          navigate("/student/dashboard", { replace: true });
+
+        if (response.ok && data.success && data.hasData && data.checkIn) {
+          const checkIn = data.checkIn;
+          setAnswers({
+            feeling: checkIn.feeling || data.mood || "",
+            sleepHours: checkIn.sleepHours || data.sleepHours || "",
+            stressLevel: checkIn.stressLevel !== undefined ? Number(checkIn.stressLevel) : 5,
+            motivationLevel: checkIn.motivationLevel !== undefined ? Number(checkIn.motivationLevel) : 5,
+            biggestChallenge: checkIn.biggestChallenge || data.biggestChallenge || "",
+            energyLevel: checkIn.energyLevel || data.energyLevel || "",
+            mainGoal: checkIn.mainGoal || data.goal || "",
+            talkToAI: checkIn.talkToAI || data.talkToAI || "",
+          });
+          setLastCheckInDateStr(checkIn.date || data.date || getTodayString());
+          setIsCompleted(true);
+          setShowForm(false);
+        } else {
+          setIsCompleted(false);
+          setShowForm(true);
         }
       } catch (err) {
         console.error("Check-in status fetch error:", err);
+        setIsCompleted(false);
+        setShowForm(true);
+      } finally {
+        setLoadingCheckIn(false);
       }
     };
 
-    checkStatus();
+    fetchCheckInStatus();
   }, [navigate]);
 
   // Option select handler
@@ -180,16 +284,14 @@ function StudentCheckIn() {
         localStorage.setItem("neurosync_current_user", JSON.stringify(parsed));
       }
 
+      setLastCheckInDateStr(getTodayString());
       setIsCompleted(true);
+      setShowForm(false);
     } catch (err) {
       setErrorMessage("Network error: Could not reach the backend server.");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleGoToDashboard = () => {
-    navigate("/student/dashboard", { replace: true });
   };
 
   // Stress Level Badge helper
@@ -209,31 +311,402 @@ function StudentCheckIn() {
   const progressPercent = Math.round((currentStep / 8) * 100);
 
   return (
-    <div 
-      className="min-vh-100 d-flex flex-column align-items-center justify-content-center p-3"
-      style={{
-        background: "radial-gradient(circle at top right, #1E1B4B 0%, #0F172A 40%, #090D16 100%)",
-        color: "#F8FAFC",
-        fontFamily: "'Inter', sans-serif"
-      }}
-    >
-      {/* Container Card */}
-      <div 
-        className="w-100 rounded-4 shadow-lg p-4 p-md-5 position-relative overflow-hidden"
-        style={{
-          maxWidth: "640px",
-          background: "rgba(15, 23, 42, 0.85)",
-          backdropFilter: "blur(24px)",
-          border: "1px solid rgba(255, 255, 255, 0.12)"
-        }}
-      >
-        {!isCompleted ? (
-          <>
+    <div className="dashboard-container">
+      {/* Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={() => {}}
+        isOpen={sidebarOpen}
+        setIsOpen={setSidebarOpen}
+      />
+
+      {/* Top Navbar */}
+      <TopNavbar
+        studentName={studentName}
+        toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      />
+
+      {/* Main Content */}
+      <main className="ns-main-content">
+        {/* Page Header */}
+        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+          <div>
+            <div className="d-flex align-items-center gap-2 mb-1">
+              <span
+                className="badge rounded-pill px-3 py-2"
+                style={{
+                  background: "rgba(59, 130, 246, 0.15)",
+                  color: "#60A5FA",
+                  border: "1px solid rgba(59, 130, 246, 0.3)",
+                }}
+              >
+                <FiCheckSquare className="me-1" /> Student Daily Check-in
+              </span>
+            </div>
+            <h1 className="text-white fw-bold fs-3 mb-1">Daily Check-in Survey & Responses</h1>
+            <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
+              Track your daily mood, sleep, stress levels, goals, and AI companion preferences.
+            </p>
+          </div>
+
+          {isCompleted && !showForm && (
+            <button
+              type="button"
+              className="btn px-4 py-2.5 rounded-3 text-white fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                border: "none",
+                transition: "all 0.3s ease",
+              }}
+              onClick={() => {
+                setShowForm(true);
+                setCurrentStep(1);
+              }}
+            >
+              <FiEdit3 size={18} />
+              <span>Retake / Update Survey</span>
+            </button>
+          )}
+        </div>
+
+        {/* Content Area */}
+        {loadingCheckIn ? (
+          <div className="text-center py-5 text-muted">
+            <div className="spinner-border text-primary mb-3" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <div>Loading check-in survey status...</div>
+          </div>
+        ) : isCompleted && !showForm ? (
+          /* ALL 8 SURVEY QUESTIONS AND ANSWERS VIEW */
+          <div
+            className="ns-card p-4 p-md-5 rounded-4 border border-secondary border-opacity-25 shadow-lg mb-4"
+            style={{
+              background: "rgba(15, 23, 42, 0.85)",
+              backdropFilter: "blur(20px)",
+            }}
+          >
+            {/* Header Badge & Date */}
+            <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pb-3 mb-4 border-bottom border-secondary border-opacity-25 gap-2">
+              <div className="d-flex align-items-center gap-3">
+                <div className="rounded-circle bg-success bg-opacity-20 text-success p-2.5 d-flex align-items-center justify-content-center border border-success border-opacity-30">
+                  <FiCheckCircle size={28} />
+                </div>
+                <div>
+                  <h4 className="text-white fw-bold mb-0">Check-in Submitted & Recorded</h4>
+                  <span className="text-muted small">Here are all your survey questions and answers.</span>
+                </div>
+              </div>
+              {lastCheckInDateStr && (
+                <span className="badge rounded-pill px-3 py-2 bg-dark text-white border border-secondary border-opacity-25 d-flex align-items-center gap-1.5 align-self-start align-self-sm-center">
+                  <FiCalendar className="text-primary" /> Recorded: {lastCheckInDateStr}
+                </span>
+              )}
+            </div>
+
+            {/* 8 Questions & Answers Grid */}
+            <div className="row g-4">
+              {/* Question 1 */}
+              <div className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  style={{ 
+                    background: "rgba(30, 41, 59, 0.6)", 
+                    border: "1px solid rgba(59, 130, 246, 0.25)" 
+                  }}
+                >
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#60A5FA" }}>
+                      <FiSmile size={18} />
+                      <span className="fw-bold small text-uppercase tracking-wider">Question 1 • Feeling</span>
+                    </div>
+                    <div className="text-white-50 small mb-3">How are you feeling today?</div>
+                  </div>
+                  <div>
+                    <span 
+                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
+                      style={{
+                        background: "rgba(59, 130, 246, 0.2)",
+                        color: "#93C5FD",
+                        border: "1px solid rgba(59, 130, 246, 0.4)",
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      {formatFeeling(answers.feeling)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question 2 */}
+              <div className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  style={{ 
+                    background: "rgba(30, 41, 59, 0.6)", 
+                    border: "1px solid rgba(14, 165, 233, 0.25)" 
+                  }}
+                >
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#38BDF8" }}>
+                      <FiMoon size={18} />
+                      <span className="fw-bold small text-uppercase tracking-wider">Question 2 • Sleep</span>
+                    </div>
+                    <div className="text-white-50 small mb-3">How many hours did you sleep last night?</div>
+                  </div>
+                  <div>
+                    <span 
+                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
+                      style={{
+                        background: "rgba(14, 165, 233, 0.2)",
+                        color: "#7DD3FC",
+                        border: "1px solid rgba(14, 165, 233, 0.4)",
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      {formatSleep(answers.sleepHours)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question 3 */}
+              <div className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  style={{ 
+                    background: "rgba(30, 41, 59, 0.6)", 
+                    border: "1px solid rgba(245, 158, 11, 0.25)" 
+                  }}
+                >
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#FBBF24" }}>
+                      <FiActivity size={18} />
+                      <span className="fw-bold small text-uppercase tracking-wider">Question 3 • Stress</span>
+                    </div>
+                    <div className="text-white-50 small mb-3">How stressed do you feel today? (1–10)</div>
+                  </div>
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="display-6 fw-bold text-white">
+                      {answers.stressLevel}<span className="fs-5 text-muted">/10</span>
+                    </div>
+                    <span 
+                      className="px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
+                      style={{ 
+                        backgroundColor: `${getStressLabel(answers.stressLevel).color}25`,
+                        color: getStressLabel(answers.stressLevel).color,
+                        border: `1px solid ${getStressLabel(answers.stressLevel).color}55`,
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      {getStressLabel(answers.stressLevel).text}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question 4 */}
+              <div className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  style={{ 
+                    background: "rgba(30, 41, 59, 0.6)", 
+                    border: "1px solid rgba(34, 197, 94, 0.25)" 
+                  }}
+                >
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#4ADE80" }}>
+                      <FiZap size={18} />
+                      <span className="fw-bold small text-uppercase tracking-wider">Question 4 • Motivation</span>
+                    </div>
+                    <div className="text-white-50 small mb-3">How motivated are you to study today? (1–10)</div>
+                  </div>
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="display-6 fw-bold text-white">
+                      {answers.motivationLevel}<span className="fs-5 text-muted">/10</span>
+                    </div>
+                    <span 
+                      className="px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
+                      style={{ 
+                        backgroundColor: `${getMotivationLabel(answers.motivationLevel).color}25`,
+                        color: getMotivationLabel(answers.motivationLevel).color,
+                        border: `1px solid ${getMotivationLabel(answers.motivationLevel).color}55`,
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      {getMotivationLabel(answers.motivationLevel).text}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question 5 */}
+              <div className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  style={{ 
+                    background: "rgba(30, 41, 59, 0.6)", 
+                    border: "1px solid rgba(239, 68, 68, 0.25)" 
+                  }}
+                >
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#F87171" }}>
+                      <FiAlertCircle size={18} />
+                      <span className="fw-bold small text-uppercase tracking-wider">Question 5 • Challenge</span>
+                    </div>
+                    <div className="text-white-50 small mb-3">What is your biggest challenge today?</div>
+                  </div>
+                  <div>
+                    <span 
+                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
+                      style={{
+                        background: "rgba(239, 68, 68, 0.2)",
+                        color: "#FCA5A5",
+                        border: "1px solid rgba(239, 68, 68, 0.4)",
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      {formatChallenge(answers.biggestChallenge)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question 6 */}
+              <div className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  style={{ 
+                    background: "rgba(30, 41, 59, 0.6)", 
+                    border: "1px solid rgba(245, 158, 11, 0.25)" 
+                  }}
+                >
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#FBBF24" }}>
+                      <FiBatteryCharging size={18} />
+                      <span className="fw-bold small text-uppercase tracking-wider">Question 6 • Energy Level</span>
+                    </div>
+                    <div className="text-white-50 small mb-3">How is your energy level today?</div>
+                  </div>
+                  <div>
+                    <span 
+                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
+                      style={{
+                        background: "rgba(245, 158, 11, 0.2)",
+                        color: "#FDE047",
+                        border: "1px solid rgba(245, 158, 11, 0.4)",
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      {formatEnergy(answers.energyLevel)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question 7 */}
+              <div className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  style={{ 
+                    background: "rgba(30, 41, 59, 0.6)", 
+                    border: "1px solid rgba(168, 85, 247, 0.25)" 
+                  }}
+                >
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#C084FC" }}>
+                      <FiTarget size={18} />
+                      <span className="fw-bold small text-uppercase tracking-wider">Question 7 • Main Goal</span>
+                    </div>
+                    <div className="text-white-50 small mb-3">What is your main goal today?</div>
+                  </div>
+                  <div>
+                    <span 
+                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
+                      style={{
+                        background: "rgba(168, 85, 247, 0.2)",
+                        color: "#E9D5FF",
+                        border: "1px solid rgba(168, 85, 247, 0.4)",
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      {formatGoal(answers.mainGoal)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Question 8 */}
+              <div className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  style={{ 
+                    background: "rgba(30, 41, 59, 0.6)", 
+                    border: "1px solid rgba(6, 182, 212, 0.25)" 
+                  }}
+                >
+                  <div>
+                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#22D3EE" }}>
+                      <FiMessageSquare size={18} />
+                      <span className="fw-bold small text-uppercase tracking-wider">Question 8 • AI Companion</span>
+                    </div>
+                    <div className="text-white-50 small mb-3">Would you like to talk with NeuroSync AI today?</div>
+                  </div>
+                  <div>
+                    <span 
+                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
+                      style={{
+                        background: "rgba(6, 182, 212, 0.2)",
+                        color: "#67E8F9",
+                        border: "1px solid rgba(6, 182, 212, 0.4)",
+                        fontSize: "0.95rem"
+                      }}
+                    >
+                      {formatTalkAI(answers.talkToAI)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="d-flex flex-wrap align-items-center justify-content-between mt-5 pt-3 border-top border-secondary border-opacity-25 gap-3">
+              <button
+                type="button"
+                className="btn btn-outline-secondary text-white rounded-pill px-4 py-2 border-secondary d-flex align-items-center gap-2"
+                onClick={() => {
+                  setShowForm(true);
+                  setCurrentStep(1);
+                }}
+              >
+                <FiRefreshCw size={16} /> Retake / Update Survey
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary rounded-pill px-5 py-2.5 fw-bold d-flex align-items-center gap-2 shadow-lg"
+                onClick={() => navigate("/student/dashboard")}
+              >
+                <FiGrid size={18} /> Go to Dashboard 🚀
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* STEP-BY-STEP SURVEY FORM WIZARD */
+          <div 
+            className="w-100 rounded-4 shadow-lg p-4 p-md-5 position-relative overflow-hidden mx-auto mb-4"
+            style={{
+              maxWidth: "640px",
+              background: "rgba(15, 23, 42, 0.85)",
+              backdropFilter: "blur(24px)",
+              border: "1px solid rgba(255, 255, 255, 0.12)"
+            }}
+          >
             {/* Header & Progress */}
             <div className="mb-4">
               <div className="d-flex align-items-center justify-content-between mb-2">
                 <span className="badge bg-primary bg-opacity-25 text-blue-300 px-3 py-1.5 rounded-pill border border-blue-400 border-opacity-30 small">
-                  🧠 NeuroSync Daily Check-in
+                  🧠 Daily Check-in Survey
                 </span>
                 <span className="text-secondary small fw-semibold">
                   Step {currentStep} of 8 ({progressPercent}%)
@@ -271,7 +744,7 @@ function StudentCheckIn() {
                   <FiSmile size={24} />
                   <span className="small text-uppercase tracking-wider fw-bold">Question 1</span>
                 </div>
-                <h3 className="fw-bold mb-4">How are you feeling today?</h3>
+                <h3 className="fw-bold mb-4 text-white">How are you feeling today?</h3>
 
                 <div className="d-flex flex-column gap-3">
                   {[
@@ -307,7 +780,7 @@ function StudentCheckIn() {
                   <FiMoon size={24} />
                   <span className="small text-uppercase tracking-wider fw-bold">Question 2</span>
                 </div>
-                <h3 className="fw-bold mb-4">How many hours did you sleep last night?</h3>
+                <h3 className="fw-bold mb-4 text-white">How many hours did you sleep last night?</h3>
 
                 <div className="d-flex flex-column gap-3">
                   {[
@@ -342,7 +815,7 @@ function StudentCheckIn() {
                   <FiActivity size={24} />
                   <span className="small text-uppercase tracking-wider fw-bold">Question 3</span>
                 </div>
-                <h3 className="fw-bold mb-2">How stressed do you feel today?</h3>
+                <h3 className="fw-bold mb-2 text-white">How stressed do you feel today?</h3>
                 <p className="text-secondary small mb-4">Slide from 1 (Very Low Stress) to 10 (Extreme Stress)</p>
 
                 <div className="p-4 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25 text-center">
@@ -386,7 +859,7 @@ function StudentCheckIn() {
                   <FiZap size={24} />
                   <span className="small text-uppercase tracking-wider fw-bold">Question 4</span>
                 </div>
-                <h3 className="fw-bold mb-2">How motivated are you to study today?</h3>
+                <h3 className="fw-bold mb-2 text-white">How motivated are you to study today?</h3>
                 <p className="text-secondary small mb-4">Slide from 1 (No Motivation) to 10 (Fully Energized & Ready)</p>
 
                 <div className="p-4 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25 text-center">
@@ -430,7 +903,7 @@ function StudentCheckIn() {
                   <FiAlertCircle size={24} />
                   <span className="small text-uppercase tracking-wider fw-bold">Question 5</span>
                 </div>
-                <h3 className="fw-bold mb-4">What is your biggest challenge today?</h3>
+                <h3 className="fw-bold mb-4 text-white">What is your biggest challenge today?</h3>
 
                 <div className="row g-3">
                   {[
@@ -468,7 +941,7 @@ function StudentCheckIn() {
                   <FiBatteryCharging size={24} />
                   <span className="small text-uppercase tracking-wider fw-bold">Question 6</span>
                 </div>
-                <h3 className="fw-bold mb-4">How is your energy level today?</h3>
+                <h3 className="fw-bold mb-4 text-white">How is your energy level today?</h3>
 
                 <div className="d-flex flex-column gap-3">
                   {[
@@ -504,7 +977,7 @@ function StudentCheckIn() {
                   <FiTarget size={24} />
                   <span className="small text-uppercase tracking-wider fw-bold">Question 7</span>
                 </div>
-                <h3 className="fw-bold mb-4">What is your main goal today?</h3>
+                <h3 className="fw-bold mb-4 text-white">What is your main goal today?</h3>
 
                 <div className="d-flex flex-column gap-3">
                   {[
@@ -540,7 +1013,7 @@ function StudentCheckIn() {
                   <FiMessageSquare size={24} />
                   <span className="small text-uppercase tracking-wider fw-bold">Question 8</span>
                 </div>
-                <h3 className="fw-bold mb-4">Would you like to talk with NeuroSync AI today?</h3>
+                <h3 className="fw-bold mb-4 text-white">Would you like to talk with NeuroSync AI today?</h3>
 
                 <div className="d-flex flex-column gap-3">
                   {[
@@ -600,39 +1073,12 @@ function StudentCheckIn() {
                 )}
               </button>
             </div>
-          </>
-        ) : (
-          /* FINAL SCREEN */
-          <div className="text-center py-4 animate-fade-in">
-            <div 
-              className="rounded-circle bg-success bg-opacity-20 border border-success border-opacity-30 d-inline-flex align-items-center justify-content-center mb-4 text-success"
-              style={{ width: "80px", height: "80px" }}
-            >
-              <FiCheckCircle size={44} />
-            </div>
-
-            <h2 className="fw-bold mb-3 text-white">Thank you!</h2>
-            <p className="text-secondary fs-5 mb-4" style={{ maxWidth: "480px", margin: "0 auto" }}>
-              Your daily wellness check is complete. Have a productive and balanced day!
-            </p>
-
-            <div className="p-3 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25 mb-4 text-start" style={{ fontSize: "0.9rem" }}>
-              <div className="fw-semibold text-primary mb-1">Today's Summary Recorded:</div>
-              <div className="text-secondary">• Feeling: <span className="text-white">{answers.feeling}</span></div>
-              <div className="text-secondary">• Sleep: <span className="text-white">{answers.sleepHours}</span></div>
-              <div className="text-secondary">• Main Goal: <span className="text-white">{answers.mainGoal}</span></div>
-            </div>
-
-            <button
-              type="button"
-              className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold shadow-lg"
-              onClick={handleGoToDashboard}
-            >
-              Go to Dashboard 🚀
-            </button>
           </div>
         )}
-      </div>
+      </main>
+
+      {/* Footer */}
+      <DashboardFooter />
     </div>
   );
 }

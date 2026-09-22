@@ -137,6 +137,11 @@ function StudentJournal() {
   // Journal Insights & Reflection State
   const [insights, setInsights] = useState(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
+  const [insightsError, setInsightsError] = useState("");
+
+  const [weeklyReflectionData, setWeeklyReflectionData] = useState(null);
+  const [loadingWeekly, setLoadingWeekly] = useState(false);
+  const [weeklyError, setWeeklyError] = useState("");
 
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState("");
@@ -180,7 +185,6 @@ function StudentJournal() {
     }
 
     fetchJournals();
-    fetchInsights();
   }, []);
 
   const fetchJournals = async () => {
@@ -232,8 +236,13 @@ function StudentJournal() {
 
   const fetchInsights = async () => {
     setLoadingInsights(true);
+    setInsightsError("");
     const token = localStorage.getItem("neurosync_token");
-    if (!token) return;
+    if (!token) {
+      setInsightsError("Authentication session missing. Please log in.");
+      setLoadingInsights(false);
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:5000/api/journal/insights", {
@@ -242,11 +251,42 @@ function StudentJournal() {
       const result = await response.json();
       if (response.ok && result.success) {
         setInsights(result.data);
+      } else {
+        setInsightsError(result.message || "Failed to analyze journal history.");
       }
     } catch (err) {
       console.error("Error fetching journal insights:", err);
+      setInsightsError("Unable to connect to server for journal insights.");
     } finally {
       setLoadingInsights(false);
+    }
+  };
+
+  const fetchWeeklyReflection = async () => {
+    setLoadingWeekly(true);
+    setWeeklyError("");
+    const token = localStorage.getItem("neurosync_token");
+    if (!token) {
+      setWeeklyError("Authentication session missing. Please log in.");
+      setLoadingWeekly(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/journal/weekly-reflection", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json();
+      if (response.ok && result.success) {
+        setWeeklyReflectionData(result.data);
+      } else {
+        setWeeklyError(result.message || "Failed to generate weekly reflection.");
+      }
+    } catch (err) {
+      console.error("Error fetching weekly reflection:", err);
+      setWeeklyError("Unable to connect to server for weekly reflection.");
+    } finally {
+      setLoadingWeekly(false);
     }
   };
 
@@ -662,297 +702,493 @@ function StudentJournal() {
           </div>
         )}
 
-        {/* STEP 5: 📊 Journal Insights Section */}
-        {insights && (
-          <div className="mb-4">
-            <div className="d-flex align-items-center justify-content-between mb-3">
-              <h4 className="text-white fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
-                <FiPieChart className="text-primary" /> 📊 Journal Insights
-              </h4>
-              <span className="text-muted small">Updated real-time from your reflections</span>
-            </div>
+        {/* ==================== SECTION 1 — HEADER & INSIGHTS ==================== */}
+        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+          <div>
+            <h3 className="text-white fw-bold fs-4 mb-1 d-flex align-items-center gap-2">
+              🧠 AI Journal Insights
+            </h3>
+            <p className="text-muted mb-0 small">
+              Understand patterns and trends across your journal history.
+            </p>
+          </div>
 
-            <div className="row g-3 mb-3">
-              {/* Total Entries */}
-              <div className="col-6 col-md-3">
+          <button
+            type="button"
+            className="btn px-4 py-2.5 rounded-3 text-white fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-lg flex-shrink-0"
+            style={{
+              background: "linear-gradient(135deg, #8B5CF6, #EC4899)",
+              border: "none",
+              transition: "all 0.3s ease",
+            }}
+            onClick={fetchInsights}
+            disabled={loadingInsights}
+          >
+            {loadingInsights ? (
+              <>
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                <span>Analyzing History...</span>
+              </>
+            ) : (
+              <>
+                <FiCpu size={18} />
+                <span>✨ Analyze My Journal History</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {insightsError && (
+          <div
+            className="alert alert-danger py-2.5 px-3 small rounded-3 mb-4 border-0"
+            style={{ background: "rgba(239, 68, 68, 0.2)", color: "#FCA5A5" }}
+          >
+            {insightsError}
+          </div>
+        )}
+
+        {/* SECTION 2 — SUMMARY CARDS */}
+        {insights ? (
+          <>
+            <div className="row g-3 mb-4">
+              {/* 1. Analyzed Entries */}
+              <div className="col-12 col-sm-6 col-lg-3">
                 <div
-                  className="ns-card p-3 h-100 d-flex flex-column justify-content-between"
+                  className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between"
                   style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
                 >
-                  <span className="text-muted small fw-medium">Journal Entries</span>
-                  <h3 className="text-white fw-bold fs-2 my-2">{insights.totalEntries}</h3>
-                  <span className="text-muted small" style={{ fontSize: "0.75rem" }}>
-                    Total logged entries
-                  </span>
+                  <span className="text-muted small fw-medium">Analyzed Entries</span>
+                  <h3 className="text-white fw-bold fs-3 my-1.5">{insights.totalEntries || 0}</h3>
+                  <span className="text-muted extra-small">Historical reflections</span>
                 </div>
               </div>
 
-              {/* Most Frequent Emotion */}
-              <div className="col-6 col-md-3">
+              {/* 2. Dominant Emotion */}
+              <div className="col-12 col-sm-6 col-lg-3">
                 <div
-                  className="ns-card p-3 h-100 d-flex flex-column justify-content-between"
+                  className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between"
                   style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
                 >
-                  <span className="text-muted small fw-medium">Most Frequent Emotion</span>
-                  <div className="d-flex align-items-center gap-2 my-2">
-                    <span className="fs-3">{getMoodEmoji(insights.mostFrequentEmotion)}</span>
-                    <h4 className="text-white fw-bold fs-5 mb-0">{insights.mostFrequentEmotion}</h4>
+                  <span className="text-muted small fw-medium">Dominant Emotion</span>
+                  <div className="d-flex align-items-center gap-2 my-1.5">
+                    <span className="fs-4">{getMoodEmoji(insights.dominantEmotion || insights.mostFrequentEmotion)}</span>
+                    <h4 className="text-white fw-bold fs-6 mb-0">{insights.dominantEmotion || insights.mostFrequentEmotion || "Neutral"}</h4>
                   </div>
-                  <span className="text-muted small" style={{ fontSize: "0.75rem" }}>
-                    Based on your entries
-                  </span>
+                  <span className="text-muted extra-small">Primary feeling</span>
                 </div>
               </div>
 
-              {/* Most Frequent Sentiment */}
-              <div className="col-6 col-md-3">
+              {/* 3. Sentiment */}
+              <div className="col-12 col-sm-6 col-lg-3">
                 <div
-                  className="ns-card p-3 h-100 d-flex flex-column justify-content-between"
+                  className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between"
                   style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
                 >
-                  <span className="text-muted small fw-medium">Most Frequent Sentiment</span>
-                  <div className="my-2">
+                  <span className="text-muted small fw-medium">Sentiment</span>
+                  <div className="my-1.5">
                     <span
-                      className="badge rounded-pill px-3 py-1.5 fw-semibold fs-6"
+                      className="badge rounded-pill px-3 py-1 font-semibold"
                       style={{
                         background:
-                          insights.mostFrequentSentiment === "Positive"
+                          (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Positive"
                             ? "rgba(16, 185, 129, 0.2)"
-                            : insights.mostFrequentSentiment === "Negative"
+                            : (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Negative"
                             ? "rgba(239, 68, 68, 0.2)"
                             : "rgba(148, 163, 184, 0.2)",
                         color:
-                          insights.mostFrequentSentiment === "Positive"
+                          (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Positive"
                             ? "#34D399"
-                            : insights.mostFrequentSentiment === "Negative"
+                            : (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Negative"
                             ? "#FCA5A5"
                             : "#CBD5E1",
                         border: `1px solid ${
-                          insights.mostFrequentSentiment === "Positive"
+                          (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Positive"
                             ? "#10B981"
-                            : insights.mostFrequentSentiment === "Negative"
+                            : (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Negative"
                             ? "#EF4444"
                             : "#94A3B8"
                         }`,
                       }}
                     >
-                      {insights.mostFrequentSentiment}
+                      {insights.overallSentimentTrend || insights.mostFrequentSentiment || "Neutral"}
                     </span>
                   </div>
-                  <span className="text-muted small" style={{ fontSize: "0.75rem" }}>
-                    Emotional sentiment tone
-                  </span>
+                  <span className="text-muted extra-small">Emotional tone</span>
                 </div>
               </div>
 
-              {/* Most Common Theme */}
-              <div className="col-6 col-md-3">
+              {/* 4. Top Theme */}
+              <div className="col-12 col-sm-6 col-lg-3">
                 <div
-                  className="ns-card p-3 h-100 d-flex flex-column justify-content-between"
+                  className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between"
                   style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
                 >
-                  <span className="text-muted small fw-medium">Most Common Theme</span>
-                  <h4 className="text-white fw-bold fs-6 my-2 d-flex align-items-center gap-1 text-truncate">
-                    <span>📚</span> <span>{insights.mostCommonTheme}</span>
+                  <span className="text-muted small fw-medium">Top Theme</span>
+                  <h4 className="text-white fw-bold fs-6 my-1.5 text-truncate">
+                    📚 {insights.mostCommonTheme || (insights.commonThemes && insights.commonThemes[0]) || "Reflection"}
                   </h4>
-                  <span className="text-muted small" style={{ fontSize: "0.75rem" }}>
-                    Top topic discussed
-                  </span>
+                  <span className="text-muted extra-small">Top topic discussed</span>
                 </div>
               </div>
             </div>
 
-            {/* Pattern & Mood Tracker Banner */}
+            {/* SECTION 3 — EMOTIONAL TREND (FULL-WIDTH CARD WITH TIMELINE) */}
             <div
-              className="p-3 rounded-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
+              className="ns-card p-4 mb-4"
               style={{
-                background: "rgba(30, 41, 59, 0.6)",
-                border: "1px solid rgba(139, 92, 246, 0.2)",
+                background: "rgba(15, 23, 42, 0.8)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "16px",
               }}
             >
-              <div className="d-flex align-items-center gap-2">
-                <FiActivity size={18} className="text-info flex-shrink-0" />
-                <div>
-                  <span className="text-white-50 small d-block">Recent Pattern:</span>
-                  <span className="text-white fw-medium small">{insights.recentPatternMessage}</span>
+              <h5 className="text-white fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
+                📈 Recent Emotional Trend
+              </h5>
+
+              <div className="overflow-x-auto pb-2" style={{ scrollbarWidth: "thin" }}>
+                <div className="d-flex align-items-center justify-content-start gap-0 min-w-max-content px-3 py-2">
+                  {(() => {
+                    const timelineData = (journals && journals.length > 0)
+                      ? [...journals].slice(0, 7).reverse()
+                      : (insights.emotionalTrend || []).map((emo, idx) => ({ mood: emo, createdAt: new Date(Date.now() - (7 - idx) * 86400000) }));
+
+                    if (timelineData.length === 0) {
+                      return <p className="text-muted small mb-0">No recent mood entries available for timeline.</p>;
+                    }
+
+                    return timelineData.map((item, idx) => {
+                      const emoName = item.mood || "Neutral";
+                      const emoEmoji = getMoodEmoji(emoName);
+                      const dateStr = item.createdAt
+                        ? new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                        : `Day ${idx + 1}`;
+
+                      return (
+                        <div key={idx} className="d-flex align-items-center">
+                          <div className="d-flex flex-column align-items-center text-center px-3" style={{ minWidth: "95px" }}>
+                            <span className="fs-3 mb-1">{emoEmoji}</span>
+                            <span className="text-white fw-semibold mb-2" style={{ fontSize: "0.78rem" }}>{emoName}</span>
+                            <div className="rounded-circle bg-primary" style={{ width: "10px", height: "10px", boxShadow: "0 0 8px #3B82F6" }} />
+                            <span className="text-muted mt-2" style={{ fontSize: "0.72rem" }}>{dateStr}</span>
+                          </div>
+                          {idx < timelineData.length - 1 && (
+                            <div
+                              className="flex-grow-1"
+                              style={{
+                                height: "2px",
+                                background: "linear-gradient(90deg, #3B82F6, #8B5CF6)",
+                                minWidth: "45px",
+                                marginTop: "12px",
+                              }}
+                            />
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
+            </div>
 
-              {/* STEP 8: Mood Tracker Connection */}
-              {insights.moodTrackerCorrelation && (
+            {/* SECTION 4 — TWO COLUMN INSIGHT AREA */}
+            <div className="row g-4 mb-4">
+              {/* LEFT CARD: Recurring Pattern */}
+              <div className="col-12 col-md-6">
                 <div
-                  className="px-3 py-1.5 rounded-pill d-inline-flex align-items-center gap-2 flex-shrink-0"
+                  className="ns-card p-4 h-100"
                   style={{
-                    background: insights.moodTrackerCorrelation.hasCorrelation
-                      ? "rgba(139, 92, 246, 0.15)"
-                      : "rgba(255, 255, 255, 0.05)",
-                    border: "1px solid rgba(139, 92, 246, 0.3)",
-                    fontSize: "0.8rem",
-                    color: "#C084FC",
+                    background: "rgba(15, 23, 42, 0.8)",
+                    border: "1px solid rgba(59, 130, 246, 0.25)",
+                    borderLeft: "4px solid #3B82F6",
+                    borderRadius: "16px",
                   }}
                 >
-                  <span>🔗</span>
-                  <span>{insights.moodTrackerCorrelation.correlationMessage}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* STEP 6 & STEP 7: Weekly Reflection & Recurring Themes Grid */}
-        {insights && (
-          <div className="row g-4 mb-4">
-            {/* STEP 6: ✨ Weekly Reflection Card */}
-            <div className="col-12 col-lg-7">
-              <div
-                className="ns-card p-4 h-100 d-flex flex-column justify-content-between"
-                style={{
-                  background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.4) 100%)",
-                  border: "1px solid rgba(168, 85, 247, 0.3)",
-                }}
-              >
-                <div>
-                  <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h4 className="text-white fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
-                      <FiCpu className="text-purple" style={{ color: "#C084FC" }} /> ✨ Your Weekly Reflection
-                    </h4>
-                    <span className="badge rounded-pill bg-purple bg-opacity-25 text-purple px-3 py-1 border border-purple border-opacity-25 small">
-                      Recent 7 Days
-                    </span>
-                  </div>
-
-                  {insights.weeklyReflection && insights.weeklyReflection.hasSufficientData ? (
-                    <>
-                      <p className="text-white-50 mb-3 small">
-                        You wrote <strong className="text-white">{insights.weeklyReflection.entryCount} journal entries</strong> this week.
-                      </p>
-
-                      <div className="row g-2 mb-3">
-                        <div className="col-6">
-                          <div className="p-2.5 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
-                            <span className="text-muted d-block" style={{ fontSize: "0.75rem" }}>Most common emotion:</span>
-                            <span className="text-white fw-semibold small d-flex align-items-center gap-1 mt-1">
-                              {getMoodEmoji(insights.weeklyReflection.mostCommonEmotion)} {insights.weeklyReflection.mostCommonEmotion}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="col-6">
-                          <div className="p-2.5 rounded-3" style={{ background: "rgba(255, 255, 255, 0.03)" }}>
-                            <span className="text-muted d-block" style={{ fontSize: "0.75rem" }}>Common themes:</span>
-                            <div className="d-flex flex-wrap gap-1 mt-1">
-                              {insights.weeklyReflection.commonThemes.map((t, idx) => (
-                                <span key={idx} className="badge bg-secondary bg-opacity-25 text-white-50" style={{ fontSize: "0.7rem" }}>
-                                  📚 {t}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* AI Weekly Reflection */}
-                      <div
-                        className="p-3 rounded-3 mb-3"
-                        style={{
-                          background: "rgba(139, 92, 246, 0.1)",
-                          borderLeft: "3px solid #8B5CF6",
-                        }}
-                      >
-                        <span className="text-purple fw-semibold small d-block mb-1">AI Reflection:</span>
-                        <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.5" }}>
-                          "{insights.weeklyReflection.reflection}"
-                        </p>
-                      </div>
-
-                      {/* Recommendation */}
-                      <div
-                        className="p-3 rounded-3"
-                        style={{
-                          background: "rgba(245, 158, 11, 0.1)",
-                          borderLeft: "3px solid #F59E0B",
-                        }}
-                      >
-                        <span className="text-warning fw-semibold small d-block mb-1">💡 Recommendation:</span>
-                        <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.5" }}>
-                          "{insights.weeklyReflection.suggestion}"
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="py-4 text-center">
-                      <p className="text-muted mb-2 small">
-                        Write more journal entries this week to unlock your AI weekly reflection insights!
-                      </p>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary text-info border-info border-opacity-25 rounded-3"
-                        onClick={handleOpenCreateModal}
-                      >
-                        <FiPlus className="me-1" /> Add Entry Now
-                      </button>
-                    </div>
-                  )}
+                  <h5 className="text-info fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
+                    🔍 Recurring Pattern
+                  </h5>
+                  <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.65", fontSize: "0.92rem" }}>
+                    "{insights.recurringPattern?.patternText || insights.recentPatternMessage}"
+                  </p>
                 </div>
               </div>
-            </div>
 
-            {/* STEP 7: 📌 Recurring Themes Card */}
-            <div className="col-12 col-lg-5">
-              <div
-                className="ns-card p-4 h-100 d-flex flex-column justify-content-between"
-                style={{
-                  background: "rgba(15, 23, 42, 0.8)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <div>
-                  <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h4 className="text-white fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
-                      <FiTag className="text-warning" /> 📌 Recurring Themes
-                    </h4>
-                    <span className="text-muted small">Historical Topics</span>
-                  </div>
-
-                  {insights.recurringThemes && insights.recurringThemes.length > 0 ? (
-                    <div className="d-flex flex-column gap-2.5">
-                      {insights.recurringThemes.slice(0, 5).map((item, idx) => (
-                        <div
+              {/* RIGHT CARD: Common Themes */}
+              <div className="col-12 col-md-6">
+                <div
+                  className="ns-card p-4 h-100"
+                  style={{
+                    background: "rgba(15, 23, 42, 0.8)",
+                    border: "1px solid rgba(139, 92, 246, 0.25)",
+                    borderRadius: "16px",
+                  }}
+                >
+                  <h5 className="text-white fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
+                    🏷️ Common Themes
+                  </h5>
+                  {insights.commonThemes && insights.commonThemes.length > 0 ? (
+                    <div className="d-flex flex-wrap gap-2">
+                      {insights.commonThemes.map((theme, idx) => (
+                        <span
                           key={idx}
-                          className="d-flex align-items-center justify-content-between p-2.5 rounded-3"
+                          className="badge rounded-pill px-3 py-2 fw-medium"
                           style={{
-                            background: "rgba(255, 255, 255, 0.03)",
-                            border: "1px solid rgba(255, 255, 255, 0.05)",
+                            background: "rgba(139, 92, 246, 0.15)",
+                            border: "1px solid rgba(139, 92, 246, 0.3)",
+                            color: "#E2E8F0",
+                            fontSize: "0.82rem",
                           }}
                         >
-                          <span className="text-white-50 small fw-medium d-flex align-items-center gap-2">
-                            <span className="text-muted">{idx + 1}.</span> {item.theme}
-                          </span>
-                          <span
-                            className="badge rounded-pill px-2.5 py-1"
-                            style={{
-                              background: "rgba(59, 130, 246, 0.15)",
-                              color: "#60A5FA",
-                              border: "1px solid rgba(59, 130, 246, 0.3)",
-                              fontSize: "0.75rem",
-                            }}
-                          >
-                            {item.count} {item.count === 1 ? "entry" : "entries"}
-                          </span>
-                        </div>
+                          • {theme}
+                        </span>
                       ))}
                     </div>
                   ) : (
-                    <div className="py-4 text-center">
-                      <p className="text-muted small mb-0">
-                        Themes will automatically appear as you create and analyze journal entries.
-                      </p>
-                    </div>
+                    <p className="text-muted small mb-0">No themes detected yet.</p>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* SECTION 5 — AI INSIGHT */}
+            {insights.aiInsight && (
+              <div
+                className="ns-card p-4 mb-4"
+                style={{
+                  background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(88, 28, 135, 0.2) 100%)",
+                  border: "1px solid rgba(168, 85, 247, 0.3)",
+                  borderLeft: "4px solid #A855F7",
+                  borderRadius: "16px",
+                }}
+              >
+                <h5 className="text-purple fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#C084FC" }}>
+                  💡 AI Insight
+                </h5>
+                <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
+                  "{insights.aiInsight}"
+                </p>
+              </div>
+            )}
+
+            {/* SECTION 6 — PERSONALIZED RECOMMENDATION */}
+            {insights.personalizedRecommendation && (
+              <div
+                className="ns-card p-4 mb-4"
+                style={{
+                  background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(120, 53, 15, 0.2) 100%)",
+                  border: "1px solid rgba(245, 158, 11, 0.3)",
+                  borderLeft: "4px solid #F59E0B",
+                  borderRadius: "16px",
+                }}
+              >
+                <h5 className="text-warning fw-bold fs-6 mb-2 d-flex align-items-center gap-2">
+                  🎯 Personalized Recommendation
+                </h5>
+                <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
+                  "{insights.personalizedRecommendation}"
+                </p>
+              </div>
+            )}
+          </>
+        ) : (
+          <div
+            className="ns-card p-4 text-center mb-4"
+            style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px dashed rgba(255, 255, 255, 0.1)" }}
+          >
+            <p className="text-muted small mb-0">
+              Click <strong className="text-white">"✨ Analyze My Journal History"</strong> to view your AI wellness analytics.
+            </p>
           </div>
         )}
+
+        {/* ==================== SECTION 7 — WEEKLY AI REFLECTION ==================== */}
+        <div className="mt-5 mb-5 pt-3">
+          <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <h3 className="text-white fw-bold fs-4 mb-0 d-flex align-items-center gap-2">
+                  ✨ Weekly AI Reflection
+                </h3>
+                <span
+                  className="badge rounded-pill px-2.5 py-1 border border-purple border-opacity-25 small"
+                  style={{ fontSize: "0.75rem", background: "rgba(139, 92, 246, 0.15)", color: "#C084FC" }}
+                >
+                  Last 7 Days
+                </span>
+              </div>
+              <p className="text-muted mb-0 small">
+                A weekly summary of your emotional patterns, themes, and personalized guidance.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-outline-primary text-info border-info border-opacity-25 rounded-3 px-4 py-2.5 small fw-semibold d-inline-flex align-items-center gap-2 flex-shrink-0"
+              onClick={fetchWeeklyReflection}
+              disabled={loadingWeekly}
+            >
+              {loadingWeekly ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                  <span>Generating Report...</span>
+                </>
+              ) : (
+                <>
+                  <FiRefreshCw size={15} />
+                  <span>✨ Generate Weekly Reflection</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {weeklyError && (
+            <div
+              className="alert alert-danger py-2.5 px-3 small rounded-3 mb-4 border-0"
+              style={{ background: "rgba(239, 68, 68, 0.2)", color: "#FCA5A5" }}
+            >
+              {weeklyError}
+            </div>
+          )}
+
+          {weeklyReflectionData ? (
+            <div className="d-flex flex-column gap-4">
+              {/* First row: 3 compact stat cards */}
+              <div className="row g-3">
+                <div className="col-12 col-md-4">
+                  <div className="ns-card p-3.5 h-100" style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                    <span className="text-muted small fw-medium d-block mb-1">Journal Entries Logged</span>
+                    <h4 className="text-white fw-bold fs-4 mb-0">{weeklyReflectionData.entryCount || 0}</h4>
+                  </div>
+                </div>
+
+                <div className="col-12 col-md-4">
+                  <div className="ns-card p-3.5 h-100" style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                    <span className="text-muted small fw-medium d-block mb-1">Dominant Emotion</span>
+                    <span
+                      className="badge rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1.5"
+                      style={{
+                        background: "rgba(139, 92, 246, 0.2)",
+                        color: "#C084FC",
+                        border: "1px solid rgba(139, 92, 246, 0.3)",
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      <span>{getMoodEmoji(weeklyReflectionData.dominantEmotion)}</span>
+                      <span>{weeklyReflectionData.dominantEmotion || "Neutral"}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="col-12 col-md-4">
+                  <div className="ns-card p-3.5 h-100" style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                    <span className="text-muted small fw-medium d-block mb-1">Common Themes</span>
+                    <div className="d-flex flex-wrap gap-1 mt-1">
+                      {weeklyReflectionData.commonThemes && weeklyReflectionData.commonThemes.length > 0 ? (
+                        weeklyReflectionData.commonThemes.map((t, idx) => (
+                          <span key={idx} className="badge bg-secondary bg-opacity-25 text-white-50" style={{ fontSize: "0.75rem" }}>
+                            📚 {t}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-muted small">None</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Two Side-by-Side Cards: Positive Pattern & Area to Watch */}
+              <div className="row g-4">
+                {/* LEFT: Positive Pattern */}
+                <div className="col-12 col-md-6">
+                  <div
+                    className="ns-card p-4 h-100"
+                    style={{
+                      background: "rgba(15, 23, 42, 0.8)",
+                      border: "1px solid rgba(16, 185, 129, 0.25)",
+                      borderLeft: "4px solid #10B981",
+                      borderRadius: "16px",
+                    }}
+                  >
+                    <h5 className="text-success fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#34D399" }}>
+                      🌱 Positive Pattern
+                    </h5>
+                    <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6", fontSize: "0.91rem" }}>
+                      "{weeklyReflectionData.positivePattern || "Steady reflection habit maintained this week."}"
+                    </p>
+                  </div>
+                </div>
+
+                {/* RIGHT: Area to Watch */}
+                <div className="col-12 col-md-6">
+                  <div
+                    className="ns-card p-4 h-100"
+                    style={{
+                      background: "rgba(15, 23, 42, 0.8)",
+                      border: "1px solid rgba(239, 68, 68, 0.25)",
+                      borderLeft: "4px solid #EF4444",
+                      borderRadius: "16px",
+                    }}
+                  >
+                    <h5 className="text-danger fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#FCA5A5" }}>
+                      👀 Area to Watch
+                    </h5>
+                    <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6", fontSize: "0.91rem" }}>
+                      "{weeklyReflectionData.areaToWatch || "Balancing workload intensity with rest."}"
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Larger Card: Weekly Reflection */}
+              {weeklyReflectionData.weeklyReflection && (
+                <div
+                  className="ns-card p-4"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.3) 100%)",
+                    border: "1px solid rgba(139, 92, 246, 0.25)",
+                    borderRadius: "16px",
+                  }}
+                >
+                  <h5 className="text-purple fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#C084FC" }}>
+                    💭 Weekly Reflection
+                  </h5>
+                  <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
+                    "{weeklyReflectionData.weeklyReflection}"
+                  </p>
+                </div>
+              )}
+
+              {/* Suggested Action */}
+              {weeklyReflectionData.suggestedAction && (
+                <div
+                  className="ns-card p-4"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(120, 53, 15, 0.2) 100%)",
+                    border: "1px solid rgba(245, 158, 11, 0.25)",
+                    borderLeft: "4px solid #F59E0B",
+                    borderRadius: "16px",
+                  }}
+                >
+                  <h5 className="text-warning fw-bold fs-6 mb-2 d-flex align-items-center gap-2">
+                    🎯 Suggested Action
+                  </h5>
+                  <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
+                    "{weeklyReflectionData.suggestedAction}"
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div
+              className="ns-card p-4 text-center"
+              style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px dashed rgba(255, 255, 255, 0.1)" }}
+            >
+              <p className="text-muted small mb-0">
+                Click <strong className="text-white">"✨ Generate Weekly Reflection"</strong> to generate your weekly report.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Search & Mood Filter Toolbar */}
         <div className="ns-card mb-4 p-3">

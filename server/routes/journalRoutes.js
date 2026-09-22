@@ -10,13 +10,15 @@ const {
   getJournalAnalysis,
   analyzeJournalEntry,
   getJournalInsights,
+  getWeeklyJournalReflection,
 } = require("../controllers/journalController");
 
 // All journal routes require JWT authentication
 router.use(protect);
 
-// Journal Insights & Summary Route
+// Journal Insights & Summary Routes
 router.get("/insights", getJournalInsights);
+router.get("/weekly-reflection", getWeeklyJournalReflection);
 
 // Main Journal CRUD
 router.route("/")

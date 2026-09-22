@@ -1,7 +1,11 @@
 const Journal = require("../models/Journal");
 const JournalAnalysis = require("../models/JournalAnalysis");
 const MoodTracker = require("../models/MoodTracker");
-const { analyzeJournalText } = require("../services/journalAiService");
+const {
+  analyzeJournalText,
+  analyzeMultiJournalText,
+  analyzeWeeklyReflectionText,
+} = require("../services/journalAiService");
 
 // @desc    Create a new journal entry
 // @route   POST /api/journal
@@ -313,32 +317,42 @@ exports.analyzeJournalEntry = async (req, res) => {
   }
 };
 
-// @desc    Get aggregated journal insights, weekly reflections, recurring themes, and mood tracker check
+// @desc    Get aggregated multi-entry AI journal insights for logged-in user
 // @route   GET /api/journal/insights
 // @access  Private
 exports.getJournalInsights = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Fetch user's journal entries sorted by newest first
-    const entries = await Journal.find({ userId }).sort({ createdAt: -1 });
-    const totalEntries = entries.length;
-
-    // Fetch user's journal analyses
+    // Fetch user's recent journal entries sorted by newest first (limit to recent 30 entries)
+    const entries = await Journal.find({ userId }).sort({ createdAt: -1 }).limit(30);
     const analyses = await JournalAnalysis.find({ userId }).sort({ analyzedAt: -1 });
 
     // Fetch user's latest Mood Tracker entry
     const latestMoodEntry = await MoodTracker.findOne({ studentId: userId }).sort({ createdAt: -1 });
 
-    if (totalEntries === 0) {
+    if (!entries || entries.length === 0) {
       return res.status(200).json({
         success: true,
         data: {
+          hasData: false,
           totalEntries: 0,
+          dominantEmotion: "None",
           mostFrequentEmotion: "None",
-          mostFrequentSentiment: "Neutral",
+          commonEmotions: [],
+          emotionalTrend: [],
+          commonThemes: [],
           mostCommonTheme: "None",
+          recurringThemes: [],
+          recurringPattern: {
+            title: "🔍 Recurring Pattern",
+            patternText: "No journal entries created yet. Write your first reflection!",
+          },
           recentPatternMessage: "No journal entries created yet. Write your first reflection!",
+          overallSentimentTrend: "Neutral",
+          mostFrequentSentiment: "Neutral",
+          aiInsight: "Start writing journal reflections to unlock personalized AI insights across your history.",
+          personalizedRecommendation: "Take a quiet moment today to log how your study session went.",
           weeklyReflection: {
             hasSufficientData: false,
             entryCount: 0,
@@ -348,142 +362,18 @@ exports.getJournalInsights = async (req, res) => {
             reflection: "Write more journal entries this week to unlock your AI weekly reflection insights!",
             suggestion: "Start by logging how your day went in a short entry.",
           },
-          recurringThemes: [],
           moodTrackerCorrelation: null,
         },
       });
     }
 
-    // Calculate emotion frequencies (from analyses + journal entries)
-    const emotionCounts = {};
-    const sentimentCounts = {};
-    const themeCounts = {};
-
-    analyses.forEach((a) => {
-      if (a.emotion) emotionCounts[a.emotion] = (emotionCounts[a.emotion] || 0) + 1;
-      if (a.sentiment) sentimentCounts[a.sentiment] = (sentimentCounts[a.sentiment] || 0) + 1;
-      if (Array.isArray(a.themes)) {
-        a.themes.forEach((t) => {
-          if (t && t.trim()) themeCounts[t.trim()] = (themeCounts[t.trim()] || 0) + 1;
-        });
-      }
-    });
-
-    // Fallback counts from raw journal moods if analyses are few
-    entries.forEach((e) => {
-      if (e.mood && e.mood.trim()) {
-        const m = e.mood.trim();
-        emotionCounts[m] = (emotionCounts[m] || 0) + 1;
-      }
-    });
-
-    // Most Frequent Emotion
-    let mostFrequentEmotion = "Neutral";
-    let maxEmoCount = 0;
-    Object.entries(emotionCounts).forEach(([emo, count]) => {
-      if (count > maxEmoCount) {
-        maxEmoCount = count;
-        mostFrequentEmotion = emo;
-      }
-    });
-
-    // Most Frequent Sentiment
-    let mostFrequentSentiment = "Neutral";
-    let maxSentCount = 0;
-    Object.entries(sentimentCounts).forEach(([sent, count]) => {
-      if (count > maxSentCount) {
-        maxSentCount = count;
-        mostFrequentSentiment = sent;
-      }
-    });
-    if (maxSentCount === 0 && (mostFrequentEmotion === "Stressed" || mostFrequentEmotion === "Sad" || mostFrequentEmotion === "Anxious")) {
-      mostFrequentSentiment = "Negative";
-    } else if (maxSentCount === 0 && (mostFrequentEmotion === "Happy" || mostFrequentEmotion === "Calm")) {
-      mostFrequentSentiment = "Positive";
-    }
-
-    // Formatted Recurring Themes list
-    const recurringThemes = Object.entries(themeCounts)
-      .map(([theme, count]) => ({ theme, count }))
-      .sort((a, b) => b.count - a.count);
-
-    const mostCommonTheme = recurringThemes.length > 0 ? recurringThemes[0].theme : "General Reflection";
-
-    // Recent Pattern Description
-    let recentPatternMessage = "";
-    if (mostFrequentEmotion === "Stressed" || mostFrequentEmotion === "Anxious") {
-      recentPatternMessage = "Stress-related emotions appeared frequently in your recent journal entries.";
-    } else if (mostFrequentEmotion === "Happy" || mostFrequentEmotion === "Calm") {
-      recentPatternMessage = "Positive and encouraging emotional patterns were frequently reflected in your entries.";
-    } else if (mostFrequentEmotion === "Tired") {
-      recentPatternMessage = "Rest and fatigue-related themes appeared consistently in your reflections.";
-    } else {
-      recentPatternMessage = "Your recent reflections show a balanced mix of daily thoughts and experiences.";
-    }
-
-    // Weekly Reflection (Recent 7 days window)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const weeklyEntries = entries.filter((e) => new Date(e.createdAt) >= sevenDaysAgo);
-    const weeklyAnalyses = analyses.filter((a) => new Date(a.analyzedAt) >= sevenDaysAgo);
-
-    const weeklyEmotionCounts = {};
-    const weeklyThemeCounts = {};
-
-    weeklyAnalyses.forEach((a) => {
-      if (a.emotion) weeklyEmotionCounts[a.emotion] = (weeklyEmotionCounts[a.emotion] || 0) + 1;
-      if (Array.isArray(a.themes)) {
-        a.themes.forEach((t) => {
-          if (t) weeklyThemeCounts[t] = (weeklyThemeCounts[t] || 0) + 1;
-        });
-      }
-    });
-    weeklyEntries.forEach((e) => {
-      if (e.mood) weeklyEmotionCounts[e.mood] = (weeklyEmotionCounts[e.mood] || 0) + 1;
-    });
-
-    let weeklyTopEmotion = mostFrequentEmotion;
-    let maxWkEmo = 0;
-    Object.entries(weeklyEmotionCounts).forEach(([emo, count]) => {
-      if (count > maxWkEmo) {
-        maxWkEmo = count;
-        weeklyTopEmotion = emo;
-      }
-    });
-
-    const weeklyThemesList = Object.entries(weeklyThemeCounts)
-      .map(([theme, count]) => theme)
-      .slice(0, 3);
-
-    if (weeklyThemesList.length === 0) {
-      if (recurringThemes.length > 0) {
-        weeklyThemesList.push(recurringThemes[0].theme);
-      } else {
-        weeklyThemesList.push("Academic workload", "Concentration");
-      }
-    }
-
-    const hasSufficientData = weeklyEntries.length >= 1;
-
-    let weeklyReflectionText = "";
-    let weeklySuggestionText = "";
-
-    if (weeklyTopEmotion === "Stressed" || weeklyTopEmotion === "Anxious") {
-      weeklyReflectionText = `Your recent entries show that academic workload and concentration have been recurring sources of pressure over the past 7 days.`;
-      weeklySuggestionText = `Try dividing larger academic tasks into smaller goals and use your Focus Timer for structured study sessions.`;
-    } else if (weeklyTopEmotion === "Happy" || weeklyTopEmotion === "Calm") {
-      weeklyReflectionText = `Your journal reflections over the last 7 days indicate a clear positive rhythm and effective workload management.`;
-      weeklySuggestionText = `Continue celebrating small daily wins and maintain your healthy work-rest boundaries.`;
-    } else {
-      weeklyReflectionText = `You wrote ${weeklyEntries.length} journal entry(ies) this week, keeping a steady record of your academic and personal progress.`;
-      weeklySuggestionText = `Take a quiet 5-minute pause each evening to maintain consistency in your journaling habit.`;
-    }
+    // Call multi-entry AI Service
+    const multiResult = await analyzeMultiJournalText(entries, analyses);
 
     // Mood Tracker correlation check
     let moodTrackerCorrelation = null;
     if (latestMoodEntry) {
-      const journalEmoNorm = (weeklyTopEmotion || mostFrequentEmotion || "").toLowerCase();
+      const journalEmoNorm = (multiResult.dominantEmotion || "").toLowerCase();
       const trackerMoodNorm = (latestMoodEntry.mood || "").toLowerCase();
 
       const isSimilar =
@@ -494,33 +384,24 @@ exports.getJournalInsights = async (req, res) => {
           (trackerMoodNorm.includes("happy") || trackerMoodNorm.includes("calm")));
 
       moodTrackerCorrelation = {
-        journalEmotion: weeklyTopEmotion || mostFrequentEmotion,
+        journalEmotion: multiResult.dominantEmotion,
         moodTrackerMood: latestMoodEntry.mood,
         hasCorrelation: isSimilar,
         correlationMessage: isSimilar
           ? "Your recent journal entries and mood check-ins show a similar emotional pattern."
-          : `Recent Journal: ${weeklyTopEmotion || mostFrequentEmotion} | Mood Tracker: ${latestMoodEntry.mood}`,
+          : `Recent Journal: ${multiResult.dominantEmotion} | Mood Tracker: ${latestMoodEntry.mood}`,
       };
     }
 
     return res.status(200).json({
       success: true,
       data: {
-        totalEntries,
-        mostFrequentEmotion,
-        mostFrequentSentiment,
-        mostCommonTheme,
-        recentPatternMessage,
-        weeklyReflection: {
-          hasSufficientData,
-          entryCount: weeklyEntries.length,
-          mostCommonEmotion: weeklyTopEmotion,
-          commonThemes: weeklyThemesList,
-          overallSentiment: mostFrequentSentiment,
-          reflection: weeklyReflectionText,
-          suggestion: weeklySuggestionText,
-        },
-        recurringThemes,
+        ...multiResult,
+        // Backward compatibility properties for existing UI bindings
+        mostFrequentEmotion: multiResult.dominantEmotion,
+        mostFrequentSentiment: multiResult.overallSentimentTrend,
+        mostCommonTheme: multiResult.commonThemes[0] || "Daily reflection",
+        recentPatternMessage: multiResult.recurringPattern?.patternText || "",
         moodTrackerCorrelation,
       },
     });
@@ -533,3 +414,40 @@ exports.getJournalInsights = async (req, res) => {
     });
   }
 };
+
+// @desc    Get weekly AI reflection for logged-in user (approx last 7 days window)
+// @route   GET /api/journal/weekly-reflection
+// @access  Private
+exports.getWeeklyJournalReflection = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const entries = await Journal.find({
+      userId,
+      createdAt: { $gte: sevenDaysAgo },
+    }).sort({ createdAt: -1 });
+
+    const analyses = await JournalAnalysis.find({
+      userId,
+      analyzedAt: { $gte: sevenDaysAgo },
+    }).sort({ analyzedAt: -1 });
+
+    const weeklyResult = await analyzeWeeklyReflectionText(entries, analyses);
+
+    return res.status(200).json({
+      success: true,
+      data: weeklyResult,
+    });
+  } catch (error) {
+    console.error("Get Weekly Journal Reflection Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching weekly journal reflection.",
+      error: error.message,
+    });
+  }
+};
+
