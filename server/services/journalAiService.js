@@ -10,92 +10,113 @@
 function generateJournalFallback(title, content) {
   const text = `${title} ${content}`.toLowerCase();
 
-  // Emotion & Sentiment Detection
-  let emotion = "Neutral";
-  let sentiment = "Neutral";
+  const stressKeywords = ["stress", "stressed", "overwhelmed", "pressure", "deadline", "burden", "load", "panic", "exhausted", "hard", "tough", "cannot cope", "struggling", "hard time", "anxious", "anxiety", "worried", "dread", "scared"];
+  const happyKeywords = ["happy", "great", "awesome", "good", "excited", "proud", "yay", "joy", "wonderful", "delighted", "satisfied", "accomplished", "love", "cheerful", "enjoy"];
+  const calmKeywords = ["calm", "peace", "relaxed", "tranquil", "quiet", "steady", "content", "at ease", "mindful", "serene"];
+  const tiredKeywords = ["tired", "sleepy", "exhausted", "fatigue", "no energy", "drained", "burnout", "sleep", "restless", "weary"];
 
-  const stressKeywords = ["stress", "stressed", "overwhelmed", "pressure", "deadline", "burden", "load", "panic", "exhausted", "hard", "tough", "cannot cope", "struggling", "hard time"];
-  const anxietyKeywords = ["anxious", "anxiety", "worried", "worry", "fear", "nervous", "scared", "dread", "uncertain", "fail"];
-  const sadKeywords = ["sad", "depressed", "lonely", "down", "unhappy", "cry", "crying", "hurt", "hopeless", "miss", "gloomy"];
-  const happyKeywords = ["happy", "great", "awesome", "good", "excited", "proud", "yay", "joy", "wonderful", "delighted", "satisfied", "accomplished", "love"];
-  const calmKeywords = ["calm", "peace", "relaxed", "tranquil", "quiet", "steady", "content", "at ease"];
-  const tiredKeywords = ["tired", "sleepy", "exhausted", "fatigue", "no energy", "drained", "burnout", "sleep"];
+  let stressScore = stressKeywords.filter((k) => text.includes(k)).length;
+  let happyScore = happyKeywords.filter((k) => text.includes(k)).length;
+  let calmScore = calmKeywords.filter((k) => text.includes(k)).length;
+  let tiredScore = tiredKeywords.filter((k) => text.includes(k)).length;
 
-  let stressScore = stressKeywords.filter(k => text.includes(k)).length;
-  let anxietyScore = anxietyKeywords.filter(k => text.includes(k)).length;
-  let sadScore = sadKeywords.filter(k => text.includes(k)).length;
-  let happyScore = happyKeywords.filter(k => text.includes(k)).length;
-  let calmScore = calmKeywords.filter(k => text.includes(k)).length;
-  let tiredScore = tiredKeywords.filter(k => text.includes(k)).length;
+  let happyRaw = happyScore * 25 + 10;
+  let calmRaw = calmScore * 20 + 15;
+  let tiredRaw = tiredScore * 25 + 5;
+  let stressedRaw = stressScore * 25 + 5;
 
-  if (stressScore > 0 || anxietyScore > 0 || sadScore > 0 || tiredScore > 0) {
-    sentiment = "Negative";
-    if (stressScore >= Math.max(anxietyScore, sadScore, tiredScore)) emotion = "Stressed";
-    else if (anxietyScore >= Math.max(sadScore, tiredScore)) emotion = "Anxious";
-    else if (sadScore >= tiredScore) emotion = "Sad";
-    else emotion = "Tired";
-  } else if (happyScore > 0 || calmScore > 0) {
-    sentiment = "Positive";
-    if (happyScore >= calmScore) emotion = "Happy";
-    else emotion = "Calm";
-  } else {
-    emotion = "Neutral";
-    sentiment = "Neutral";
-  }
+  let totalRaw = happyRaw + calmRaw + tiredRaw + stressedRaw;
+  let happy = Math.round((happyRaw / totalRaw) * 100);
+  let calm = Math.round((calmRaw / totalRaw) * 100);
+  let tired = Math.round((tiredRaw / totalRaw) * 100);
+  let stressed = 100 - (happy + calm + tired);
+  if (stressed < 0) stressed = 0;
+
+  // Mood Score Calculation (1 to 10)
+  let moodScore = 5 + happyScore * 1.5 + calmScore * 1.0 - stressScore * 1.5 - tiredScore * 1.0;
+  moodScore = Math.min(10, Math.max(1, Math.round(moodScore)));
+
+  // Sentiment
+  let sentiment = "neutral";
+  if (moodScore >= 7) sentiment = "positive";
+  else if (moodScore <= 4) sentiment = "negative";
+
+  // Stress Level
+  let stressLevel = "low";
+  if (stressed >= 35 || stressScore >= 2) stressLevel = "high";
+  else if (stressed >= 20 || stressScore >= 1) stressLevel = "medium";
+
+  // Energy Level
+  let energyLevel = "medium";
+  if (happy >= 40 || moodScore >= 8) energyLevel = "high";
+  else if (tired >= 35 || moodScore <= 4) energyLevel = "low";
 
   // Key Themes Extraction
-  const themes = [];
-  if (text.includes("study") || text.includes("exam") || text.includes("test") || text.includes("assignment") || text.includes("homework") || text.includes("grade") || text.includes("class") || text.includes("marks") || text.includes("submission")) {
-    themes.push("Academic pressure");
+  const keyThemes = [];
+  if (
+    text.includes("study") ||
+    text.includes("exam") ||
+    text.includes("test") ||
+    text.includes("assignment") ||
+    text.includes("homework") ||
+    text.includes("grade") ||
+    text.includes("class") ||
+    text.includes("marks") ||
+    text.includes("submission")
+  ) {
+    keyThemes.push("productivity");
+    keyThemes.push("studies");
   }
-  if (text.includes("workload") || text.includes("busy") || text.includes("tasks") || text.includes("project") || text.includes("time") || text.includes("due")) {
-    themes.push("Workload management");
+  if (text.includes("workload") || text.includes("busy") || text.includes("tasks") || text.includes("project") || text.includes("due")) {
+    keyThemes.push("productivity");
   }
-  if (text.includes("focus") || text.includes("concentrat") || text.includes("distract") || text.includes("attention")) {
-    themes.push("Concentration");
+  if (text.includes("friend") || text.includes("family") || text.includes("parent") || text.includes("relationship") || text.includes("social") || text.includes("people")) {
+    keyThemes.push("social interaction");
+    keyThemes.push("family");
   }
-  if (text.includes("friend") || text.includes("family") || text.includes("parent") || text.includes("relationship") || text.includes("people") || text.includes("peer")) {
-    themes.push("Interpersonal relationships");
-  }
-  if (text.includes("sleep") || text.includes("rest") || text.includes("health") || text.includes("headache") || text.includes("sick")) {
-    themes.push("Physical well-being");
+  if (text.includes("sleep") || text.includes("rest") || text.includes("health") || text.includes("headache") || text.includes("bed")) {
+    keyThemes.push("sleep");
   }
 
-  if (themes.length === 0) {
-    themes.push("Daily reflection");
-    themes.push("Personal growth");
+  if (keyThemes.length === 0) {
+    keyThemes.push("productivity");
+    keyThemes.push("social interaction");
   }
 
-  // AI Reflection (strictly non-medical)
-  let reflection = "";
-  if (sentiment === "Negative") {
-    reflection = `Your journal entry suggests that you may be navigating heightened pressure related to ${themes.join(" and ").toLowerCase()}. Expressing your feelings here is a healthy step towards processing them.`;
-  } else if (sentiment === "Positive") {
-    reflection = `The text indicates positive moments and a constructive mindset regarding ${themes.join(" and ").toLowerCase()}. Capturing these reflections can reinforce healthy coping mechanisms.`;
+  // AI Summary
+  let summary = "";
+  if (sentiment === "positive") {
+    summary = `The journal entry reflects a generally positive and productive day focused on ${keyThemes.join(" and ")}.`;
+  } else if (sentiment === "negative") {
+    summary = `The journal entry indicates heightened pressure and mild fatigue surrounding ${keyThemes.join(" and ")}.`;
   } else {
-    reflection = `Your reflection highlights steady observations around ${themes.join(" and ").toLowerCase()}. Documenting daily thoughts helps foster mindfulness and ongoing self-awareness.`;
+    summary = `The journal entry reflects steady observations and balanced daily reflections on ${keyThemes.join(" and ")}.`;
   }
 
-  // Suggested Action (strictly non-medical)
-  let suggestion = "";
-  if (emotion === "Stressed" || emotion === "Anxious") {
-    suggestion = "Consider breaking larger academic or daily tasks into smaller micro-goals and using your NeuroSync Focus Timer with short breaks.";
-  } else if (emotion === "Tired") {
-    suggestion = "Try setting a clear boundary between study hours and rest tonight, allowing your mind time to recharge.";
-  } else if (emotion === "Sad") {
-    suggestion = "Engage in a brief relaxing activity you enjoy, such as listening to music or stepping outside for fresh air.";
-  } else if (sentiment === "Positive") {
-    suggestion = "Keep this positive momentum going by acknowledging your recent efforts and maintaining your balanced study routine.";
-  } else {
-    suggestion = "Take a short moment to plan your next priority, keeping your study schedule manageable and structured.";
-  }
+  let emotion = "Calm";
+  if (happy >= Math.max(calm, tired, stressed)) emotion = "Happy";
+  else if (calm >= Math.max(tired, stressed)) emotion = "Calm";
+  else if (tired >= stressed) emotion = "Tired";
+  else emotion = "Stressed";
 
   return {
-    emotion,
     sentiment,
-    themes,
-    reflection,
-    suggestion,
+    moodScore,
+    stressLevel,
+    energyLevel,
+    emotions: {
+      happy,
+      calm,
+      tired,
+      stressed,
+    },
+    summary,
+    keyThemes,
+    emotion,
+    themes: keyThemes,
+    reflection: summary,
+    suggestion: "Consider taking short structured breaks and maintaining a balanced routine.",
+    analyzedAt: new Date(),
   };
 }
 
@@ -107,21 +128,28 @@ async function analyzeJournalText(title, content) {
 
   if (apiKey) {
     try {
-      const systemPrompt = `You are an AI wellbeing reflection assistant for students in the NeuroSync app.
-Your task is to analyze the student's journal entry title and content and provide structured emotional insights.
+      const systemPrompt = `You are an AI wellbeing reflection assistant for the NeuroSync app.
+Your task is to analyze a user's journal entry title and content and provide structured emotional wellness indicators.
 
 CRITICAL SAFETY & NON-MEDICAL DIRECTIVES:
-1. Do NOT make medical diagnoses or claim the student has clinical depression, anxiety, or any mental illness.
-2. Use supportive, non-medical reflection phrasing such as: "Your entry suggests...", "The text indicates...", "Possible emotional pattern...", "This may be related to...".
+1. Do NOT make medical or psychiatric diagnoses. Do not claim the user has a mental disorder.
+2. Use non-medical terms such as "emotional indicator", "observed pattern", "mood trend", and "wellness insight".
 3. Return ONLY valid raw JSON with NO markdown codeblocks or extra text.
 
 JSON FORMAT REQUIRED:
 {
-  "emotion": "Stressed" | "Happy" | "Sad" | "Anxious" | "Tired" | "Calm" | "Neutral",
-  "sentiment": "Positive" | "Negative" | "Neutral",
-  "themes": ["Theme 1", "Theme 2", "Theme 3"],
-  "reflection": "A 1-2 sentence empathetic non-medical reflection",
-  "suggestion": "A 1-2 sentence non-medical practical wellbeing suggestion"
+  "sentiment": "positive" | "negative" | "neutral",
+  "moodScore": 8,
+  "stressLevel": "low" | "medium" | "high",
+  "energyLevel": "low" | "medium" | "high",
+  "emotions": {
+    "happy": 70,
+    "calm": 20,
+    "tired": 5,
+    "stressed": 5
+  },
+  "summary": "A concise 1-2 sentence non-medical summary of the entry's emotional tone",
+  "keyThemes": ["productivity", "social interaction", "sleep"]
 }`;
 
       const userPrompt = `Journal Title: "${title}"\nJournal Content:\n"${content}"`;
@@ -135,8 +163,8 @@ JSON FORMAT REQUIRED:
           contents: [
             { role: "user", parts: [{ text: `[SYSTEM INSTRUCTIONS]\n${systemPrompt}` }] },
             { role: "model", parts: [{ text: "Understood. I will provide raw JSON analysis following all non-medical guidelines." }] },
-            { role: "user", parts: [{ text: userPrompt }] }
-          ]
+            { role: "user", parts: [{ text: userPrompt }] },
+          ],
         }),
       });
 
@@ -144,11 +172,42 @@ JSON FORMAT REQUIRED:
         const data = await fetchRes.json();
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (rawText) {
-          // Clean potential markdown fences
           const cleanedText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
           const parsed = JSON.parse(cleanedText);
-          if (parsed.emotion && parsed.sentiment && Array.isArray(parsed.themes) && parsed.reflection && parsed.suggestion) {
-            return parsed;
+          if (
+            parsed.sentiment &&
+            typeof parsed.moodScore === "number" &&
+            parsed.stressLevel &&
+            parsed.energyLevel &&
+            parsed.emotions &&
+            parsed.summary &&
+            Array.isArray(parsed.keyThemes)
+          ) {
+            // Ensure emotions object structure
+            const happy = parsed.emotions.happy || 0;
+            const calm = parsed.emotions.calm || 0;
+            const tired = parsed.emotions.tired || 0;
+            const stressed = parsed.emotions.stressed || 0;
+            let emotion = "Calm";
+            if (happy >= Math.max(calm, tired, stressed)) emotion = "Happy";
+            else if (calm >= Math.max(tired, stressed)) emotion = "Calm";
+            else if (tired >= stressed) emotion = "Tired";
+            else emotion = "Stressed";
+
+            return {
+              sentiment: parsed.sentiment.toLowerCase(),
+              moodScore: Math.min(10, Math.max(1, Math.round(parsed.moodScore))),
+              stressLevel: parsed.stressLevel.toLowerCase(),
+              energyLevel: parsed.energyLevel.toLowerCase(),
+              emotions: { happy, calm, tired, stressed },
+              summary: parsed.summary,
+              keyThemes: parsed.keyThemes,
+              emotion,
+              themes: parsed.keyThemes,
+              reflection: parsed.summary,
+              suggestion: "Take short regular breaks and stay hydrated.",
+              analyzedAt: new Date(),
+            };
           }
         }
       }

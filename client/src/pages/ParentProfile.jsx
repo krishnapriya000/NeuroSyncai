@@ -29,16 +29,35 @@ function ParentProfile() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Parent Profile State
-  const [parentProfile, setParentProfile] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    dob: "",
-    gender: "Other",
-    occupation: "",
-    lifestyle: "",
-    profileImage: "",
-    role: "Parent",
+  const [parentProfile, setParentProfile] = useState(() => {
+    const storedUser = localStorage.getItem("neurosync_current_user");
+    if (storedUser) {
+      try {
+        const u = JSON.parse(storedUser);
+        return {
+          fullName: u.fullName || u.name || "",
+          email: u.email || "",
+          phone: u.phone || "",
+          dob: u.dob || "",
+          gender: u.gender || "Other",
+          occupation: u.occupation || "",
+          lifestyle: u.lifestyle || "",
+          profileImage: u.profileImage || "",
+          role: u.role || "Parent",
+        };
+      } catch (e) {}
+    }
+    return {
+      fullName: "",
+      email: "",
+      phone: "",
+      dob: "",
+      gender: "Other",
+      occupation: "",
+      lifestyle: "",
+      profileImage: "",
+      role: "Parent",
+    };
   });
 
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);

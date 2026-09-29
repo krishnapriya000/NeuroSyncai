@@ -46,6 +46,7 @@ import SeniorFamilyEmergency from "./pages/SeniorFamilyEmergency";
 import SeniorProgress from "./pages/SeniorProgress";
 import StudentCognitiveGames from "./pages/StudentCognitiveGames";
 import StudentMemoryExercises from "./pages/StudentMemoryExercises";
+import NeuroPlan from "./pages/NeuroPlan";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getLoginRedirectPathForUser } from "./utils/roleUtils";
 
@@ -503,6 +504,48 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Senior Citizen"]}>
               <StudentSettings />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* NeuroPlan Routes for all roles */}
+        <Route 
+          path="/neuroplan" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User", "Working Professional", "Parent", "Senior Citizen", "Admin"]}>
+              <NeuroPlan />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/neuroplan" 
+          element={
+            <ProtectedRoute allowedRoles={["Student", "User"]}>
+              <NeuroPlan />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/professional/neuroplan" 
+          element={
+            <ProtectedRoute allowedRoles={["Working Professional"]}>
+              <NeuroPlan />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/parent/neuroplan" 
+          element={
+            <ProtectedRoute allowedRoles={["Parent"]}>
+              <NeuroPlan />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/senior/neuroplan" 
+          element={
+            <ProtectedRoute allowedRoles={["Senior Citizen"]}>
+              <NeuroPlan />
             </ProtectedRoute>
           } 
         />

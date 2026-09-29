@@ -51,6 +51,20 @@ function StudentSettings() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success");
 
+  // Theme State
+  const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem("neurosync_theme") || "dark");
+
+  const handleThemeChange = (newTheme) => {
+    setCurrentTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    if (newTheme === "light") {
+      document.body.classList.add("light-theme");
+    } else {
+      document.body.classList.remove("light-theme");
+    }
+    localStorage.setItem("neurosync_theme", newTheme);
+  };
+
   // Change Password State
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -425,16 +439,31 @@ function StudentSettings() {
                 <FiSliders className="text-info" /> Appearance & Theme
               </h5>
 
-              <div className="p-3 rounded-3 mb-3 d-flex align-items-center justify-content-between" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.07)" }}>
+              <div className="p-3 rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.07)" }}>
                 <div>
                   <div className="text-white fw-semibold mb-0" style={{ fontSize: "0.92rem" }}>
-                    Dark Theme
+                    Active Color Theme
                   </div>
                   <div className="text-muted" style={{ fontSize: "0.78rem" }}>
-                    NeuroSync uses a high-contrast dark aesthetic by default
+                    Choose between High-Contrast Dark Theme and Crisp Light Theme
                   </div>
                 </div>
-                <span className="badge bg-primary px-3 py-1.5 rounded-pill">Active</span>
+                <div className="btn-group rounded-pill p-1 bg-dark border border-secondary border-opacity-25">
+                  <button
+                    type="button"
+                    className={`btn btn-sm rounded-pill px-3 py-1 text-xs fw-semibold ${currentTheme === "dark" ? "btn-primary text-white" : "btn-outline-secondary text-muted"}`}
+                    onClick={() => handleThemeChange("dark")}
+                  >
+                    🌙 Dark Theme
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm rounded-pill px-3 py-1 text-xs fw-semibold ${currentTheme === "light" ? "btn-primary text-white" : "btn-outline-secondary text-muted"}`}
+                    onClick={() => handleThemeChange("light")}
+                  >
+                    ☀️ Light Theme
+                  </button>
+                </div>
               </div>
 
               <div className="p-3 rounded-3 d-flex align-items-center justify-content-between" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.07)" }}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSearch, FiBell, FiMenu, FiUser, FiSettings, FiLogOut, FiChevronDown, FiBriefcase } from "react-icons/fi";
+import { FiSearch, FiBell, FiMenu, FiUser, FiSettings, FiLogOut, FiChevronDown, FiBriefcase, FiSun, FiMoon } from "react-icons/fi";
 
 function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onTabChange }) {
   const navigate = useNavigate();
@@ -8,6 +8,24 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [displayName, setDisplayName] = useState(userName);
   const [userPhoto, setUserPhoto] = useState("");
+
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("neurosync_theme") || "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "light") {
+      document.body.classList.add("light-theme");
+    } else {
+      document.body.classList.remove("light-theme");
+    }
+    localStorage.setItem("neurosync_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("neurosync_current_user");
@@ -66,6 +84,16 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
 
       {/* Right: Notifications & User Profile Menu */}
       <div className="d-flex align-items-center gap-3 position-relative">
+        {/* Theme Toggle Switch */}
+        <button
+          className="btn rounded-circle p-2 d-flex align-items-center justify-content-center text-white border-0"
+          style={{ width: "42px", height: "42px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.15)" }}
+          onClick={toggleTheme}
+          title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {theme === "dark" ? <FiSun size={19} className="text-warning" /> : <FiMoon size={19} className="text-primary" />}
+        </button>
+
         {/* Notifications Icon */}
         <div className="position-relative">
           <button 

@@ -35,15 +35,25 @@ function ParentSettings() {
 
   const [savedSettingsMsg, setSavedSettingsMsg] = useState("");
 
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("neurosync_theme") || "dark";
+  });
+
   useEffect(() => {
-    const storedUser = localStorage.getItem("neurosync_current_user");
-    if (storedUser) {
-      try {
-        const u = JSON.parse(storedUser);
-        if (u.fullName || u.name) setParentName(u.fullName || u.name);
-      } catch (e) {}
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "light") {
+      document.body.classList.add("light-theme");
+    } else {
+      document.body.classList.remove("light-theme");
     }
-  }, []);
+    localStorage.setItem("neurosync_theme", theme);
+  }, [theme]);
+
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    setSavedSettingsMsg(`Theme updated to ${newTheme === "light" ? "Light Mode ☀️" : "Dark Mode 🌙"}`);
+    setTimeout(() => setSavedSettingsMsg(""), 3000);
+  };
 
   const handleToggle = (key) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -163,13 +173,37 @@ function ParentSettings() {
                 </div>
               </div>
 
-              <div className="d-flex align-items-center justify-content-between">
+              <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom border-secondary border-opacity-25">
                 <div>
                   <div className="fw-semibold text-white small">Email Notifications</div>
                   <div className="text-secondary extra-small">Receive emails for important family updates</div>
                 </div>
                 <div className="form-check form-switch">
                   <input className="form-check-input" type="checkbox" checked={settings.emailAlerts} onChange={() => handleToggle("emailAlerts")} />
+                </div>
+              </div>
+
+              {/* Appearance & Theme Selector */}
+              <div className="p-3 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.07)" }}>
+                <div>
+                  <div className="fw-semibold text-white small mb-0">Appearance & Theme</div>
+                  <div className="text-secondary extra-small">Switch between Light and Dark mode</div>
+                </div>
+                <div className="btn-group rounded-pill p-1 bg-dark border border-secondary border-opacity-25">
+                  <button
+                    type="button"
+                    className={`btn btn-sm rounded-pill px-3 py-1 text-xs fw-semibold ${theme === "dark" ? "btn-primary text-white" : "btn-outline-secondary text-muted"}`}
+                    onClick={() => handleThemeChange("dark")}
+                  >
+                    🌙 Dark
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm rounded-pill px-3 py-1 text-xs fw-semibold ${theme === "light" ? "btn-primary text-white" : "btn-outline-secondary text-muted"}`}
+                    onClick={() => handleThemeChange("light")}
+                  >
+                    ☀️ Light
+                  </button>
                 </div>
               </div>
             </div>

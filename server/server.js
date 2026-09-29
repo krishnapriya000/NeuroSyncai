@@ -29,6 +29,7 @@ const gameRoutes = require("./routes/gameRoutes");
 const seniorRoutes = require("./routes/seniorRoutes");
 const seniorCognitiveRoutes = require("./routes/seniorCognitiveRoutes");
 const seniorMemoryRoutes = require("./routes/seniorMemoryRoutes");
+const dailyPlanRoutes = require("./routes/dailyPlanRoutes");
 const { protect } = require("./middleware/authMiddleware");
 const { getLatestCheckIn } = require("./controllers/studentController");
 
@@ -56,6 +57,7 @@ app.use("/api/progress", progressRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/senior/cognitive-games", seniorCognitiveRoutes);
 app.use("/api/senior/memory-exercises", seniorMemoryRoutes);
+app.use("/api/neuroplan", dailyPlanRoutes);
 app.get("/api/dailycheckin/latest", protect, getLatestCheckIn);
 
 // Test Route

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -24,6 +24,8 @@ import {
   FiCpu,
   FiRefreshCw,
   FiActivity,
+  FiPlay,
+  FiZap,
 } from "react-icons/fi";
 import "../styles/studentDashboard.css";
 
@@ -32,515 +34,431 @@ const moodOptions = [
   { id: "Happy", label: "Happy", emoji: "🙂", color: "#3B82F6" },
   { id: "Neutral", label: "Neutral", emoji: "😐", color: "#94A3B8" },
   { id: "Sad", label: "Sad", emoji: "😔", color: "#6366F1" },
-  { id: "Stressed", label: "Stressed", emoji: "😣", color: "#F59E0B" },
-  { id: "Angry", label: "Angry", emoji: "😡", color: "#EF4444" },
+  { id: "Stressed", label: "Stressed", emoji: "😣", color: "#EF4444" },
   { id: "Tired", label: "Tired", emoji: "😴", color: "#8B5CF6" },
-  { id: "Anxious", label: "Anxious", emoji: "😰", color: "#EC4899" },
 ];
 
-const getTimeGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "Good morning 🌤️";
-  if (hour >= 12 && hour < 17) return "Good afternoon ☀️";
-  if (hour >= 17 && hour < 21) return "Good evening 🌙";
-  return "Take a quiet moment before you end your day 🌙";
+const emotionColors = {
+  happy: "#10B981",
+  calm: "#3B82F6",
+  tired: "#8B5CF6",
+  stressed: "#EF4444",
 };
 
-const calculateJournalStreak = (entries) => {
-  if (!entries || entries.length === 0) return 0;
-  const formatDateStr = (dateObj) => {
-    const d = new Date(dateObj);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  };
-
-  const dates = [...new Set(entries.map((j) => formatDateStr(j.createdAt)))].sort((a, b) => (a < b ? 1 : -1));
-  if (dates.length === 0) return 0;
-
-  const todayStr = formatDateStr(new Date());
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = formatDateStr(yesterday);
-
-  let streak = 0;
-  if (dates.includes(todayStr) || dates.includes(yesterdayStr)) {
-    let curr = dates.includes(todayStr) ? new Date() : yesterday;
-    while (true) {
-      const dStr = formatDateStr(curr);
-      if (dates.includes(dStr)) {
-        streak++;
-        curr.setDate(curr.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-  }
-  return streak;
+const emotionEmojis = {
+  happy: "😊",
+  calm: "😌",
+  tired: "😴",
+  stressed: "😣",
 };
 
-const generatePersonalizedMessage = (entries, latestMoodTracker) => {
-  const total = entries ? entries.length : 0;
-
-  if (total === 0) {
-    return "Start by writing what's on your mind today. There is no right or wrong way to journal. 🌱";
+const journalPrompts = [
+  {
+    title: "🌟 Daily Wins & Gratitude",
+    promptTitle: "My Daily Wins & Gratitude",
+    content: "1. Today I felt proud when...\n2. One thing I'm deeply grateful for is...\n3. A small victory I achieved was...",
+    mood: "Happy"
+  },
+  {
+    title: "💡 Challenge & Overcoming",
+    promptTitle: "Overcoming Today's Obstacle",
+    content: "Today I faced a challenge when...\nHow I handled it:\nWhat I learned about my inner strength:",
+    mood: "Neutral"
+  },
+  {
+    title: "🧘 Mindful Inner Check-In",
+    promptTitle: "Mindful Inner Check-In",
+    content: "Right now my mind feels...\nMy physical energy level is...\nWhat I need most to feel balanced right now:",
+    mood: "Very Happy"
+  },
+  {
+    title: "🚀 Tomorrow's Core Motive",
+    promptTitle: "Tomorrow's Core Motive & Goals",
+    content: "My #1 priority for tomorrow is...\nI will stay motivated by...\nOne healthy habit I will practice:",
+    mood: "Happy"
   }
+];
 
-  if (total === 1) {
-    return "You've taken the first step toward understanding your thoughts. Keep going! 💙";
+const stickyNotesSeed = [
+  {
+    color: "ns-sticky-yellow",
+    rotate: "-2deg",
+    title: "✨ Motive of the Day",
+    text: "“Small daily improvements over time lead to stunning results. Focus on progress, not perfection!”"
+  },
+  {
+    color: "ns-sticky-cyan",
+    rotate: "1.5deg",
+    title: "💡 Mindset Anchor",
+    text: "“Protect your inner peace. Your emotional clarity is your superpower in everything you study & build.”"
+  },
+  {
+    color: "ns-sticky-pink",
+    rotate: "-1deg",
+    title: "💖 Joy & Gratitude",
+    text: "“Take a deep breath. Celebrate how far you’ve come, even on tough days.”"
+  },
+  {
+    color: "ns-sticky-mint",
+    rotate: "2.5deg",
+    title: "🎯 Focus Reminder",
+    text: "“One task at a time. High quality effort brings deep cognitive mastery!”"
   }
-
-  const streak = calculateJournalStreak(entries);
-  if (streak >= 2) {
-    return `You've journaled for ${streak} days in a row! Your consistency is something to be proud of. 🔥`;
-  }
-
-  const latestEntry = entries[0];
-  const now = new Date();
-  const daysSinceLast = Math.floor((now - new Date(latestEntry.createdAt)) / (1000 * 60 * 60 * 24));
-
-  if (daysSinceLast >= 3) {
-    return "It's been a little while since your last journal entry. Take a few minutes today to check in with yourself. 💙";
-  }
-
-  // Mood Integration
-  const currentMood = (latestMoodTracker || latestEntry.mood || "").toLowerCase();
-  if (currentMood.includes("stress") || currentMood.includes("sad") || currentMood.includes("anxious") || currentMood.includes("angry") || currentMood.includes("tired")) {
-    return "You seem to have had a stressful day. Writing your thoughts down may help you organize what you're feeling. Take your time. 💙";
-  }
-
-  if (currentMood.includes("happy") || currentMood.includes("great") || currentMood.includes("calm") || currentMood.includes("energetic")) {
-    return "It looks like you've been having some positive moments lately. Capture what made today meaningful. 😊";
-  }
-
-  if (currentMood.includes("neutral") || currentMood.includes("okay")) {
-    return "Take a moment to reflect on how your day went. Even small thoughts are worth writing down. 🌱";
-  }
-
-  return "You're building a healthy journaling habit. Keep giving yourself time to reflect. 🌱";
-};
+];
 
 function StudentJournal() {
   const navigate = useNavigate();
+  const writeSectionRef = useRef(null);
   const [activeTab, setActiveTab] = useState("journal");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [studentName, setStudentName] = useState("Student");
 
-  // Data state
+  // Journal Entry Form State (Section 1)
+  const [writeTitle, setWriteTitle] = useState("");
+  const [writeContent, setWriteContent] = useState("");
+  const [writeMood, setWriteMood] = useState("");
+  const [isSavingAndAnalyzing, setIsSavingAndAnalyzing] = useState(false);
+  const [writeError, setWriteError] = useState("");
+
+  // Latest Analysis State (Section 2)
+  const [latestAnalysis, setLatestAnalysis] = useState(null);
+
+  // Analytics & Charts State (Section 3 & 4)
+  const [timePeriod, setTimePeriod] = useState("7days"); // '7days' | '30days' | 'all'
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState(null);
+
+  // General Journals List & Modals State (Section 5)
   const [journals, setJournals] = useState([]);
-  const [latestTrackerMood, setLatestTrackerMood] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [journalsLoading, setJournalsLoading] = useState(true);
+  const [journalsError, setJournalsError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Journal Insights & Reflection State
-  const [insights, setInsights] = useState(null);
-  const [loadingInsights, setLoadingInsights] = useState(false);
-  const [insightsError, setInsightsError] = useState("");
-
-  const [weeklyReflectionData, setWeeklyReflectionData] = useState(null);
-  const [loadingWeekly, setLoadingWeekly] = useState(false);
-  const [weeklyError, setWeeklyError] = useState("");
-
-  // Filters & Search
+  // Search & Filter
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMoodFilter, setSelectedMoodFilter] = useState("All");
 
-  // Modal states
+  // Modals
   const [showEditorModal, setShowEditorModal] = useState(false);
   const [editingJournal, setEditingJournal] = useState(null);
+  const [formTitle, setFormTitle] = useState("");
+  const [formContent, setFormContent] = useState("");
+  const [formMood, setFormMood] = useState("");
+  const [isSubmittingModal, setIsSubmittingModal] = useState(false);
+  const [modalError, setModalError] = useState("");
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingJournal, setViewingJournal] = useState(null);
-
-  // AI Analysis for Viewing Journal Modal
-  const [currentAnalysis, setCurrentAnalysis] = useState(null);
-  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisError, setAnalysisError] = useState("");
+  const [viewAnalysis, setViewAnalysis] = useState(null);
+  const [loadingViewAnalysis, setLoadingViewAnalysis] = useState(false);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingJournalId, setDeletingJournalId] = useState(null);
 
-  // Form states
-  const [formTitle, setFormTitle] = useState("");
-  const [formContent, setFormContent] = useState("");
-  const [formMood, setFormMood] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState("");
+  // Hover state for interactive Mood Trend chart
+  const [hoveredPoint, setHoveredPoint] = useState(null);
 
-  // Fetch logged in student info and journals on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("neurosync_current_user");
     if (storedUser) {
       try {
-        const userObj = JSON.parse(storedUser);
-        if (userObj.fullName || userObj.name) {
-          setStudentName(userObj.fullName || userObj.name);
-        }
-      } catch (e) {
-        console.error("Error parsing stored user:", e);
-      }
+        const u = JSON.parse(storedUser);
+        if (u.fullName || u.name) setStudentName(u.fullName || u.name);
+      } catch (e) {}
     }
 
     fetchJournals();
   }, []);
 
+  useEffect(() => {
+    fetchAnalytics(timePeriod);
+  }, [timePeriod]);
+
+  // Fetch journals history
   const fetchJournals = async () => {
-    setLoading(true);
-    setError(null);
+    setJournalsLoading(true);
+    setJournalsError(null);
     const token = localStorage.getItem("neurosync_token");
 
     if (!token) {
-      setError("Authentication token missing. Please log in.");
-      setLoading(false);
+      setJournalsError("Authentication required. Please log in.");
+      setJournalsLoading(false);
       return;
     }
 
     try {
-      // Fetch latest mood from Mood Tracker safely
-      fetch("http://localhost:5000/api/moodtracker/latest", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.success && data.data && data.data.mood) {
-            setLatestTrackerMood(data.data.mood);
-          }
-        })
-        .catch((err) => console.error("Error fetching mood tracker for journal message:", err));
-
       const response = await fetch("http://localhost:5000/api/journal", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setError(result.message || "Failed to load journal entries.");
-        setLoading(false);
+        setJournalsError(result.message || "Failed to load journal entries.");
+        setJournalsLoading(false);
         return;
       }
 
-      setJournals(result.data || []);
-      setLoading(false);
+      const list = result.data || [];
+      setJournals(list);
+
+      // Set initial latest analysis from newest entry if present
+      if (list.length > 0 && list[0].analysis) {
+        setLatestAnalysis(list[0].analysis);
+      }
+
+      setJournalsLoading(false);
     } catch (err) {
-      console.error("Error fetching journals:", err);
-      setError("Cannot connect to backend server.");
-      setLoading(false);
+      console.error("Fetch Journals error:", err);
+      setJournalsError("Cannot connect to backend server.");
+      setJournalsLoading(false);
     }
   };
 
-  const fetchInsights = async () => {
-    setLoadingInsights(true);
-    setInsightsError("");
+  // Fetch Analytics from MongoDB API
+  const fetchAnalytics = async (period) => {
+    setAnalyticsLoading(true);
+    setAnalyticsError(null);
     const token = localStorage.getItem("neurosync_token");
+
     if (!token) {
-      setInsightsError("Authentication session missing. Please log in.");
-      setLoadingInsights(false);
+      setAnalyticsError("Authentication required.");
+      setAnalyticsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/journal/insights", {
+      const response = await fetch(`http://localhost:5000/api/journal/analytics?period=${period}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const result = await response.json();
-      if (response.ok && result.success) {
-        setInsights(result.data);
-      } else {
-        setInsightsError(result.message || "Failed to analyze journal history.");
+
+      if (!response.ok || !result.success) {
+        setAnalyticsError(result.message || "Unable to load emotional insights.");
+        setAnalyticsLoading(false);
+        return;
       }
+
+      setAnalyticsData(result.data);
+
+      if (result.data && result.data.latestAnalysis) {
+        setLatestAnalysis(result.data.latestAnalysis);
+      }
+
+      setAnalyticsLoading(false);
     } catch (err) {
-      console.error("Error fetching journal insights:", err);
-      setInsightsError("Unable to connect to server for journal insights.");
-    } finally {
-      setLoadingInsights(false);
+      console.error("Fetch Analytics error:", err);
+      setAnalyticsError("Unable to load emotional insights.");
+      setAnalyticsLoading(false);
     }
   };
 
-  const fetchWeeklyReflection = async () => {
-    setLoadingWeekly(true);
-    setWeeklyError("");
-    const token = localStorage.getItem("neurosync_token");
-    if (!token) {
-      setWeeklyError("Authentication session missing. Please log in.");
-      setLoadingWeekly(false);
+  // Handle SECTION 1: Save & Analyze
+  const handleSaveAndAnalyze = async (e) => {
+    e.preventDefault();
+    setWriteError("");
+
+    if (!writeTitle.trim()) {
+      setWriteError("Please enter a title for your journal entry.");
       return;
     }
 
-    try {
-      const response = await fetch("http://localhost:5000/api/journal/weekly-reflection", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const result = await response.json();
-      if (response.ok && result.success) {
-        setWeeklyReflectionData(result.data);
-      } else {
-        setWeeklyError(result.message || "Failed to generate weekly reflection.");
-      }
-    } catch (err) {
-      console.error("Error fetching weekly reflection:", err);
-      setWeeklyError("Unable to connect to server for weekly reflection.");
-    } finally {
-      setLoadingWeekly(false);
-    }
-  };
-
-  // Open modal for New Entry
-  const handleOpenCreateModal = () => {
-    setEditingJournal(null);
-    setFormTitle("");
-    setFormContent("");
-    setFormMood("");
-    setFormError("");
-    setShowEditorModal(true);
-  };
-
-  // Open modal for Edit Entry
-  const handleOpenEditModal = (journal) => {
-    setEditingJournal(journal);
-    setFormTitle(journal.title || "");
-    setFormContent(journal.content || "");
-    setFormMood(journal.mood || "");
-    setFormError("");
-    if (showViewModal) setShowViewModal(false);
-    setShowEditorModal(true);
-  };
-
-  // Open modal for View Entry & fetch existing analysis
-  const handleOpenViewModal = async (journal) => {
-    setViewingJournal(journal);
-    setShowViewModal(true);
-    setCurrentAnalysis(null);
-    setAnalysisError("");
-    setLoadingAnalysis(true);
-
-    const token = localStorage.getItem("neurosync_token");
-    if (!token) {
-      setLoadingAnalysis(false);
+    if (!writeContent.trim()) {
+      setWriteError("Please write your journal entry content.");
       return;
     }
 
-    try {
-      const response = await fetch(`http://localhost:5000/api/journal/${journal._id}/analysis`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const result = await response.json();
-      if (response.ok && result.success && result.data) {
-        setCurrentAnalysis(result.data);
-      }
-    } catch (err) {
-      console.error("Error loading journal entry analysis:", err);
-    } finally {
-      setLoadingAnalysis(false);
-    }
-  };
-
-  // Handle Trigger AI Analysis for specific entry
-  const handleAnalyzeEntry = async (forceReanalyze = false) => {
-    if (!viewingJournal) return;
-
     const token = localStorage.getItem("neurosync_token");
     if (!token) {
-      setAnalysisError("Authentication session expired.");
+      setWriteError("Authentication required. Please log in.");
       return;
     }
 
-    setIsAnalyzing(true);
-    setAnalysisError("");
+    setIsSavingAndAnalyzing(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/journal/${viewingJournal._id}/analyze`, {
+      const response = await fetch("http://localhost:5000/api/journal", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ forceReanalyze }),
+        body: JSON.stringify({
+          title: writeTitle.trim(),
+          content: writeContent.trim(),
+          mood: writeMood,
+        }),
       });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setAnalysisError(result.message || "Unable to analyze this entry right now. Please try again.");
-        setIsAnalyzing(false);
+        setWriteError(result.message || "Unable to analyze this Journal right now.");
+        setIsSavingAndAnalyzing(false);
         return;
       }
 
-      setCurrentAnalysis(result.data);
-      setIsAnalyzing(false);
-      // Refresh insights summary dynamically
-      fetchInsights();
+      const savedEntry = result.data;
+      const analysis = savedEntry.analysis || null;
+
+      // Reset form
+      setWriteTitle("");
+      setWriteContent("");
+      setWriteMood("");
+      setIsSavingAndAnalyzing(false);
+
+      if (analysis) {
+        setLatestAnalysis(analysis);
+      }
+
+      setSuccessMessage("Journal saved and analyzed successfully! ✨");
+      setTimeout(() => setSuccessMessage(""), 4000);
+
+      // Refresh data dynamically
+      fetchJournals();
+      fetchAnalytics(timePeriod);
     } catch (err) {
-      console.error("AI Analysis error:", err);
-      setAnalysisError("Unable to analyze this entry right now. Please try again.");
-      setIsAnalyzing(false);
+      console.error("Save and Analyze error:", err);
+      setWriteError("Unable to analyze this Journal right now.");
+      setIsSavingAndAnalyzing(false);
     }
   };
 
-  // Open Delete confirmation modal
-  const handleOpenDeleteModal = (id) => {
-    setDeletingJournalId(id);
+  // Handle Open View Modal
+  const handleOpenViewModal = async (journal) => {
+    setViewingJournal(journal);
+    setViewAnalysis(journal.analysis || null);
+    setShowViewModal(true);
+
+    if (!journal.analysis && journal._id) {
+      setLoadingViewAnalysis(true);
+      const token = localStorage.getItem("neurosync_token");
+      try {
+        const response = await fetch(`http://localhost:5000/api/journal/${journal._id}/analysis`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const result = await response.json();
+        if (response.ok && result.success && result.data) {
+          setViewAnalysis(result.data);
+        }
+      } catch (err) {
+        console.error("Error fetching view analysis:", err);
+      } finally {
+        setLoadingViewAnalysis(false);
+      }
+    }
+  };
+
+  // Handle Open Edit Modal
+  const handleOpenEditModal = (journal) => {
+    setEditingJournal(journal);
+    setFormTitle(journal.title || "");
+    setFormContent(journal.content || "");
+    setFormMood(journal.mood || "");
+    setModalError("");
     if (showViewModal) setShowViewModal(false);
-    setShowDeleteModal(true);
+    setShowEditorModal(true);
   };
 
-  // Handle Save (Create or Update)
-  const handleSaveJournal = async (e) => {
+  // Handle Save Edit in Modal
+  const handleSaveModalEdit = async (e) => {
     e.preventDefault();
-    setFormError("");
+    setModalError("");
 
-    if (!formTitle.trim()) {
-      setFormError("Please enter a title for your journal entry.");
-      return;
-    }
-
-    if (!formContent.trim()) {
-      setFormError("Please write your journal entry content.");
+    if (!formTitle.trim() || !formContent.trim()) {
+      setModalError("Title and content are required.");
       return;
     }
 
     const token = localStorage.getItem("neurosync_token");
-    if (!token) {
-      setFormError("Authentication token missing. Please log in again.");
-      return;
-    }
+    if (!token) return;
 
-    setIsSubmitting(true);
+    setIsSubmittingModal(true);
 
     try {
-      const url = editingJournal
-        ? `http://localhost:5000/api/journal/${editingJournal._id}`
-        : "http://localhost:5000/api/journal";
-      const method = editingJournal ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
+      const response = await fetch(`http://localhost:5000/api/journal/${editingJournal._id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: formTitle,
-          content: formContent,
+          title: formTitle.trim(),
+          content: formContent.trim(),
           mood: formMood,
         }),
       });
 
-      let result;
-      try {
-        result = await response.json();
-      } catch (jsonErr) {
-        setFormError(`Server response error (Status ${response.status}).`);
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (response.status === 401) {
-        setFormError("Session expired or unauthorized. Please log in again.");
-        setIsSubmitting(false);
-        return;
-      }
+      const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setFormError(result.message || "Failed to save journal entry.");
-        setIsSubmitting(false);
+        setModalError(result.message || "Failed to update entry.");
+        setIsSubmittingModal(false);
         return;
       }
 
-      setIsSubmitting(false);
+      setIsSubmittingModal(false);
       setShowEditorModal(false);
-      setSuccessMessage(
-        editingJournal
-          ? "Journal entry updated successfully! ✏️"
-          : "New journal entry saved successfully! ✨"
-      );
+      setSuccessMessage("Journal entry updated! ✏️");
+      setTimeout(() => setSuccessMessage(""), 4000);
 
       fetchJournals();
-      fetchInsights();
-
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 4000);
+      fetchAnalytics(timePeriod);
     } catch (err) {
-      console.error("Save journal error:", err);
-      setFormError("Server error occurred while saving entry.");
-      setIsSubmitting(false);
+      console.error("Update entry error:", err);
+      setModalError("Server error while updating entry.");
+      setIsSubmittingModal(false);
     }
   };
 
-  // Handle Delete
+  // Handle Confirm Delete
   const handleConfirmDelete = async () => {
     if (!deletingJournalId) return;
-
     const token = localStorage.getItem("neurosync_token");
-    if (!token) {
-      setError("Authentication token missing.");
-      setShowDeleteModal(false);
-      return;
-    }
+    if (!token) return;
 
-    setIsSubmitting(true);
+    setIsSubmittingModal(true);
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/journal/${deletingJournalId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`http://localhost:5000/api/journal/${deletingJournalId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setError(result.message || "Failed to delete journal entry.");
-        setIsSubmitting(false);
+        setJournalsError(result.message || "Failed to delete journal entry.");
+        setIsSubmittingModal(false);
         setShowDeleteModal(false);
         return;
       }
 
-      setIsSubmitting(false);
+      setIsSubmittingModal(false);
       setShowDeleteModal(false);
       setDeletingJournalId(null);
-      setSuccessMessage("Journal entry deleted successfully. 🗑️");
+      setSuccessMessage("Journal entry deleted. 🗑️");
+      setTimeout(() => setSuccessMessage(""), 4000);
 
       fetchJournals();
-      fetchInsights();
-
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 4000);
+      fetchAnalytics(timePeriod);
     } catch (err) {
-      console.error("Delete journal error:", err);
-      setError("Server error occurred while deleting entry.");
-      setIsSubmitting(false);
+      console.error("Delete error:", err);
+      setJournalsError("Server error while deleting entry.");
+      setIsSubmittingModal(false);
       setShowDeleteModal(false);
     }
   };
 
-  // Helpers for Mood displays
-  const getMoodEmoji = (moodStr) => {
-    const found = moodOptions.find(
-      (m) => m.id.toLowerCase() === (moodStr || "").toLowerCase()
-    );
-    return found ? found.emoji : "📝";
+  const scrollToWriteSection = () => {
+    if (writeSectionRef.current) {
+      writeSectionRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
-  const getMoodColor = (moodStr) => {
-    const found = moodOptions.find(
-      (m) => m.id.toLowerCase() === (moodStr || "").toLowerCase()
-    );
-    return found ? found.color : "#3B82F6";
-  };
-
-  // Format date helper
+  // Helper date formatter
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const d = new Date(dateString);
@@ -548,12 +466,10 @@ function StudentJournal() {
       month: "short",
       day: "numeric",
       year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
-  // Filter journals by search term and selected mood
+  // Filter journals
   const filteredJournals = journals.filter((entry) => {
     const matchesSearch =
       searchTerm.trim() === "" ||
@@ -566,6 +482,183 @@ function StudentJournal() {
 
     return matchesSearch && matchesMood;
   });
+
+  // Dynamic SVG Donut Chart Calculation
+  const renderEmotionDonutChart = (distribution) => {
+    if (!distribution) return null;
+    const { happy = 0, calm = 0, tired = 0, stressed = 0 } = distribution;
+
+    const categories = [
+      { key: "happy", label: "Happy", val: happy, color: emotionColors.happy },
+      { key: "calm", label: "Calm", val: calm, color: emotionColors.calm },
+      { key: "tired", label: "Tired", val: tired, color: emotionColors.tired },
+      { key: "stressed", label: "Stressed", val: stressed, color: emotionColors.stressed },
+    ].filter((c) => c.val > 0);
+
+    if (categories.length === 0) {
+      return (
+        <div className="text-center text-muted py-4 small">
+          No emotion categories recorded for this timeframe.
+        </div>
+      );
+    }
+
+    const totalVal = categories.reduce((acc, c) => acc + c.val, 0);
+    const radius = 65;
+    const strokeWidth = 22;
+    const circumference = 2 * Math.PI * radius;
+
+    let accumulatedPct = 0;
+
+    return (
+      <div className="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-4 py-2">
+        {/* SVG Donut */}
+        <div className="position-relative d-inline-flex align-items-center justify-content-center" style={{ width: "170px", height: "170px" }}>
+          <svg viewBox="0 0 180 180" className="w-100 h-100">
+            {categories.map((cat, idx) => {
+              const pct = cat.val / totalVal;
+              const strokeDasharray = `${pct * circumference} ${circumference}`;
+              const strokeDashoffset = -accumulatedPct * circumference;
+              accumulatedPct += pct;
+
+              return (
+                <circle
+                  key={idx}
+                  cx="90"
+                  cy="90"
+                  r={radius}
+                  fill="transparent"
+                  stroke={cat.color}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={strokeDasharray}
+                  strokeDashoffset={strokeDashoffset}
+                  style={{ transition: "all 0.5s ease" }}
+                />
+              );
+            })}
+          </svg>
+
+          {/* Center Label */}
+          <div className="position-absolute text-center">
+            <div className="fs-3">{emotionEmojis[categories[0]?.key] || "💙"}</div>
+            <div className="text-white fw-bold extra-small text-uppercase tracking-wider">
+              {categories[0]?.label}
+            </div>
+            <div className="text-muted extra-small" style={{ fontSize: "0.68rem" }}>
+              {categories[0]?.val}%
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Legend Badges */}
+        <div className="d-flex flex-column gap-2" style={{ minWidth: "140px" }}>
+          {categories.map((cat) => (
+            <div key={cat.key} className="d-flex align-items-center justify-content-between gap-3 p-2 rounded" style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}>
+              <div className="d-flex align-items-center gap-2">
+                <span className="rounded-circle" style={{ width: "10px", height: "10px", background: cat.color, boxShadow: `0 0 6px ${cat.color}` }} />
+                <span className="text-white fw-semibold small">{cat.label}</span>
+              </div>
+              <span className="text-muted fw-bold small">{cat.val}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Dynamic SVG Interactive Line Chart Calculation
+  const renderMoodTrendChart = (trendData) => {
+    if (!trendData || trendData.length === 0) return null;
+
+    const width = 600;
+    const height = 180;
+    const paddingX = 40;
+    const paddingY = 30;
+
+    const points = trendData.map((d, i) => {
+      const x = paddingX + (i / Math.max(1, trendData.length - 1)) * (width - 2 * paddingX);
+      const y = height - paddingY - ((d.score - 1) / 9) * (height - 2 * paddingY);
+      return { x, y, ...d };
+    });
+
+    const pointsStr = points.map((p) => `${p.x},${p.y}`).join(" ");
+    const areaStr = `${pointsStr} L${points[points.length - 1].x},${height - 15} L${points[0].x},${height - 15} Z`;
+
+    return (
+      <div className="position-relative w-100">
+        <div className="d-flex justify-content-between align-items-center mb-2 px-2 text-muted extra-small">
+          <span>Date</span>
+          <span>Mood Score (1-10)</span>
+        </div>
+
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-100" style={{ maxHeight: "200px" }}>
+          <defs>
+            <linearGradient id="moodLineGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#3B82F6" />
+              <stop offset="50%" stopColor="#8B5CF6" />
+              <stop offset="100%" stopColor="#EC4899" />
+            </linearGradient>
+            <linearGradient id="moodAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+
+          {/* Grid lines for 2, 4, 6, 8, 10 */}
+          {[2, 4, 6, 8, 10].map((level) => {
+            const y = height - paddingY - ((level - 1) / 9) * (height - 2 * paddingY);
+            return (
+              <g key={level}>
+                <line x1={paddingX} y1={y} x2={width - paddingX} y2={y} stroke="rgba(255, 255, 255, 0.06)" strokeDasharray="3" />
+                <text x={paddingX - 10} y={y + 4} fill="rgba(255,255,255,0.4)" fontSize="9" textAnchor="end">
+                  {level}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Area Fill */}
+          <path d={areaStr} fill="url(#moodAreaGrad)" />
+
+          {/* Line Path */}
+          <path d={`M ${pointsStr}`} fill="none" stroke="url(#moodLineGrad)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+
+          {/* Interactive Data Points */}
+          {points.map((p, idx) => (
+            <g
+              key={idx}
+              onMouseEnter={() => setHoveredPoint(p)}
+              onMouseLeave={() => setHoveredPoint(null)}
+              style={{ cursor: "pointer" }}
+            >
+              <circle cx={p.x} cy={p.y} r="6" fill="#0F172A" stroke="#8B5CF6" strokeWidth="2.5" />
+              <circle cx={p.x} cy={p.y} r="3" fill="#3B82F6" />
+              <text x={p.x} y={height - 5} fill="rgba(255,255,255,0.6)" fontSize="10" textAnchor="middle">
+                {p.date}
+              </text>
+            </g>
+          ))}
+        </svg>
+
+        {/* Hover Tooltip */}
+        {hoveredPoint && (
+          <div
+            className="position-absolute bg-dark text-white p-2 rounded shadow-lg border border-purple border-opacity-50 extra-small pointer-events-none"
+            style={{
+              top: "10px",
+              right: "20px",
+              zIndex: 10,
+              background: "rgba(15, 23, 42, 0.95)",
+            }}
+          >
+            <div className="fw-bold text-purple-300 mb-0.5">{hoveredPoint.title || "Journal Entry"}</div>
+            <div className="text-white-50">Date: {hoveredPoint.date}</div>
+            <div className="text-info fw-bold">Mood Score: {hoveredPoint.score}/10</div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="dashboard-container">
@@ -585,75 +678,67 @@ function StudentJournal() {
 
       {/* Main Content */}
       <main className="ns-main-content">
-        {/* Header Title & New Entry Button */}
+        {/* Header Title Banner */}
         <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
           <div>
             <div className="d-flex align-items-center gap-2 mb-1">
               <span
-                className="badge rounded-pill px-3 py-2"
+                className="badge rounded-pill px-3 py-1.5"
                 style={{
                   background: "rgba(139, 92, 246, 0.15)",
                   color: "#A78BFA",
                   border: "1px solid rgba(139, 92, 246, 0.3)",
                 }}
               >
-                <FiBookOpen className="me-1" /> Student AI Reflection Journal
+                <FiBookOpen className="me-1" /> NeuroSync Personal Diary Notebook
               </span>
             </div>
-            <h1 className="text-white fw-bold fs-3 mb-1">My Journal</h1>
+            <h1 className="text-white fw-bold fs-3 mb-1">My Daily Journal & Motive Space 📖</h1>
             <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
-              Write, reflect, and understand your thoughts with AI wellbeing insights.
+              Reflect on your day, capture inspiration, and discover emotional clarity with AI guidance.
             </p>
           </div>
-
-          <button
-            type="button"
-            className="btn px-4 py-2.5 rounded-3 text-white fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg"
-            style={{
-              background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-              border: "none",
-              transition: "all 0.3s ease",
-            }}
-            onClick={handleOpenCreateModal}
-          >
-            <FiPlus size={20} />
-            <span>New Entry</span>
-          </button>
         </div>
 
-        {/* A Message for You 💙 Card */}
-        <div
-          className="ns-card mb-4 p-4 position-relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(88, 28, 135, 0.25) 100%)",
-            border: "1px solid rgba(139, 92, 246, 0.3)",
-            borderRadius: "16px",
-          }}
-        >
-          <div className="d-flex align-items-center justify-content-between mb-2">
-            <h5 className="text-white fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "1.1rem" }}>
-              A Message for You 💙
-            </h5>
-            <span
-              className="badge rounded-pill px-3 py-1"
-              style={{
-                background: "rgba(139, 92, 246, 0.2)",
-                color: "#C084FC",
-                border: "1px solid rgba(139, 92, 246, 0.3)",
-                fontSize: "0.75rem",
-              }}
-            >
-              Personalized Reflection
-            </span>
+        {/* Motive & Affirmation Banner */}
+        <div className="ns-motive-banner p-4 mb-4">
+          <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+            <div>
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <span className="badge rounded-pill bg-warning text-dark fw-bold px-3 py-1">
+                  🔥 Daily Mindset Builder
+                </span>
+                <span className="text-purple-300 small fw-semibold" style={{ color: "#C084FC" }}>
+                  Need inspiration to write? Choose a template below:
+                </span>
+              </div>
+              <p className="journal-handwriting text-white fs-4 mb-3" style={{ lineHeight: "1.3" }}>
+                “Every reflection is a seed for personal growth. Be honest with your heart.”
+              </p>
+            </div>
           </div>
 
-          <div className="text-white fw-semibold mb-1" style={{ fontSize: "0.95rem" }}>
-            {getTimeGreeting()}
+          {/* Quick Journal Prompt Selector Buttons */}
+          <div className="d-flex flex-wrap gap-2 pt-2 border-top border-purple border-opacity-25">
+            {journalPrompts.map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="btn btn-sm rounded-pill text-white border border-purple border-opacity-30 px-3 py-1.5 d-inline-flex align-items-center gap-1.5"
+                style={{ background: "rgba(255, 255, 255, 0.06)", fontSize: "0.82rem" }}
+                onClick={() => {
+                  setWriteTitle(p.promptTitle);
+                  setWriteContent(p.content);
+                  setWriteMood(p.mood);
+                  if (writeSectionRef.current) {
+                    writeSectionRef.current.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+              >
+                {p.title}
+              </button>
+            ))}
           </div>
-
-          <p className="text-white-50 mb-0" style={{ fontSize: "0.93rem", lineHeight: "1.55" }}>
-            "{generatePersonalizedMessage(journals, latestTrackerMood)}"
-          </p>
         </div>
 
         {/* Success Feedback Alert */}
@@ -679,963 +764,724 @@ function StudentJournal() {
           </div>
         )}
 
-        {/* Global Error Alert */}
-        {error && (
-          <div
-            className="alert alert-danger d-flex align-items-center justify-content-between rounded-4 shadow-sm mb-4 border-0"
-            style={{
-              background: "rgba(239, 68, 68, 0.15)",
-              borderLeft: "4px solid #EF4444",
-              color: "#FCA5A5",
-              backdropFilter: "blur(10px)",
-            }}
-          >
-            <div className="d-flex align-items-center gap-2">
-              <FiAlertCircle size={20} className="text-danger" />
-              <span>{error}</span>
-            </div>
-            <button
-              type="button"
-              className="btn-close btn-close-white"
-              onClick={() => setError(null)}
-            />
-          </div>
-        )}
-
-        {/* ==================== SECTION 1 — HEADER & INSIGHTS ==================== */}
-        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-          <div>
-            <h3 className="text-white fw-bold fs-4 mb-1 d-flex align-items-center gap-2">
-              🧠 AI Journal Insights
-            </h3>
-            <p className="text-muted mb-0 small">
-              Understand patterns and trends across your journal history.
-            </p>
+        {/* =========================================================================
+            MOTIVATIONAL STICKY NOTES PIN-BOARD (POST-IT STYLES)
+        ========================================================================= */}
+        <div className="mb-4">
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <h5 className="text-white fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "1.1rem" }}>
+              📌 Inspiration & Motive Sticky Board
+            </h5>
+            <span className="text-muted small">Daily Post-it Affirmations</span>
           </div>
 
-          <button
-            type="button"
-            className="btn px-4 py-2.5 rounded-3 text-white fw-bold d-inline-flex align-items-center justify-content-center gap-2 shadow-lg flex-shrink-0"
-            style={{
-              background: "linear-gradient(135deg, #8B5CF6, #EC4899)",
-              border: "none",
-              transition: "all 0.3s ease",
-            }}
-            onClick={fetchInsights}
-            disabled={loadingInsights}
-          >
-            {loadingInsights ? (
-              <>
-                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                <span>Analyzing History...</span>
-              </>
-            ) : (
-              <>
-                <FiCpu size={18} />
-                <span>✨ Analyze My Journal History</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {insightsError && (
-          <div
-            className="alert alert-danger py-2.5 px-3 small rounded-3 mb-4 border-0"
-            style={{ background: "rgba(239, 68, 68, 0.2)", color: "#FCA5A5" }}
-          >
-            {insightsError}
-          </div>
-        )}
-
-        {/* SECTION 2 — SUMMARY CARDS */}
-        {insights ? (
-          <>
-            <div className="row g-3 mb-4">
-              {/* 1. Analyzed Entries */}
-              <div className="col-12 col-sm-6 col-lg-3">
-                <div
-                  className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between"
-                  style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+          <div className="row g-3">
+            {stickyNotesSeed.map((note, idx) => (
+              <div key={idx} className="col-12 col-sm-6 col-md-3">
+                <div 
+                  className={`ns-sticky-note-card ${note.color} h-100 d-flex flex-column justify-content-between`}
+                  style={{ transform: `rotate(${note.rotate})` }}
                 >
-                  <span className="text-muted small fw-medium">Analyzed Entries</span>
-                  <h3 className="text-white fw-bold fs-3 my-1.5">{insights.totalEntries || 0}</h3>
-                  <span className="text-muted extra-small">Historical reflections</span>
-                </div>
-              </div>
-
-              {/* 2. Dominant Emotion */}
-              <div className="col-12 col-sm-6 col-lg-3">
-                <div
-                  className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between"
-                  style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
-                >
-                  <span className="text-muted small fw-medium">Dominant Emotion</span>
-                  <div className="d-flex align-items-center gap-2 my-1.5">
-                    <span className="fs-4">{getMoodEmoji(insights.dominantEmotion || insights.mostFrequentEmotion)}</span>
-                    <h4 className="text-white fw-bold fs-6 mb-0">{insights.dominantEmotion || insights.mostFrequentEmotion || "Neutral"}</h4>
-                  </div>
-                  <span className="text-muted extra-small">Primary feeling</span>
-                </div>
-              </div>
-
-              {/* 3. Sentiment */}
-              <div className="col-12 col-sm-6 col-lg-3">
-                <div
-                  className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between"
-                  style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
-                >
-                  <span className="text-muted small fw-medium">Sentiment</span>
-                  <div className="my-1.5">
-                    <span
-                      className="badge rounded-pill px-3 py-1 font-semibold"
-                      style={{
-                        background:
-                          (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Positive"
-                            ? "rgba(16, 185, 129, 0.2)"
-                            : (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Negative"
-                            ? "rgba(239, 68, 68, 0.2)"
-                            : "rgba(148, 163, 184, 0.2)",
-                        color:
-                          (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Positive"
-                            ? "#34D399"
-                            : (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Negative"
-                            ? "#FCA5A5"
-                            : "#CBD5E1",
-                        border: `1px solid ${
-                          (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Positive"
-                            ? "#10B981"
-                            : (insights.overallSentimentTrend || insights.mostFrequentSentiment) === "Negative"
-                            ? "#EF4444"
-                            : "#94A3B8"
-                        }`,
-                      }}
-                    >
-                      {insights.overallSentimentTrend || insights.mostFrequentSentiment || "Neutral"}
-                    </span>
-                  </div>
-                  <span className="text-muted extra-small">Emotional tone</span>
-                </div>
-              </div>
-
-              {/* 4. Top Theme */}
-              <div className="col-12 col-sm-6 col-lg-3">
-                <div
-                  className="ns-card p-3.5 h-100 d-flex flex-column justify-content-between"
-                  style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
-                >
-                  <span className="text-muted small fw-medium">Top Theme</span>
-                  <h4 className="text-white fw-bold fs-6 my-1.5 text-truncate">
-                    📚 {insights.mostCommonTheme || (insights.commonThemes && insights.commonThemes[0]) || "Reflection"}
-                  </h4>
-                  <span className="text-muted extra-small">Top topic discussed</span>
-                </div>
-              </div>
-            </div>
-
-            {/* SECTION 3 — EMOTIONAL TREND (FULL-WIDTH CARD WITH TIMELINE) */}
-            <div
-              className="ns-card p-4 mb-4"
-              style={{
-                background: "rgba(15, 23, 42, 0.8)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                borderRadius: "16px",
-              }}
-            >
-              <h5 className="text-white fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
-                📈 Recent Emotional Trend
-              </h5>
-
-              <div className="overflow-x-auto pb-2" style={{ scrollbarWidth: "thin" }}>
-                <div className="d-flex align-items-center justify-content-start gap-0 min-w-max-content px-3 py-2">
-                  {(() => {
-                    const timelineData = (journals && journals.length > 0)
-                      ? [...journals].slice(0, 7).reverse()
-                      : (insights.emotionalTrend || []).map((emo, idx) => ({ mood: emo, createdAt: new Date(Date.now() - (7 - idx) * 86400000) }));
-
-                    if (timelineData.length === 0) {
-                      return <p className="text-muted small mb-0">No recent mood entries available for timeline.</p>;
-                    }
-
-                    return timelineData.map((item, idx) => {
-                      const emoName = item.mood || "Neutral";
-                      const emoEmoji = getMoodEmoji(emoName);
-                      const dateStr = item.createdAt
-                        ? new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                        : `Day ${idx + 1}`;
-
-                      return (
-                        <div key={idx} className="d-flex align-items-center">
-                          <div className="d-flex flex-column align-items-center text-center px-3" style={{ minWidth: "95px" }}>
-                            <span className="fs-3 mb-1">{emoEmoji}</span>
-                            <span className="text-white fw-semibold mb-2" style={{ fontSize: "0.78rem" }}>{emoName}</span>
-                            <div className="rounded-circle bg-primary" style={{ width: "10px", height: "10px", boxShadow: "0 0 8px #3B82F6" }} />
-                            <span className="text-muted mt-2" style={{ fontSize: "0.72rem" }}>{dateStr}</span>
-                          </div>
-                          {idx < timelineData.length - 1 && (
-                            <div
-                              className="flex-grow-1"
-                              style={{
-                                height: "2px",
-                                background: "linear-gradient(90deg, #3B82F6, #8B5CF6)",
-                                minWidth: "45px",
-                                marginTop: "12px",
-                              }}
-                            />
-                          )}
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-            </div>
-
-            {/* SECTION 4 — TWO COLUMN INSIGHT AREA */}
-            <div className="row g-4 mb-4">
-              {/* LEFT CARD: Recurring Pattern */}
-              <div className="col-12 col-md-6">
-                <div
-                  className="ns-card p-4 h-100"
-                  style={{
-                    background: "rgba(15, 23, 42, 0.8)",
-                    border: "1px solid rgba(59, 130, 246, 0.25)",
-                    borderLeft: "4px solid #3B82F6",
-                    borderRadius: "16px",
-                  }}
-                >
-                  <h5 className="text-info fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
-                    🔍 Recurring Pattern
-                  </h5>
-                  <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.65", fontSize: "0.92rem" }}>
-                    "{insights.recurringPattern?.patternText || insights.recentPatternMessage}"
+                  <div className="ns-push-pin" />
+                  <h6 className="fw-bold mb-2 journal-handwriting fs-4">{note.title}</h6>
+                  <p className="journal-handwriting fs-5 mb-0" style={{ lineHeight: "1.3" }}>
+                    {note.text}
                   </p>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
 
-              {/* RIGHT CARD: Common Themes */}
-              <div className="col-12 col-md-6">
-                <div
-                  className="ns-card p-4 h-100"
-                  style={{
-                    background: "rgba(15, 23, 42, 0.8)",
-                    border: "1px solid rgba(139, 92, 246, 0.25)",
-                    borderRadius: "16px",
+        {/* =========================================================================
+            SECTION 1: REAL DIARY NOTEBOOK WRITING PAGE
+        ========================================================================= */}
+        <div ref={writeSectionRef} className="ns-diary-book mb-5">
+          {/* Notebook Margin Line & Ribbon */}
+          <div className="ns-diary-margin-line" />
+          <div className="ns-diary-bookmark" title="Bookmark" />
+
+          <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <div>
+              <h4 className="text-white fw-bold mb-0 d-flex align-items-center gap-2 journal-handwriting fs-2">
+                ✍️ Dear Diary...
+              </h4>
+              <span className="text-muted small">
+                {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              </span>
+            </div>
+            <span className="badge bg-purple-500 bg-opacity-20 text-purple-300 border border-purple-500 border-opacity-30 px-3 py-1.5 rounded-pill text-xs">
+              ✨ AI Emotion Analysis Active
+            </span>
+          </div>
+
+          {/* Error message in Section 1 with Retry */}
+          {writeError && (
+            <div className="alert alert-danger d-flex align-items-center justify-content-between rounded-3 p-3 mb-3 border-0" style={{ background: "rgba(239, 68, 68, 0.2)", color: "#FCA5A5" }}>
+              <div className="d-flex align-items-center gap-2">
+                <FiAlertCircle size={18} className="text-danger flex-shrink-0" />
+                <span>{writeError}</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger text-white rounded-2 px-3 py-1 text-xs"
+                onClick={handleSaveAndAnalyze}
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {/* Loading State Animation when AI Analysis is Running */}
+          {isSavingAndAnalyzing ? (
+            <div className="text-center py-5 my-3 rounded-4 bg-dark bg-opacity-50 border border-purple border-opacity-30">
+              <div className="spinner-border text-purple mb-3" style={{ width: "2.8rem", height: "2.8rem", color: "#8B5CF6" }} role="status">
+                <span className="visually-hidden">Analyzing your Diary Entry...</span>
+              </div>
+              <h5 className="text-white fw-bold mb-1">Analyzing your Diary Entry...</h5>
+              <p className="text-muted small mb-0" style={{ maxWidth: "450px", margin: "0 auto" }}>
+                Generating structured emotional insights, wellness metrics, and saving to your MongoDB profile.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSaveAndAnalyze}>
+              {/* Mood Badge Selector */}
+              <div className="mb-4">
+                <label className="form-label text-purple-300 fw-semibold extra-small text-uppercase mb-2 tracking-wider">
+                  How are you feeling right now?
+                </label>
+                <div className="d-flex flex-wrap gap-2">
+                  {moodOptions.map((m) => {
+                    const isSelected = writeMood === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        className="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 transition-all"
+                        style={{
+                          background: isSelected ? m.color : "rgba(255, 255, 255, 0.05)",
+                          color: isSelected ? "#FFFFFF" : "#94A3B8",
+                          border: isSelected ? `2px solid ${m.color}` : "1px solid rgba(255, 255, 255, 0.1)",
+                          boxShadow: isSelected ? `0 0 12px ${m.color}66` : "none"
+                        }}
+                        onClick={() => setWriteMood(m.id)}
+                      >
+                        <span>{m.emoji}</span>
+                        <span>{m.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Journal Title Input */}
+              <div className="mb-4">
+                <input
+                  type="text"
+                  className="form-control ns-diary-title-input"
+                  placeholder="Title of today's page (e.g. A breakthrough moment during study)..."
+                  value={writeTitle}
+                  onChange={(e) => {
+                    setWriteTitle(e.target.value);
+                    if (writeError) setWriteError("");
                   }}
+                  required
+                />
+              </div>
+
+              {/* Journal Content Textarea */}
+              <div className="mb-4">
+                <textarea
+                  className="form-control ns-diary-textarea"
+                  rows="7"
+                  placeholder="Start typing your thoughts here... How was your day? What inspired you?"
+                  value={writeContent}
+                  onChange={(e) => {
+                    setWriteContent(e.target.value);
+                    if (writeError) setWriteError("");
+                  }}
+                  required
+                />
+              </div>
+
+              {/* Action Toolbar */}
+              <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 pt-3 border-top border-secondary border-opacity-25">
+                <span className="text-muted extra-small">
+                  💡 AI will automatically detect sentiment score, stress metrics & key themes.
+                </span>
+
+                <button
+                  type="submit"
+                  className="btn px-4 py-2.5 rounded-pill text-white fw-bold d-inline-flex align-items-center gap-2 shadow-lg"
+                  style={{
+                    background: "linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)",
+                    border: "none",
+                    boxShadow: "0 4px 18px rgba(139, 92, 246, 0.4)",
+                    transition: "all 0.3s ease",
+                  }}
+                  disabled={isSavingAndAnalyzing || !writeTitle.trim() || !writeContent.trim()}
                 >
-                  <h5 className="text-white fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
-                    🏷️ Common Themes
-                  </h5>
-                  {insights.commonThemes && insights.commonThemes.length > 0 ? (
-                    <div className="d-flex flex-wrap gap-2">
-                      {insights.commonThemes.map((theme, idx) => (
-                        <span
-                          key={idx}
-                          className="badge rounded-pill px-3 py-2 fw-medium"
-                          style={{
-                            background: "rgba(139, 92, 246, 0.15)",
-                            border: "1px solid rgba(139, 92, 246, 0.3)",
-                            color: "#E2E8F0",
-                            fontSize: "0.82rem",
-                          }}
-                        >
-                          • {theme}
-                        </span>
-                      ))}
+                  <FiCpu size={18} />
+                  <span>Save Page & AI Analyze</span>
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+
+        {/* =========================================================================
+            SECTION 2: LATEST AI ANALYSIS CARD
+        ========================================================================= */}
+        {latestAnalysis && (
+          <div
+            className="ns-card p-4 mb-4 position-relative overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(88, 28, 135, 0.25) 100%)",
+              border: "1px solid rgba(168, 85, 247, 0.35)",
+              borderRadius: "16px",
+            }}
+          >
+            <div className="d-flex align-items-center justify-content-between mb-3">
+              <h5 className="text-white fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "1.1rem" }}>
+                ✨ AI Journal Analysis
+              </h5>
+              <span className="badge rounded-pill bg-purple-500 bg-opacity-20 text-purple-300 border border-purple-500 border-opacity-30 px-3 py-1 text-xs">
+                Wellness Indicators
+              </span>
+            </div>
+
+            {/* Quick Metrics Grid (5 Cards) */}
+            <div className="row g-3 mb-3">
+              {/* Overall Mood */}
+              <div className="col-12 col-sm-6 col-md-2.4 col-lg">
+                <div className="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25 text-center h-100">
+                  <span className="text-muted extra-small d-block mb-1">Overall Mood</span>
+                  <div className="text-white fw-bold fs-6 capitalize">
+                    {latestAnalysis.sentiment === "positive" ? "😊 Positive" : latestAnalysis.sentiment === "negative" ? "😔 Negative" : "😐 Neutral"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mood Score */}
+              <div className="col-12 col-sm-6 col-md-2.4 col-lg">
+                <div className="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25 text-center h-100">
+                  <span className="text-muted extra-small d-block mb-1">Mood Score</span>
+                  <div className="text-primary fw-extrabold fs-5">
+                    {latestAnalysis.moodScore || 5}/10
+                  </div>
+                </div>
+              </div>
+
+              {/* Stress Level */}
+              <div className="col-12 col-sm-6 col-md-2.4 col-lg">
+                <div className="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25 text-center h-100">
+                  <span className="text-muted extra-small d-block mb-1">Stress Level</span>
+                  <div className="text-warning fw-bold fs-6 capitalize">
+                    {latestAnalysis.stressLevel || "Low"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Energy Level */}
+              <div className="col-12 col-sm-6 col-md-2.4 col-lg">
+                <div className="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25 text-center h-100">
+                  <span className="text-muted extra-small d-block mb-1">Energy Level</span>
+                  <div className="text-info fw-bold fs-6 capitalize">
+                    {latestAnalysis.energyLevel || "Medium"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Dominant Emotion */}
+              <div className="col-12 col-sm-6 col-md-2.4 col-lg">
+                <div className="p-3 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25 text-center h-100">
+                  <span className="text-muted extra-small d-block mb-1">Dominant Emotion</span>
+                  <div className="text-purple-300 fw-bold fs-6 capitalize" style={{ color: "#C084FC" }}>
+                    {latestAnalysis.emotion || "Calm"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Summary Box */}
+            {latestAnalysis.summary && (
+              <div className="p-3 rounded-3 bg-dark bg-opacity-40 border border-secondary border-opacity-25">
+                <span className="text-purple-300 fw-bold small d-block mb-1" style={{ color: "#C084FC" }}>
+                  AI Summary:
+                </span>
+                <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6" }}>
+                  "{latestAnalysis.summary}"
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* =========================================================================
+            SECTION 3: EMOTIONAL ANALYTICS (MOOD TREND, DONUT CHART, KEY THEMES)
+        ========================================================================= */}
+        <div className="ns-card p-4 mb-4">
+          <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+            <div>
+              <h4 className="text-white fw-bold mb-1 d-flex align-items-center gap-2" style={{ fontSize: "1.15rem" }}>
+                <FiActivity className="text-primary" /> Emotional Analytics
+              </h4>
+              <p className="text-muted small mb-0">
+                Dynamic line trend and donut distribution computed directly from MongoDB.
+              </p>
+            </div>
+
+            {/* Date Filter Tabs */}
+            <div className="d-flex align-items-center gap-1 bg-dark p-1 rounded-3 border border-secondary border-opacity-25 align-self-start align-self-sm-center">
+              <button
+                className={`ns-chart-tab-btn ${timePeriod === "7days" ? "active" : ""}`}
+                onClick={() => setTimePeriod("7days")}
+              >
+                Last 7 Days
+              </button>
+              <button
+                className={`ns-chart-tab-btn ${timePeriod === "30days" ? "active" : ""}`}
+                onClick={() => setTimePeriod("30days")}
+              >
+                Last 30 Days
+              </button>
+              <button
+                className={`ns-chart-tab-btn ${timePeriod === "all" ? "active" : ""}`}
+                onClick={() => setTimePeriod("all")}
+              >
+                All Time
+              </button>
+            </div>
+          </div>
+
+          {/* Analytics Loading / Error / Empty / Content */}
+          {analyticsLoading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary mb-3" role="status">
+                <span className="visually-hidden">Loading emotional insights...</span>
+              </div>
+              <p className="text-muted small">Fetching interactive charts from database...</p>
+            </div>
+          ) : analyticsError ? (
+            <div className="ns-card p-4 text-center border-danger border-opacity-50 my-2">
+              <FiAlertCircle size={36} className="text-danger mb-2" />
+              <h5 className="text-white fw-bold mb-1">Unable to load emotional insights</h5>
+              <p className="text-muted small mb-3">{analyticsError}</p>
+              <button className="btn btn-sm btn-outline-primary px-4 py-2" onClick={() => fetchAnalytics(timePeriod)}>
+                <FiRefreshCw className="me-2" /> Retry
+              </button>
+            </div>
+          ) : !analyticsData || !analyticsData.hasData || analyticsData.totalEntries === 0 ? (
+            /* Empty State */
+            <div className="p-5 text-center rounded-4 bg-dark bg-opacity-40 border border-secondary border-opacity-25 my-2">
+              <div className="rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3 bg-primary bg-opacity-10 text-primary">
+                <FiSmile size={36} />
+              </div>
+              <h5 className="text-white fw-bold mb-1">No emotional insights yet</h5>
+              <p className="text-muted small mb-3 mx-auto" style={{ maxWidth: "420px" }}>
+                Write a few Journal entries to start discovering your emotional patterns across time.
+              </p>
+              <button className="btn px-4 py-2 rounded-3 text-white fw-bold btn-primary" onClick={scrollToWriteSection}>
+                <FiPlus className="me-1" /> Write Journal
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* GRID FOR CHARTS */}
+              <div className="row g-4 mb-4">
+                {/* 1. MOOD TREND GRAPH */}
+                <div className="col-12 col-lg-7">
+                  <div className="p-3.5 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25 h-100">
+                    <h5 className="text-white fw-bold small mb-3 d-flex align-items-center gap-2">
+                      <FiTrendingUp className="text-primary" /> Your Mood Trend
+                    </h5>
+
+                    {renderMoodTrendChart(analyticsData.moodTrend)}
+                  </div>
+                </div>
+
+                {/* 2. EMOTIONAL DISTRIBUTION DONUT CHART & KEY THEMES */}
+                <div className="col-12 col-lg-5">
+                  <div className="p-3.5 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                      <h5 className="text-white fw-bold small mb-3 d-flex align-items-center gap-2">
+                        <FiPieChart className="text-purple-400" style={{ color: "#C084FC" }} /> Emotional Distribution
+                      </h5>
+
+                      {renderEmotionDonutChart(analyticsData.emotionDistribution)}
                     </div>
-                  ) : (
-                    <p className="text-muted small mb-0">No themes detected yet.</p>
+
+                    {/* KEY THEMES TAGS */}
+                    <div className="mt-3 pt-3 border-top border-secondary border-opacity-25">
+                      <h6 className="text-white-50 extra-small fw-bold text-uppercase mb-2 tracking-wider d-flex align-items-center gap-1">
+                        <FiTag /> Key Themes
+                      </h6>
+                      <div className="d-flex flex-wrap gap-1.5">
+                        {analyticsData.keyThemes && analyticsData.keyThemes.length > 0 ? (
+                          analyticsData.keyThemes.map((theme, idx) => (
+                            <span
+                              key={idx}
+                              className="badge rounded-pill px-3 py-1.5 fw-medium"
+                              style={{
+                                background: "rgba(139, 92, 246, 0.15)",
+                                border: "1px solid rgba(139, 92, 246, 0.3)",
+                                color: "#E2E8F0",
+                                fontSize: "0.8rem",
+                              }}
+                            >
+                              🏷️ {theme}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-muted extra-small">No themes detected.</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* =========================================================================
+            SECTION 4: EMOTIONAL PATTERN SUMMARY
+        ========================================================================= */}
+        {analyticsData && analyticsData.hasData && analyticsData.emotionalPatternSummary && (
+          <div
+            className="ns-card p-4 mb-4"
+            style={{
+              background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(88, 28, 135, 0.2) 100%)",
+              border: "1px solid rgba(168, 85, 247, 0.3)",
+              borderLeft: "4px solid #A855F7",
+              borderRadius: "16px",
+            }}
+          >
+            <h5 className="text-purple-300 fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#C084FC" }}>
+              💡 Your Emotional Pattern
+            </h5>
+            <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
+              "{analyticsData.emotionalPatternSummary}"
+            </p>
+          </div>
+        )}
+
+        {/* =========================================================================
+            SECTION 5: PREVIOUS JOURNAL ENTRIES HISTORY & SEARCH/FILTERS
+        ========================================================================= */}
+        <div className="mt-5 mb-4">
+          <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
+            <h4 className="text-white fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "1.15rem" }}>
+              <FiBookOpen className="text-warning" /> Journal History
+            </h4>
+
+            <span className="text-muted small">
+              Total Entries: <strong>{journals.length}</strong>
+            </span>
+          </div>
+
+          {/* Search & Filter Bar */}
+          <div className="ns-card mb-4 p-3">
+            <div className="row g-3 align-items-center">
+              {/* Search */}
+              <div className="col-12 col-md-5 col-lg-4">
+                <div className="position-relative">
+                  <FiSearch className="position-absolute top-50 translate-middle-y text-muted ms-3" size={18} />
+                  <input
+                    type="text"
+                    className="form-control text-white rounded-3 ps-5 pe-4 py-2"
+                    placeholder="Search entries by title or content..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                      background: "rgba(255, 255, 255, 0.04)",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      color: "#FFF",
+                    }}
+                  />
+                  {searchTerm && (
+                    <button type="button" className="btn p-0 position-absolute top-50 end-0 translate-middle-y me-3 text-muted" onClick={() => setSearchTerm("")}>
+                      <FiX size={16} />
+                    </button>
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* SECTION 5 — AI INSIGHT */}
-            {insights.aiInsight && (
-              <div
-                className="ns-card p-4 mb-4"
-                style={{
-                  background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(88, 28, 135, 0.2) 100%)",
-                  border: "1px solid rgba(168, 85, 247, 0.3)",
-                  borderLeft: "4px solid #A855F7",
-                  borderRadius: "16px",
-                }}
-              >
-                <h5 className="text-purple fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#C084FC" }}>
-                  💡 AI Insight
-                </h5>
-                <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
-                  "{insights.aiInsight}"
-                </p>
-              </div>
-            )}
+              {/* Mood Filter Chips */}
+              <div className="col-12 col-md-7 col-lg-8">
+                <div className="d-flex align-items-center gap-2 overflow-auto py-1">
+                  <span className="text-muted small fw-medium d-flex align-items-center me-1 flex-shrink-0">
+                    <FiFilter className="me-1" /> Mood:
+                  </span>
 
-            {/* SECTION 6 — PERSONALIZED RECOMMENDATION */}
-            {insights.personalizedRecommendation && (
-              <div
-                className="ns-card p-4 mb-4"
-                style={{
-                  background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(120, 53, 15, 0.2) 100%)",
-                  border: "1px solid rgba(245, 158, 11, 0.3)",
-                  borderLeft: "4px solid #F59E0B",
-                  borderRadius: "16px",
-                }}
-              >
-                <h5 className="text-warning fw-bold fs-6 mb-2 d-flex align-items-center gap-2">
-                  🎯 Personalized Recommendation
-                </h5>
-                <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
-                  "{insights.personalizedRecommendation}"
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          <div
-            className="ns-card p-4 text-center mb-4"
-            style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px dashed rgba(255, 255, 255, 0.1)" }}
-          >
-            <p className="text-muted small mb-0">
-              Click <strong className="text-white">"✨ Analyze My Journal History"</strong> to view your AI wellness analytics.
-            </p>
-          </div>
-        )}
-
-        {/* ==================== SECTION 7 — WEEKLY AI REFLECTION ==================== */}
-        <div className="mt-5 mb-5 pt-3">
-          <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-            <div>
-              <div className="d-flex align-items-center gap-2 mb-1">
-                <h3 className="text-white fw-bold fs-4 mb-0 d-flex align-items-center gap-2">
-                  ✨ Weekly AI Reflection
-                </h3>
-                <span
-                  className="badge rounded-pill px-2.5 py-1 border border-purple border-opacity-25 small"
-                  style={{ fontSize: "0.75rem", background: "rgba(139, 92, 246, 0.15)", color: "#C084FC" }}
-                >
-                  Last 7 Days
-                </span>
-              </div>
-              <p className="text-muted mb-0 small">
-                A weekly summary of your emotional patterns, themes, and personalized guidance.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="btn btn-outline-primary text-info border-info border-opacity-25 rounded-3 px-4 py-2.5 small fw-semibold d-inline-flex align-items-center gap-2 flex-shrink-0"
-              onClick={fetchWeeklyReflection}
-              disabled={loadingWeekly}
-            >
-              {loadingWeekly ? (
-                <>
-                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                  <span>Generating Report...</span>
-                </>
-              ) : (
-                <>
-                  <FiRefreshCw size={15} />
-                  <span>✨ Generate Weekly Reflection</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {weeklyError && (
-            <div
-              className="alert alert-danger py-2.5 px-3 small rounded-3 mb-4 border-0"
-              style={{ background: "rgba(239, 68, 68, 0.2)", color: "#FCA5A5" }}
-            >
-              {weeklyError}
-            </div>
-          )}
-
-          {weeklyReflectionData ? (
-            <div className="d-flex flex-column gap-4">
-              {/* First row: 3 compact stat cards */}
-              <div className="row g-3">
-                <div className="col-12 col-md-4">
-                  <div className="ns-card p-3.5 h-100" style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                    <span className="text-muted small fw-medium d-block mb-1">Journal Entries Logged</span>
-                    <h4 className="text-white fw-bold fs-4 mb-0">{weeklyReflectionData.entryCount || 0}</h4>
-                  </div>
-                </div>
-
-                <div className="col-12 col-md-4">
-                  <div className="ns-card p-3.5 h-100" style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                    <span className="text-muted small fw-medium d-block mb-1">Dominant Emotion</span>
-                    <span
-                      className="badge rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1.5"
-                      style={{
-                        background: "rgba(139, 92, 246, 0.2)",
-                        color: "#C084FC",
-                        border: "1px solid rgba(139, 92, 246, 0.3)",
-                        fontSize: "0.85rem",
-                      }}
-                    >
-                      <span>{getMoodEmoji(weeklyReflectionData.dominantEmotion)}</span>
-                      <span>{weeklyReflectionData.dominantEmotion || "Neutral"}</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="col-12 col-md-4">
-                  <div className="ns-card p-3.5 h-100" style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                    <span className="text-muted small fw-medium d-block mb-1">Common Themes</span>
-                    <div className="d-flex flex-wrap gap-1 mt-1">
-                      {weeklyReflectionData.commonThemes && weeklyReflectionData.commonThemes.length > 0 ? (
-                        weeklyReflectionData.commonThemes.map((t, idx) => (
-                          <span key={idx} className="badge bg-secondary bg-opacity-25 text-white-50" style={{ fontSize: "0.75rem" }}>
-                            📚 {t}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-muted small">None</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Two Side-by-Side Cards: Positive Pattern & Area to Watch */}
-              <div className="row g-4">
-                {/* LEFT: Positive Pattern */}
-                <div className="col-12 col-md-6">
-                  <div
-                    className="ns-card p-4 h-100"
-                    style={{
-                      background: "rgba(15, 23, 42, 0.8)",
-                      border: "1px solid rgba(16, 185, 129, 0.25)",
-                      borderLeft: "4px solid #10B981",
-                      borderRadius: "16px",
-                    }}
-                  >
-                    <h5 className="text-success fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#34D399" }}>
-                      🌱 Positive Pattern
-                    </h5>
-                    <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6", fontSize: "0.91rem" }}>
-                      "{weeklyReflectionData.positivePattern || "Steady reflection habit maintained this week."}"
-                    </p>
-                  </div>
-                </div>
-
-                {/* RIGHT: Area to Watch */}
-                <div className="col-12 col-md-6">
-                  <div
-                    className="ns-card p-4 h-100"
-                    style={{
-                      background: "rgba(15, 23, 42, 0.8)",
-                      border: "1px solid rgba(239, 68, 68, 0.25)",
-                      borderLeft: "4px solid #EF4444",
-                      borderRadius: "16px",
-                    }}
-                  >
-                    <h5 className="text-danger fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#FCA5A5" }}>
-                      👀 Area to Watch
-                    </h5>
-                    <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6", fontSize: "0.91rem" }}>
-                      "{weeklyReflectionData.areaToWatch || "Balancing workload intensity with rest."}"
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Larger Card: Weekly Reflection */}
-              {weeklyReflectionData.weeklyReflection && (
-                <div
-                  className="ns-card p-4"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.3) 100%)",
-                    border: "1px solid rgba(139, 92, 246, 0.25)",
-                    borderRadius: "16px",
-                  }}
-                >
-                  <h5 className="text-purple fw-bold fs-6 mb-2 d-flex align-items-center gap-2" style={{ color: "#C084FC" }}>
-                    💭 Weekly Reflection
-                  </h5>
-                  <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
-                    "{weeklyReflectionData.weeklyReflection}"
-                  </p>
-                </div>
-              )}
-
-              {/* Suggested Action */}
-              {weeklyReflectionData.suggestedAction && (
-                <div
-                  className="ns-card p-4"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(120, 53, 15, 0.2) 100%)",
-                    border: "1px solid rgba(245, 158, 11, 0.25)",
-                    borderLeft: "4px solid #F59E0B",
-                    borderRadius: "16px",
-                  }}
-                >
-                  <h5 className="text-warning fw-bold fs-6 mb-2 d-flex align-items-center gap-2">
-                    🎯 Suggested Action
-                  </h5>
-                  <p className="text-white-50 mb-0" style={{ lineHeight: "1.65", fontSize: "0.93rem" }}>
-                    "{weeklyReflectionData.suggestedAction}"
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div
-              className="ns-card p-4 text-center"
-              style={{ background: "rgba(15, 23, 42, 0.7)", border: "1px dashed rgba(255, 255, 255, 0.1)" }}
-            >
-              <p className="text-muted small mb-0">
-                Click <strong className="text-white">"✨ Generate Weekly Reflection"</strong> to generate your weekly report.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Search & Mood Filter Toolbar */}
-        <div className="ns-card mb-4 p-3">
-          <div className="row g-3 align-items-center">
-            {/* Search Input */}
-            <div className="col-12 col-md-5 col-lg-4">
-              <div className="position-relative">
-                <FiSearch
-                  className="position-absolute top-50 translate-middle-y text-muted ms-3"
-                  size={18}
-                />
-                <input
-                  type="text"
-                  className="form-control text-white rounded-3 ps-5 pe-4 py-2"
-                  placeholder="Search entries by title or content..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    background: "rgba(255, 255, 255, 0.05)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    color: "#FFF",
-                  }}
-                />
-                {searchTerm && (
                   <button
                     type="button"
-                    className="btn p-0 position-absolute top-50 end-0 translate-middle-y me-3 text-muted"
-                    onClick={() => setSearchTerm("")}
+                    className={`btn btn-sm rounded-pill px-3 py-1 fw-medium flex-shrink-0 ${selectedMoodFilter === "All" ? "btn-primary text-white" : "btn-outline-secondary text-muted"}`}
+                    onClick={() => setSelectedMoodFilter("All")}
                   >
-                    <FiX size={16} />
+                    All ({journals.length})
                   </button>
-                )}
+
+                  {moodOptions.map((m) => {
+                    const isSelected = selectedMoodFilter === m.id;
+                    const count = journals.filter((j) => (j.mood || "").toLowerCase() === m.id.toLowerCase()).length;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        className="btn btn-sm rounded-pill px-3 py-1 fw-medium flex-shrink-0"
+                        style={{
+                          background: isSelected ? `${m.color}33` : "rgba(255, 255, 255, 0.03)",
+                          border: isSelected ? `1px solid ${m.color}` : "1px solid rgba(255, 255, 255, 0.08)",
+                          color: isSelected ? "#FFFFFF" : "#94A3B8",
+                        }}
+                        onClick={() => setSelectedMoodFilter(m.id)}
+                      >
+                        <span className="me-1">{m.emoji}</span> {m.label} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Mood Filters */}
-            <div className="col-12 col-md-7 col-lg-8">
-              <div className="d-flex align-items-center gap-2 overflow-auto py-1">
-                <span className="text-muted small fw-medium d-flex align-items-center me-1 flex-shrink-0">
-                  <FiFilter className="me-1" /> Mood:
-                </span>
+          {/* Grid of Journal Cards */}
+          {journalsLoading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary mb-3" role="status">
+                <span className="visually-hidden">Loading journals...</span>
+              </div>
+              <p className="text-muted">Loading your past journal entries...</p>
+            </div>
+          ) : filteredJournals.length === 0 ? (
+            <div className="ns-card text-center py-5 px-4">
+              <h5 className="text-white fw-bold mb-2">No Matching Entries Found</h5>
+              <p className="text-muted small mb-3">No journal entries matched your search query or filter.</p>
+              <button
+                className="btn btn-sm btn-outline-secondary text-white rounded-3 px-3"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedMoodFilter("All");
+                }}
+              >
+                Clear Filters
+              </button>
+            </div>
+          ) : (
+            <div className="row g-4 mb-4">
+              {filteredJournals.map((journal, idx) => {
+                const analysisObj = journal.analysis;
+                const stickyColors = [
+                  "ns-sticky-yellow",
+                  "ns-sticky-pink",
+                  "ns-sticky-cyan",
+                  "ns-sticky-mint",
+                  "ns-sticky-lavender",
+                  "ns-sticky-orange"
+                ];
+                const rotations = ["-2deg", "1.5deg", "-1.2deg", "2deg", "-1.8deg", "1deg"];
+                const colorClass = stickyColors[idx % stickyColors.length];
+                const rot = rotations[idx % rotations.length];
 
-                <button
-                  type="button"
-                  className={`btn btn-sm rounded-pill px-3 py-1 fw-medium flex-shrink-0 transition-all ${
-                    selectedMoodFilter === "All"
-                      ? "btn-primary text-white"
-                      : "btn-outline-secondary text-muted"
-                  }`}
-                  style={{
-                    background:
-                      selectedMoodFilter === "All"
-                        ? "linear-gradient(135deg, #3B82F6, #8B5CF6)"
-                        : "rgba(255, 255, 255, 0.03)",
-                    border:
-                      selectedMoodFilter === "All"
-                        ? "none"
-                        : "1px solid rgba(255, 255, 255, 0.1)",
-                  }}
-                  onClick={() => setSelectedMoodFilter("All")}
-                >
-                  All ({journals.length})
-                </button>
-
-                {moodOptions.map((m) => {
-                  const isSelected = selectedMoodFilter === m.id;
-                  const count = journals.filter(
-                    (j) => (j.mood || "").toLowerCase() === m.id.toLowerCase()
-                  ).length;
-
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      className="btn btn-sm rounded-pill px-3 py-1 fw-medium flex-shrink-0 transition-all"
-                      style={{
-                        background: isSelected
-                          ? `${m.color}33`
-                          : "rgba(255, 255, 255, 0.03)",
-                        border: isSelected
-                          ? `1px solid ${m.color}`
-                          : "1px solid rgba(255, 255, 255, 0.08)",
-                        color: isSelected ? "#FFFFFF" : "#94A3B8",
-                      }}
-                      onClick={() => setSelectedMoodFilter(m.id)}
+                return (
+                  <div key={journal._id} className="col-12 col-md-6 col-lg-4">
+                    <div 
+                      className={`ns-sticky-note-card ${colorClass} h-100 d-flex flex-column justify-content-between`}
+                      style={{ transform: `rotate(${rot})` }}
                     >
-                      <span className="me-1">{m.emoji}</span> {m.label}{" "}
-                      <span className="opacity-75">({count})</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
+                      {/* Push Pin Header */}
+                      {idx % 2 === 0 ? <div className="ns-push-pin" /> : <div className="ns-sticky-tape" />}
 
-        {/* Content Section: Loading, Empty or Grid */}
-        {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border text-primary mb-3" role="status">
-              <span className="visually-hidden">Loading journals...</span>
-            </div>
-            <p className="text-muted">Fetching your journal entries...</p>
-          </div>
-        ) : filteredJournals.length === 0 ? (
-          /* Empty State */
-          <div className="ns-card text-center py-5 px-4">
-            <div
-              className="rounded-circle d-inline-flex align-items-center justify-content-center p-4 mb-3"
-              style={{
-                background: "rgba(139, 92, 246, 0.1)",
-                border: "1px solid rgba(139, 92, 246, 0.2)",
-              }}
-            >
-              <FiBookOpen size={48} style={{ color: "#A78BFA" }} />
-            </div>
-
-            {journals.length === 0 ? (
-              <>
-                <h4 className="text-white fw-bold mb-2">No Journal Entries Yet</h4>
-                <p
-                  className="text-muted mb-4 mx-auto"
-                  style={{ maxWidth: "420px", fontSize: "0.92rem" }}
-                >
-                  Start documenting your thoughts, emotions, and daily experiences.
-                  Click below to create your very first journal entry.
-                </p>
-                <button
-                  type="button"
-                  className="btn px-4 py-2.5 rounded-3 text-white fw-bold d-inline-flex align-items-center gap-2"
-                  style={{
-                    background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-                    border: "none",
-                  }}
-                  onClick={handleOpenCreateModal}
-                >
-                  <FiPlus size={18} /> Create First Entry
-                </button>
-              </>
-            ) : (
-              <>
-                <h4 className="text-white fw-bold mb-2">No Matching Entries Found</h4>
-                <p
-                  className="text-muted mb-4 mx-auto"
-                  style={{ maxWidth: "420px", fontSize: "0.92rem" }}
-                >
-                  No journal entries matched your search term or selected mood filter.
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary text-white rounded-3 px-4 py-2"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedMoodFilter("All");
-                  }}
-                >
-                  Clear Filters
-                </button>
-              </>
-            )}
-          </div>
-        ) : (
-          /* Cards Grid */
-          <div className="row g-4 mb-4">
-            {filteredJournals.map((journal) => {
-              const moodColor = getMoodColor(journal.mood);
-              const moodEmoji = getMoodEmoji(journal.mood);
-
-              return (
-                <div key={journal._id} className="col-12 col-md-6 col-lg-4">
-                  <div className="ns-card h-100 d-flex flex-column justify-content-between">
-                    <div>
-                      {/* Top Meta: Mood Badge & Date */}
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        {journal.mood ? (
-                          <span
-                            className="badge rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1"
-                            style={{
-                              background: `${moodColor}25`,
-                              border: `1px solid ${moodColor}50`,
-                              color: "#FFFFFF",
-                              fontSize: "0.8rem",
-                            }}
-                          >
-                            <span>{moodEmoji}</span>
-                            <span>{journal.mood}</span>
+                      <div>
+                        {/* Meta Badge & Date */}
+                        <div className="d-flex align-items-center justify-content-between mb-2 mt-2">
+                          <span className="badge rounded-pill px-2.5 py-1 bg-dark bg-opacity-25 text-dark extra-small fw-bold">
+                            {journal.mood ? `Mood: ${journal.mood}` : "Reflection"}
                           </span>
-                        ) : (
-                          <span
-                            className="badge rounded-pill px-3 py-1.5 text-muted"
-                            style={{
-                              background: "rgba(255, 255, 255, 0.05)",
-                              border: "1px solid rgba(255, 255, 255, 0.1)",
-                              fontSize: "0.78rem",
-                            }}
-                          >
-                            <FiSmile className="me-1" /> Reflection
-                          </span>
-                        )}
 
-                        <span
-                          className="text-muted d-flex align-items-center gap-1"
-                          style={{ fontSize: "0.78rem" }}
+                          <span className="extra-small d-flex align-items-center gap-1 opacity-75 fw-semibold">
+                            <FiCalendar size={13} />
+                            {formatDate(journal.createdAt)}
+                          </span>
+                        </div>
+
+                        {/* Title */}
+                        <h5 className="fw-bold mb-2 journal-handwriting fs-3 text-truncate" title={journal.title}>
+                          {journal.title}
+                        </h5>
+
+                        {/* Content Preview */}
+                        <p
+                          className="journal-handwriting fs-5 mb-3"
+                          style={{
+                            lineHeight: "1.35",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            minHeight: "4rem",
+                          }}
                         >
-                          <FiCalendar size={13} />
-                          {formatDate(journal.createdAt)}
-                        </span>
+                          {journal.content}
+                        </p>
+
+                        {/* Analysis Indicator */}
+                        {analysisObj ? (
+                          <div className="p-2 rounded bg-black bg-opacity-10 border border-black border-opacity-10 d-flex align-items-center justify-content-between mb-2" style={{ fontSize: "0.78rem" }}>
+                            <span className="fw-bold extra-small">
+                              Score: {analysisObj.moodScore || 5}/10 • {analysisObj.sentiment}
+                            </span>
+                            <span className="badge bg-dark text-white extra-small">Analyzed</span>
+                          </div>
+                        ) : null}
                       </div>
 
-                      {/* Title */}
-                      <h3
-                        className="text-white fw-bold fs-5 mb-2 text-truncate"
-                        title={journal.title}
-                      >
-                        {journal.title}
-                      </h3>
-
-                      {/* Short Content Preview */}
-                      <p
-                        className="text-muted mb-4"
-                        style={{
-                          fontSize: "0.88rem",
-                          lineHeight: "1.5",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          minHeight: "4rem",
-                        }}
-                      >
-                        {journal.content}
-                      </p>
-                    </div>
-
-                    {/* Footer Action Buttons */}
-                    <div className="pt-3 border-top border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-primary text-info border-info border-opacity-25 rounded-3 d-inline-flex align-items-center gap-1 px-3 py-1.5"
-                        onClick={() => handleOpenViewModal(journal)}
-                      >
-                        <FiEye size={15} />
-                        <span>View</span>
-                      </button>
-
-                      <div className="d-flex align-items-center gap-2">
+                      {/* Footer Actions */}
+                      <div className="pt-2 border-top border-black border-opacity-10 d-flex align-items-center justify-content-between">
                         <button
                           type="button"
-                          className="btn btn-sm text-muted hover-white p-1.5 rounded-2"
-                          onClick={() => handleOpenEditModal(journal)}
-                          title="Edit Entry"
+                          className="btn btn-sm btn-dark rounded-pill d-inline-flex align-items-center gap-1 px-3 py-1 text-xs text-white"
+                          onClick={() => handleOpenViewModal(journal)}
                         >
-                          <FiEdit3 size={17} className="text-warning" />
+                          <FiEye size={13} /> Read Entry
                         </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm text-muted hover-white p-1.5 rounded-2"
-                          onClick={() => handleOpenDeleteModal(journal._id)}
-                          title="Delete Entry"
-                        >
-                          <FiTrash2 size={17} className="text-danger" />
-                        </button>
+
+                        <div className="d-flex align-items-center gap-1">
+                          <button
+                            type="button"
+                            className="btn btn-sm p-1 border-0"
+                            onClick={() => handleOpenEditModal(journal)}
+                            title="Edit"
+                          >
+                            <FiEdit3 size={16} className="text-dark" />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm p-1 border-0"
+                            onClick={() => {
+                              setDeletingJournalId(journal._id);
+                              setShowDeleteModal(true);
+                            }}
+                            title="Delete"
+                          >
+                            <FiTrash2 size={16} className="text-danger" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Footer */}
       <DashboardFooter />
 
-      {/* ==================== CREATE / EDIT MODAL ==================== */}
-      {showEditorModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ background: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(6px)" }}
-        >
+      {/* ==================== VIEW ENTRY MODAL ==================== */}
+      {showViewModal && viewingJournal && (
+        <div className="modal fade show d-block" tabIndex="-1" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div
-              className="modal-content text-white rounded-4 border-0 shadow-lg overflow-hidden"
-              style={{
-                background: "#0F172A",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-              }}
-            >
-              {/* Header */}
+            <div className="modal-content text-white rounded-4 border-0 shadow-lg overflow-hidden" style={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)" }}>
               <div className="modal-header border-bottom border-secondary border-opacity-25 px-4 py-3">
-                <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
-                  <FiBookOpen className="text-primary" />
-                  {editingJournal ? "Edit Journal Entry" : "Create New Journal Entry"}
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setShowEditorModal(false)}
-                />
+                <div>
+                  <h5 className="modal-title fw-bold text-white mb-0">{viewingJournal.title}</h5>
+                  <span className="text-muted extra-small"><FiCalendar className="me-1" /> {formatDate(viewingJournal.createdAt)}</span>
+                </div>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowViewModal(false)} />
               </div>
 
-              <form onSubmit={handleSaveJournal}>
-                <div className="modal-body px-4 py-4">
-                  {formError && (
-                    <div
-                      className="alert d-flex align-items-center justify-content-between rounded-3 p-3 mb-4 border-0"
-                      style={{
-                        background: "rgba(239, 68, 68, 0.25)",
-                        borderLeft: "4px solid #EF4444",
-                        color: "#FFFFFF",
-                      }}
-                    >
-                      <div className="d-flex align-items-center gap-2">
-                        <FiAlertCircle size={20} className="text-danger flex-shrink-0" />
-                        <span className="fw-semibold" style={{ color: "#FCA5A5", fontSize: "0.9rem" }}>
-                          {formError}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        className="btn-close btn-close-white"
-                        onClick={() => setFormError("")}
-                      />
-                    </div>
-                  )}
-
-                  {/* Title Input */}
-                  <div className="mb-4">
-                    <label className="form-label text-white fw-semibold">
-                      Title <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control text-white rounded-3 p-3"
-                      placeholder="Give your journal entry a meaningful title..."
-                      value={formTitle}
-                      onChange={(e) => {
-                        setFormTitle(e.target.value);
-                        if (formError) setFormError("");
-                      }}
-                      style={{
-                        background: "rgba(255, 255, 255, 0.05)",
-                        border: "1px solid rgba(255, 255, 255, 0.1)",
-                      }}
-                      required
-                    />
-                  </div>
-
-                  {/* Optional Mood Selection */}
-                  <div className="mb-4">
-                    <label className="form-label text-white fw-semibold mb-2">
-                      Associated Mood <span className="text-muted font-normal">(Optional)</span>
-                    </label>
-                    <div className="row g-2">
-                      {moodOptions.map((m) => {
-                        const isSelected = formMood === m.id;
-                        return (
-                          <div key={m.id} className="col-4 col-sm-3 col-md-3">
-                            <button
-                              type="button"
-                              className="btn w-100 py-2 px-2 rounded-3 d-flex align-items-center justify-content-center gap-2 transition-all"
-                              style={{
-                                background: isSelected
-                                  ? `${m.color}33`
-                                  : "rgba(255, 255, 255, 0.03)",
-                                border: isSelected
-                                  ? `2px solid ${m.color}`
-                                  : "1px solid rgba(255, 255, 255, 0.08)",
-                                color: isSelected ? "#FFFFFF" : "#94A3B8",
-                                fontSize: "0.85rem",
-                              }}
-                              onClick={() => {
-                                setFormMood(isSelected ? "" : m.id);
-                                if (formError) setFormError("");
-                              }}
-                            >
-                              <span>{m.emoji}</span>
-                              <span className="text-truncate">{m.label}</span>
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Content Textarea */}
-                  <div className="mb-3">
-                    <label className="form-label text-white fw-semibold">
-                      Journal Content <span className="text-danger">*</span>
-                    </label>
-                    <textarea
-                      className="form-control text-white rounded-3 p-3"
-                      rows="7"
-                      placeholder="Write down your thoughts, reflections, feelings, or experiences..."
-                      value={formContent}
-                      onChange={(e) => {
-                        setFormContent(e.target.value);
-                        if (formError) setFormError("");
-                      }}
-                      style={{
-                        background: "rgba(255, 255, 255, 0.05)",
-                        border: "1px solid rgba(255, 255, 255, 0.1)",
-                        resize: "vertical",
-                        minHeight: "150px",
-                      }}
-                      required
-                    ></textarea>
+              <div className="modal-body px-4 py-4" style={{ maxHeight: "65vh", overflowY: "auto" }}>
+                <div className="ns-diary-book mb-4 p-4">
+                  <div className="ns-diary-margin-line" />
+                  <div className="ns-diary-bookmark" />
+                  <h4 className="journal-handwriting text-purple-300 fs-2 mb-3">{viewingJournal.title}</h4>
+                  <div className="journal-handwriting fs-4" style={{ whiteSpace: "pre-wrap", lineHeight: "2.1rem", color: "#F8FAFC" }}>
+                    {viewingJournal.content}
                   </div>
                 </div>
 
-                {/* Footer */}
+                {/* Analysis Card in View Modal */}
+                <div className="p-4 rounded-4 position-relative overflow-hidden mb-2" style={{ background: "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(88, 28, 135, 0.25) 100%)", border: "1px solid rgba(168, 85, 247, 0.3)" }}>
+                  <h5 className="text-white fw-bold mb-3 small d-flex align-items-center gap-2">
+                    ✨ AI Journal Analysis
+                  </h5>
+
+                  {loadingViewAnalysis ? (
+                    <div className="text-center py-3 text-muted small">Loading analysis...</div>
+                  ) : viewAnalysis ? (
+                    <div className="d-flex flex-column gap-3">
+                      <div className="row g-3">
+                        <div className="col-6">
+                          <span className="text-muted extra-small d-block mb-1">Sentiment:</span>
+                          <span className="badge rounded-pill px-3 py-1 bg-purple-500 bg-opacity-20 text-purple-300 border border-purple-500 border-opacity-30 capitalize">
+                            {viewAnalysis.sentiment || "neutral"}
+                          </span>
+                        </div>
+                        <div className="col-6">
+                          <span className="text-muted extra-small d-block mb-1">Mood Score:</span>
+                          <span className="text-white fw-bold fs-6">{viewAnalysis.moodScore || 5}/10</span>
+                        </div>
+                      </div>
+
+                      {viewAnalysis.summary && (
+                        <div className="p-3 rounded-3 bg-dark bg-opacity-40">
+                          <span className="text-purple-300 extra-small fw-bold d-block mb-1">Summary:</span>
+                          <p className="text-white-50 extra-small mb-0">"{viewAnalysis.summary}"</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-muted small">Analysis unavailable for this entry.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="modal-footer border-top border-secondary border-opacity-25 px-4 py-3 d-flex justify-content-between">
+                <button type="button" className="btn btn-outline-danger btn-sm rounded-3" onClick={() => handleOpenDeleteModal(viewingJournal._id)}>
+                  <FiTrash2 className="me-1" /> Delete
+                </button>
+                <button type="button" className="btn btn-secondary btn-sm rounded-3 px-4" onClick={() => setShowViewModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== EDIT MODAL ==================== */}
+      {showEditorModal && (
+        <div className="modal fade show d-block" tabIndex="-1" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content text-white rounded-4 border-0 shadow-lg overflow-hidden" style={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="modal-header border-bottom border-secondary border-opacity-25 px-4 py-3">
+                <h5 className="modal-title fw-bold">Edit Journal Entry</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowEditorModal(false)} />
+              </div>
+
+              <form onSubmit={handleSaveModalEdit}>
+                <div className="modal-body px-4 py-4">
+                  {modalError && <div className="alert alert-danger p-2 extra-small rounded-3 mb-3">{modalError}</div>}
+
+                  <div className="mb-3">
+                    <label className="form-label small fw-semibold">Title</label>
+                    <input type="text" className="form-control bg-dark text-white border-secondary border-opacity-25 p-3 rounded-3" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} required />
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label small fw-semibold">Content</label>
+                    <textarea className="form-control bg-dark text-white border-secondary border-opacity-25 p-3 rounded-3" rows="6" value={formContent} onChange={(e) => setFormContent(e.target.value)} required />
+                  </div>
+                </div>
+
                 <div className="modal-footer border-top border-secondary border-opacity-25 px-4 py-3">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary text-white rounded-3 px-4"
-                    onClick={() => setShowEditorModal(false)}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn px-4 rounded-3 text-white fw-bold d-flex align-items-center gap-2"
-                    style={{
-                      background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-                      border: "none",
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <FiSave size={18} />
-                        {editingJournal ? "Save Changes" : "Save Journal Entry"}
-                      </>
-                    )}
+                  <button type="button" className="btn btn-outline-secondary text-white btn-sm rounded-3 px-4" onClick={() => setShowEditorModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary btn-sm rounded-3 px-4 fw-bold" disabled={isSubmittingModal}>
+                    {isSubmittingModal ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               </form>
@@ -1644,311 +1490,19 @@ function StudentJournal() {
         </div>
       )}
 
-      {/* ==================== VIEW MODAL (ENHANCED WITH ✨ AI JOURNAL ANALYSIS) ==================== */}
-      {showViewModal && viewingJournal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ background: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(6px)" }}
-        >
-          <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div
-              className="modal-content text-white rounded-4 border-0 shadow-lg overflow-hidden"
-              style={{
-                background: "#0F172A",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-              }}
-            >
-              {/* Header */}
-              <div className="modal-header border-bottom border-secondary border-opacity-25 px-4 py-3">
-                <div className="d-flex align-items-center gap-3">
-                  {viewingJournal.mood && (
-                    <span className="fs-3">{getMoodEmoji(viewingJournal.mood)}</span>
-                  )}
-                  <div>
-                    <h5 className="modal-title fw-bold text-white mb-0">
-                      {viewingJournal.title}
-                    </h5>
-                    <span
-                      className="text-muted d-flex align-items-center gap-1 mt-1"
-                      style={{ fontSize: "0.8rem" }}
-                    >
-                      <FiCalendar /> {formatDate(viewingJournal.createdAt)}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setShowViewModal(false)}
-                />
-              </div>
-
-              {/* Body */}
-              <div className="modal-body px-4 py-4" style={{ maxHeight: "65vh", overflowY: "auto" }}>
-                {viewingJournal.mood && (
-                  <div className="mb-3">
-                    <span
-                      className="badge rounded-pill px-3 py-1.5 fw-medium"
-                      style={{
-                        background: `${getMoodColor(viewingJournal.mood)}25`,
-                        border: `1px solid ${getMoodColor(viewingJournal.mood)}50`,
-                        color: "#FFFFFF",
-                      }}
-                    >
-                      Mood: {viewingJournal.mood}
-                    </span>
-                  </div>
-                )}
-
-                {/* Journal Raw Content Box */}
-                <div
-                  className="p-3.5 rounded-3 mb-4"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.03)",
-                    border: "1px solid rgba(255, 255, 255, 0.06)",
-                    whiteSpace: "pre-wrap",
-                    lineHeight: "1.7",
-                    fontSize: "0.95rem",
-                    color: "#E2E8F0",
-                  }}
-                >
-                  {viewingJournal.content}
-                </div>
-
-                {/* STEP 2: ✨ AI Journal Analysis Section */}
-                <div
-                  className="p-4 rounded-4 position-relative overflow-hidden mb-2"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(88, 28, 135, 0.25) 100%)",
-                    border: "1px solid rgba(168, 85, 247, 0.3)",
-                  }}
-                >
-                  <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h5 className="text-white fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
-                      ✨ AI Journal Analysis
-                    </h5>
-
-                    {currentAnalysis && !isAnalyzing && (
-                      <button
-                        type="button"
-                        className="btn btn-sm text-purple rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1"
-                        style={{
-                          background: "rgba(168, 85, 247, 0.15)",
-                          border: "1px solid rgba(168, 85, 247, 0.3)",
-                          fontSize: "0.78rem",
-                          color: "#C084FC",
-                        }}
-                        onClick={() => handleAnalyzeEntry(true)}
-                      >
-                        <FiRefreshCw size={13} /> Re-analyze
-                      </button>
-                    )}
-                  </div>
-
-                  {analysisError && (
-                    <div className="alert alert-danger py-2 px-3 small rounded-3 mb-3 border-0" style={{ background: "rgba(239, 68, 68, 0.2)", color: "#FCA5A5" }}>
-                      {analysisError}
-                    </div>
-                  )}
-
-                  {loadingAnalysis ? (
-                    <div className="text-center py-3">
-                      <div className="spinner-border spinner-border-sm text-purple mb-2" role="status"></div>
-                      <p className="text-muted small mb-0">Checking stored AI analysis...</p>
-                    </div>
-                  ) : isAnalyzing ? (
-                    <div className="text-center py-4">
-                      <div className="spinner-border text-purple mb-2" role="status"></div>
-                      <p className="text-white fw-semibold small mb-1">Analyzing with AI...</p>
-                      <span className="text-muted style-italic" style={{ fontSize: "0.78rem" }}>
-                        Evaluating emotional sentiment & key themes safely
-                      </span>
-                    </div>
-                  ) : currentAnalysis ? (
-                    <div className="d-flex flex-column gap-3">
-                      {/* Emotion & Sentiment row */}
-                      <div className="row g-3">
-                        <div className="col-6">
-                          <span className="text-muted d-block small mb-1">Detected Emotion:</span>
-                          <span className="text-white fw-bold fs-6 d-inline-flex align-items-center gap-1.5">
-                            {getMoodEmoji(currentAnalysis.emotion)} {currentAnalysis.emotion}
-                          </span>
-                        </div>
-                        <div className="col-6">
-                          <span className="text-muted d-block small mb-1">Sentiment:</span>
-                          <span
-                            className="badge rounded-pill px-3 py-1.5 fw-semibold"
-                            style={{
-                              background:
-                                currentAnalysis.sentiment === "Positive"
-                                  ? "rgba(16, 185, 129, 0.2)"
-                                  : currentAnalysis.sentiment === "Negative"
-                                  ? "rgba(239, 68, 68, 0.2)"
-                                  : "rgba(148, 163, 184, 0.2)",
-                              color:
-                                currentAnalysis.sentiment === "Positive"
-                                  ? "#34D399"
-                                  : currentAnalysis.sentiment === "Negative"
-                                  ? "#FCA5A5"
-                                  : "#CBD5E1",
-                              border: `1px solid ${
-                                currentAnalysis.sentiment === "Positive"
-                                  ? "#10B981"
-                                  : currentAnalysis.sentiment === "Negative"
-                                  ? "#EF4444"
-                                  : "#94A3B8"
-                              }`,
-                            }}
-                          >
-                            {currentAnalysis.sentiment}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Key Themes */}
-                      <div>
-                        <span className="text-muted d-block small mb-1">Key Themes:</span>
-                        <div className="d-flex flex-wrap gap-2">
-                          {currentAnalysis.themes && currentAnalysis.themes.length > 0 ? (
-                            currentAnalysis.themes.map((theme, idx) => (
-                              <span
-                                key={idx}
-                                className="badge rounded-pill px-3 py-1 font-normal"
-                                style={{
-                                  background: "rgba(255, 255, 255, 0.05)",
-                                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                                  color: "#E2E8F0",
-                                  fontSize: "0.8rem",
-                                }}
-                              >
-                                • {theme}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-muted small">• General reflection</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* AI Reflection */}
-                      <div className="p-3 rounded-3" style={{ background: "rgba(0, 0, 0, 0.2)", borderLeft: "3px solid #A855F7" }}>
-                        <span className="text-purple fw-semibold small d-block mb-1" style={{ color: "#C084FC" }}>AI Reflection:</span>
-                        <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6" }}>
-                          "{currentAnalysis.reflection}"
-                        </p>
-                      </div>
-
-                      {/* Suggested Action */}
-                      <div className="p-3 rounded-3" style={{ background: "rgba(0, 0, 0, 0.2)", borderLeft: "3px solid #F59E0B" }}>
-                        <span className="text-warning fw-semibold small d-block mb-1">💡 Suggested Action:</span>
-                        <p className="text-white-50 mb-0 small" style={{ lineHeight: "1.6" }}>
-                          "{currentAnalysis.suggestion}"
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Button to trigger initial AI Analysis */
-                    <div className="text-center py-3">
-                      <p className="text-muted small mb-3">
-                        Gain AI wellbeing reflection, emotion analysis, and personalized suggestions for this entry.
-                      </p>
-                      <button
-                        type="button"
-                        className="btn px-4 py-2 rounded-3 text-white fw-bold d-inline-flex align-items-center gap-2 shadow-lg"
-                        style={{
-                          background: "linear-gradient(135deg, #8B5CF6, #EC4899)",
-                          border: "none",
-                        }}
-                        onClick={() => handleAnalyzeEntry(false)}
-                      >
-                        <FiCpu size={18} />
-                        <span>Analyze with AI</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="modal-footer border-top border-secondary border-opacity-25 px-4 py-3 d-flex justify-content-between">
-                <button
-                  type="button"
-                  className="btn btn-outline-danger rounded-3 d-flex align-items-center gap-1"
-                  onClick={() => handleOpenDeleteModal(viewingJournal._id)}
-                >
-                  <FiTrash2 size={16} /> Delete
-                </button>
-
-                <div className="d-flex gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-outline-warning text-warning rounded-3 d-flex align-items-center gap-1"
-                    onClick={() => handleOpenEditModal(viewingJournal)}
-                  >
-                    <FiEdit3 size={16} /> Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary rounded-3 px-4"
-                    onClick={() => setShowViewModal(false)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ==================== DELETE CONFIRMATION MODAL ==================== */}
+      {/* ==================== DELETE MODAL ==================== */}
       {showDeleteModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ background: "rgba(0, 0, 0, 0.8)", backdropFilter: "blur(6px)" }}
-        >
+        <div className="modal fade show d-block" tabIndex="-1" style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div
-              className="modal-content text-white rounded-4 border-0 shadow-lg overflow-hidden"
-              style={{
-                background: "#0F172A",
-                border: "1px solid rgba(239, 68, 68, 0.3)",
-              }}
-            >
+            <div className="modal-content text-white rounded-4 border-0 shadow-lg overflow-hidden" style={{ background: "#0F172A", border: "1px solid rgba(239, 68, 68, 0.3)" }}>
               <div className="modal-body text-center p-4">
-                <div
-                  className="rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3"
-                  style={{
-                    background: "rgba(239, 68, 68, 0.15)",
-                    color: "#EF4444",
-                  }}
-                >
-                  <FiAlertTriangle size={36} />
-                </div>
+                <FiAlertTriangle size={36} className="text-danger mb-3" />
                 <h5 className="fw-bold text-white mb-2">Delete Journal Entry?</h5>
-                <p className="text-muted small mb-4">
-                  Are you sure you want to delete this journal entry? This action cannot be undone.
-                </p>
-
-                <div className="d-flex align-items-center justify-content-center gap-3">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary text-white rounded-3 px-4"
-                    onClick={() => setShowDeleteModal(false)}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-danger rounded-3 px-4 fw-bold"
-                    onClick={handleConfirmDelete}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Deleting..." : "Yes, Delete"}
+                <p className="text-muted small mb-4">Are you sure you want to delete this journal entry? This action cannot be undone.</p>
+                <div className="d-flex justify-content-center gap-3">
+                  <button className="btn btn-outline-secondary text-white rounded-3 px-4" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                  <button className="btn btn-danger rounded-3 px-4 fw-bold" onClick={handleConfirmDelete} disabled={isSubmittingModal}>
+                    {isSubmittingModal ? "Deleting..." : "Yes, Delete"}
                   </button>
                 </div>
               </div>

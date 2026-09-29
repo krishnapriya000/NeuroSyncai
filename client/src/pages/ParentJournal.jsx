@@ -86,23 +86,43 @@ function ParentJournal() {
         {/* Header */}
         <div className="mb-4">
           <span className="badge bg-indigo-500 bg-opacity-25 text-indigo-200 px-3 py-1 rounded-pill mb-2 border border-indigo-400 border-opacity-30">
-            📖 Parent Journal
+            📖 Parent Journal Notebook
           </span>
-          <h1 className="fw-bold text-white fs-3 mb-1">Parent Observations Journal</h1>
+          <h1 className="fw-bold text-white fs-3 mb-1">Parent Observations Journal 📖</h1>
           <p className="text-secondary small mb-0">Record private notes, behavioral observations, and family wellness milestones.</p>
         </div>
 
-        {/* Entry Form Card */}
-        <div
-          className="p-4 rounded-4 text-white shadow-sm mb-4"
-          style={{ background: "#0F172A", border: "1px solid rgba(255, 255, 255, 0.08)" }}
-        >
+        {/* Motive Sticky Board */}
+        <div className="mb-4">
+          <div className="row g-3">
+            <div className="col-12 col-md-6">
+              <div className="ns-sticky-note-card ns-sticky-yellow" style={{ transform: "rotate(-1.5deg)" }}>
+                <div className="ns-push-pin" />
+                <h6 className="fw-bold mb-1 journal-handwriting fs-4">💡 Parenting Anchor</h6>
+                <p className="journal-handwriting fs-5 mb-0">“Your presence, patience, and gentle listening create an anchor of security for your children.”</p>
+              </div>
+            </div>
+            <div className="col-12 col-md-6">
+              <div className="ns-sticky-note-card ns-sticky-cyan" style={{ transform: "rotate(1.5deg)" }}>
+                <div className="ns-sticky-tape" />
+                <h6 className="fw-bold mb-1 journal-handwriting fs-4">📌 Observation Goal</h6>
+                <p className="journal-handwriting fs-5 mb-0">“Note small victories and emotional breakthroughs to foster lifelong trust.”</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Entry Form Card - Styled like a Diary Notebook Page */}
+        <div className="ns-diary-book mb-4">
+          <div className="ns-diary-margin-line" />
+          <div className="ns-diary-bookmark" />
+
           <div className="d-flex align-items-center justify-content-between mb-3">
-            <h5 className="fw-bold mb-0 text-white d-flex align-items-center gap-2">
-              <FiBookOpen className="text-primary" /> Record New Observation
+            <h5 className="fw-bold mb-0 text-white d-flex align-items-center gap-2 journal-handwriting fs-2">
+              ✍️ Parent Private Observation
             </h5>
             <span className="badge bg-dark text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-1 text-xs d-flex align-items-center gap-1">
-              <FiLock size={12} /> Private to Parent
+              <FiLock size={12} /> Private & Encrypted
             </span>
           </div>
 
@@ -114,17 +134,17 @@ function ParentJournal() {
 
           <form onSubmit={handleAddEntry}>
             <textarea
-              className="form-control bg-dark text-white border-secondary border-opacity-25 rounded-3 mb-3 p-3"
-              rows="3"
-              placeholder="e.g. Ananya seemed tired after school today. We talked about resting before homework..."
+              className="form-control ns-diary-textarea mb-3"
+              rows="4"
+              placeholder="Record your daily observation, feelings, or notes about your child's wellbeing..."
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               required
             />
 
-            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-2 border-top border-white border-opacity-10">
               <div className="d-flex align-items-center gap-2">
-                <span className="text-secondary small fw-semibold">Category Tag:</span>
+                <span className="text-secondary small fw-semibold">Tag:</span>
                 <select
                   className="form-select bg-dark text-white border-secondary border-opacity-25 rounded-pill py-1 px-3 text-xs"
                   value={selectedTag}
@@ -140,38 +160,41 @@ function ParentJournal() {
               <button
                 type="submit"
                 className="btn btn-primary rounded-pill px-4 py-2 text-sm d-flex align-items-center gap-2"
+                style={{ background: "linear-gradient(135deg, #6366F1, #8B5CF6)", border: "none" }}
                 disabled={isSaving || !noteContent.trim()}
               >
-                <FiSave /> {isSaving ? "Saving Note..." : "Save Observation"}
+                <FiSave /> {isSaving ? "Saving Note..." : "Save Diary Observation"}
               </button>
             </div>
           </form>
         </div>
 
-        {/* Observations List */}
-        <div
-          className="p-4 rounded-4 text-white shadow-sm mb-4"
-          style={{ background: "#0F172A", border: "1px solid rgba(255, 255, 255, 0.08)" }}
-        >
-          <h5 className="fw-bold mb-4 text-white">Recent Journal Entries</h5>
+        {/* Observations List as Post-it Sticky Notes */}
+        <div className="mb-4">
+          <h5 className="fw-bold mb-4 text-white">Recent Journal Sticky Notes</h5>
 
-          <div className="d-flex flex-column gap-3">
-            {journalEntries.map((entry) => (
-              <div
-                key={entry.id}
-                className="p-3.5 rounded-3 bg-dark bg-opacity-60 border border-secondary border-opacity-25"
-              >
-                <div className="d-flex align-items-center justify-content-between mb-2">
-                  <span className="badge rounded-pill bg-indigo-500 bg-opacity-30 text-indigo-200 border border-indigo-400 border-opacity-30 px-2.5 py-1 text-xs">
-                    {entry.tag}
-                  </span>
-                  <span className="text-secondary extra-small">{entry.date}</span>
+          <div className="row g-3">
+            {journalEntries.map((entry, idx) => {
+              const stickyColors = ["ns-sticky-pink", "ns-sticky-mint", "ns-sticky-lavender", "ns-sticky-orange"];
+              const colorClass = stickyColors[idx % stickyColors.length];
+              const rot = idx % 2 === 0 ? "-1.5deg" : "1.8deg";
+              return (
+                <div key={entry.id} className="col-12 col-md-6">
+                  <div className={`ns-sticky-note-card ${colorClass}`} style={{ transform: `rotate(${rot})` }}>
+                    <div className="ns-push-pin" />
+                    <div className="d-flex align-items-center justify-content-between mb-2 mt-2">
+                      <span className="badge rounded-pill bg-dark bg-opacity-20 text-dark extra-small fw-bold">
+                        {entry.tag}
+                      </span>
+                      <span className="extra-small opacity-75 fw-semibold">{entry.date}</span>
+                    </div>
+                    <p className="journal-handwriting fs-4 mb-0" style={{ lineHeight: "1.4" }}>
+                      {entry.content}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-indigo-100 mb-0 small" style={{ lineHeight: "1.6" }}>
-                  {entry.content}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>

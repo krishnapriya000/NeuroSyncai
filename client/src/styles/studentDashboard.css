@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@400;700&family=Outfit:wght@400;500;600;700&display=swap');
+
 /* ==========================================================================
    NEUROSYNC - STUDENT DASHBOARD STYLESHEET
    Theme: Dark Premium Glassmorphism (#050816, #0F172A, #3B82F6, #8B5CF6)
@@ -729,3 +731,826 @@ select::placeholder {
     display: none;
   }
 }
+
+/* ==========================================================================
+   JOURNAL DIARY & STICKY NOTES REALISTIC SYSTEM
+   ========================================================================== */
+
+.journal-handwriting {
+  font-family: 'Caveat', 'Kalam', cursive, sans-serif !important;
+}
+
+/* REAL DIARY BOOK CONTAINER */
+.ns-diary-book {
+  position: relative;
+  background: #121420;
+  background-image: 
+    radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.15), transparent 60%),
+    linear-gradient(to right, #0b0c16 0%, #1e2030 40px, #141625 42px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    -12px 14px 35px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  padding: 2.2rem 2.5rem 2.2rem 4rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Notebook Binder Rings (Left Spine) */
+.ns-diary-book::before {
+  content: '';
+  position: absolute;
+  top: 25px;
+  left: 18px;
+  bottom: 25px;
+  width: 14px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #64748b 0px,
+    #cbd5e1 3px,
+    #1e293b 6px,
+    transparent 6px,
+    transparent 32px
+  );
+  border-radius: 6px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+
+/* Red Vertical Margin Line */
+.ns-diary-margin-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3.3rem;
+  width: 2px;
+  background: rgba(239, 68, 68, 0.35);
+  z-index: 4;
+}
+
+/* Bookmark Ribbon */
+.ns-diary-bookmark {
+  position: absolute;
+  top: -5px;
+  right: 40px;
+  width: 28px;
+  height: 95px;
+  background: linear-gradient(135deg, #ec4899, #be185d);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  box-shadow: 3px 5px 12px rgba(0,0,0,0.4);
+  z-index: 10;
+  transition: transform 0.3s ease;
+}
+
+.ns-diary-bookmark:hover {
+  transform: translateY(6px);
+}
+
+/* Notebook Ruled Input / Textarea */
+.ns-diary-textarea {
+  font-family: 'Caveat', 'Kalam', cursive !important;
+  font-size: 1.45rem !important;
+  line-height: 2.25rem !important;
+  letter-spacing: 0.5px;
+  color: #f8fafc !important;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 2.2rem,
+    rgba(255, 255, 255, 0.08) 2.2rem,
+    rgba(255, 255, 255, 0.08) 2.25rem
+  ) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding-left: 0.5rem !important;
+  resize: vertical;
+}
+
+.ns-diary-title-input {
+  font-family: 'Caveat', 'Kalam', cursive !important;
+  font-size: 1.85rem !important;
+  font-weight: 700 !important;
+  color: #c084fc !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px dashed rgba(192, 132, 252, 0.4) !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ==========================================================================
+   STICKY NOTES SYSTEM (Post-it style elements)
+   ========================================================================== */
+
+.ns-sticky-note-card {
+  position: relative;
+  border-radius: 4px 4px 18px 4px;
+  padding: 1.4rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    4px 8px 20px rgba(0, 0, 0, 0.35),
+    inset -3px -3px 10px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+.ns-sticky-note-card:hover {
+  transform: translateY(-6px) rotate(0deg) scale(1.02) !important;
+  box-shadow: 6px 14px 28px rgba(0, 0, 0, 0.45);
+  z-index: 10;
+}
+
+/* Sticky Note Color Variants */
+.ns-sticky-yellow {
+  background: #fef08a !important;
+  color: #713f12 !important;
+}
+
+.ns-sticky-cyan {
+  background: #a5f3fc !important;
+  color: #164e63 !important;
+}
+
+.ns-sticky-pink {
+  background: #fbcfe8 !important;
+  color: #831843 !important;
+}
+
+.ns-sticky-mint {
+  background: #bbf7d0 !important;
+  color: #14532d !important;
+}
+
+.ns-sticky-lavender {
+  background: #e9d5ff !important;
+  color: #581c87 !important;
+}
+
+.ns-sticky-orange {
+  background: #fed7aa !important;
+  color: #7c2d12 !important;
+}
+
+/* Tape Strip Effect */
+.ns-sticky-tape {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 80px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  backdrop-filter: blur(2px);
+  z-index: 8;
+}
+
+/* Push Pin Effect */
+.ns-push-pin {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(circle at 30% 30%, #ef4444, #991b1b);
+  border-radius: 50%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  z-index: 9;
+}
+
+.ns-push-pin::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+
+/* Motive Banner Card */
+.ns-motive-banner {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.35) 0%, rgba(30, 27, 75, 0.55) 100%);
+  border: 1px dashed rgba(167, 139, 250, 0.4);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   LIGHT THEME VS DARK THEME SYSTEM OVERRIDES (EVERYWHERE IN THE APP)
+   ========================================================================== */
+
+[data-theme="light"],
+body.light-theme {
+  --ns-bg-dark: #f8fafc;
+  --ns-surface: #ffffff;
+  --ns-surface-card: #ffffff;
+  --ns-surface-hover: #f1f5f9;
+  --ns-border: rgba(0, 0, 0, 0.08);
+  --ns-border-glow: rgba(59, 130, 246, 0.4);
+  --ns-text-main: #0f172a;
+  --ns-text-muted: #475569;
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .dashboard-container,
+[data-theme="light"] .ns-main-content,
+body.light-theme .dashboard-container,
+body.light-theme .ns-main-content {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* TOPBAR & SIDEBAR OVERRIDES */
+[data-theme="light"] .ns-topbar,
+body.light-theme .ns-topbar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .ns-topbar h2,
+[data-theme="light"] .ns-topbar div,
+[data-theme="light"] .ns-topbar p,
+[data-theme="light"] .ns-topbar span:not(.text-transparent),
+body.light-theme .ns-topbar h2,
+body.light-theme .ns-topbar div,
+body.light-theme .ns-topbar p,
+body.light-theme .ns-topbar span:not(.text-transparent) {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ns-sidebar,
+body.light-theme .ns-sidebar {
+  background: #ffffff !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .ns-nav-item button,
+body.light-theme .ns-nav-item button {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .ns-nav-item.active button,
+body.light-theme .ns-nav-item.active button {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.12)) !important;
+  color: #2563eb !important;
+  font-weight: 700 !important;
+}
+
+/* CARDS, MODALS, CONTAINERS */
+[data-theme="light"] .ns-card,
+[data-theme="light"] .card,
+[data-theme="light"] .modal-content,
+body.light-theme .ns-card,
+body.light-theme .card,
+body.light-theme .modal-content {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .card-header,
+body.light-theme .card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  background-color: transparent !important;
+}
+
+/* BOOTSTRAP BG-DARK OVERRIDES IN LIGHT MODE */
+[data-theme="light"] .bg-dark,
+[data-theme="light"] div[class*="bg-dark"],
+body.light-theme .bg-dark,
+body.light-theme div[class*="bg-dark"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .bg-dark.bg-opacity-50,
+[data-theme="light"] .bg-dark.bg-opacity-40,
+[data-theme="light"] .bg-dark.bg-opacity-30,
+[data-theme="light"] .bg-dark.bg-opacity-60,
+[data-theme="light"] .bg-dark.bg-opacity-20,
+body.light-theme .bg-dark.bg-opacity-50,
+body.light-theme .bg-dark.bg-opacity-40,
+body.light-theme .bg-dark.bg-opacity-30,
+body.light-theme .bg-dark.bg-opacity-60,
+body.light-theme .bg-dark.bg-opacity-20 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* INPUTS, TEXTAREAS, SELECTS, INPUT GROUPS */
+[data-theme="light"] .form-control,
+[data-theme="light"] .form-select,
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea,
+body.light-theme .form-control,
+body.light-theme .form-select,
+body.light-theme input,
+body.light-theme select,
+body.light-theme textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .form-control:focus,
+[data-theme="light"] .form-select:focus,
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+body.light-theme .form-control:focus,
+body.light-theme .form-select:focus {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+[data-theme="light"] .input-group-text,
+body.light-theme .input-group-text {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* SEARCH BOX */
+[data-theme="light"] .ns-search-box,
+body.light-theme .ns-search-box {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .ns-search-input,
+body.light-theme .ns-search-input {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ns-search-icon,
+body.light-theme .ns-search-icon {
+  color: #64748b !important;
+}
+
+/* DIARY NOTEBOOK OVERRIDES IN LIGHT MODE */
+[data-theme="light"] .ns-diary-book,
+body.light-theme .ns-diary-book {
+  background: #fffdf7 !important;
+  background-image: 
+    radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.08), transparent 60%),
+    linear-gradient(to right, #cbd5e1 0%, #ffffff 40px, #fffdf7 42px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: -10px 12px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .ns-diary-textarea,
+body.light-theme .ns-diary-textarea {
+  color: #0f172a !important;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 2.2rem,
+    rgba(59, 130, 246, 0.18) 2.2rem,
+    rgba(59, 130, 246, 0.18) 2.25rem
+  ) !important;
+}
+
+[data-theme="light"] .ns-diary-title-input,
+body.light-theme .ns-diary-title-input {
+  color: #6d28d9 !important;
+  border-bottom: 2px dashed rgba(109, 40, 217, 0.4) !important;
+}
+
+/* NEUROPLAN SCHEDULE BLOCKS INSIDE DIARY BOOK IN LIGHT MODE */
+[data-theme="light"] .ns-diary-book div[class*="rounded-4"],
+body.light-theme .ns-diary-book div[class*="rounded-4"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .ns-diary-book .fw-bold,
+[data-theme="light"] .ns-diary-book h4,
+[data-theme="light"] .ns-diary-book h6,
+[data-theme="light"] .ns-diary-book li,
+body.light-theme .ns-diary-book .fw-bold,
+body.light-theme .ns-diary-book h4,
+body.light-theme .ns-diary-book h6,
+body.light-theme .ns-diary-book li {
+  color: #0f172a !important;
+}
+
+/* TEXT COLOR OVERRIDES IN LIGHT MODE (Except rich gradient headers) */
+[data-theme="light"] .text-white:not(.ns-keep-white),
+[data-theme="light"] h1.text-white:not(.ns-keep-white),
+[data-theme="light"] h2.text-white:not(.ns-keep-white),
+[data-theme="light"] h3.text-white:not(.ns-keep-white),
+[data-theme="light"] h4.text-white:not(.ns-keep-white),
+[data-theme="light"] h5.text-white:not(.ns-keep-white),
+[data-theme="light"] h6.text-white:not(.ns-keep-white),
+[data-theme="light"] p.text-white:not(.ns-keep-white),
+[data-theme="light"] span.text-white:not(.ns-keep-white),
+body.light-theme .text-white:not(.ns-keep-white) {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-muted,
+[data-theme="light"] .text-gray-300,
+[data-theme="light"] .text-gray-400,
+[data-theme="light"] .text-secondary,
+[data-theme="light"] .text-slate-300,
+[data-theme="light"] .text-white-50,
+body.light-theme .text-muted,
+body.light-theme .text-gray-300,
+body.light-theme .text-secondary,
+body.light-theme .text-white-50 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .border-secondary,
+[data-theme="light"] .border-dark,
+body.light-theme .border-secondary,
+body.light-theme .border-dark {
+  border-color: #cbd5e1 !important;
+}
+
+/* WELLNESS SUMMARY CARD OVERRIDES IN LIGHT MODE */
+.ns-wellness-card {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.ns-recommendation-box {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #ffffff;
+}
+
+.ns-wellness-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.ns-wellness-gauge-track {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .ns-wellness-card,
+body.light-theme .ns-wellness-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .ns-recommendation-box,
+body.light-theme .ns-recommendation-box {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(139, 92, 246, 0.06) 100%) !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ns-wellness-item,
+body.light-theme .ns-wellness-item {
+  background: #f8fafc !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ns-wellness-gauge-track,
+body.light-theme .ns-wellness-gauge-track {
+  stroke: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ==========================================================================
+   ADVANCED AI PLANNER & METRICS COMMAND CENTER STYLING
+   ========================================================================== */
+
+.ns-overview-metric-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 1.1rem 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.ns-overview-metric-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.ns-metric-icon-pod {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.ns-metric-pod-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.ns-metric-pod-indigo { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+.ns-metric-pod-primary { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.ns-metric-pod-success { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.ns-metric-pod-rose { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+
+/* Plan Your Day Input Command Card */
+.ns-planner-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.85) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.ns-planner-input {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+  border-radius: 12px !important;
+  padding: 0.65rem 0.9rem !important;
+  font-size: 0.92rem !important;
+  transition: all 0.25s ease !important;
+}
+
+.ns-planner-input:focus {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+  color: #ffffff !important;
+}
+
+.ns-planner-row-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.ns-planner-row-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Energy Selector Buttons */
+.ns-energy-btn {
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #94a3b8;
+  transition: all 0.25s ease;
+}
+
+.ns-energy-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.ns-energy-btn.active-low {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #000000 !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+}
+
+.ns-energy-btn.active-medium {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+}
+
+.ns-energy-btn.active-high {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #ffffff !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+
+/* Light Theme Overrides for AI Planner & Metrics */
+[data-theme="light"] .ns-overview-metric-card,
+body.light-theme .ns-overview-metric-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .ns-overview-metric-card .fw-bold,
+body.light-theme .ns-overview-metric-card .fw-bold {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ns-planner-card,
+body.light-theme .ns-planner-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .ns-planner-input,
+body.light-theme .ns-planner-input {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ns-planner-input:focus,
+body.light-theme .ns-planner-input:focus {
+  background: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+[data-theme="light"] .ns-planner-row-card,
+body.light-theme .ns-planner-row-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .ns-energy-btn,
+body.light-theme .ns-energy-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+/* Check-in Question Cards Light Theme */
+.ns-checkin-q-card {
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+[data-theme="light"] .ns-checkin-q-card,
+body.light-theme .ns-checkin-q-card {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .ns-checkin-q-card .text-white,
+body.light-theme .ns-checkin-q-card .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .ns-checkin-q-card .text-white-50,
+body.light-theme .ns-checkin-q-card .text-white-50 {
+  color: #64748b !important;
+}
+
+/* Mood History Card Light Theme */
+.ns-mood-history-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+[data-theme="light"] .ns-mood-history-item,
+body.light-theme .ns-mood-history-item {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+}
+
+.ns-mood-notes {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+[data-theme="light"] .ns-mood-notes,
+body.light-theme .ns-mood-notes {
+  background: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  color: #334155 !important;
+}
+
+.ns-intensity-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+[data-theme="light"] .ns-intensity-badge,
+body.light-theme .ns-intensity-badge {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #1e293b !important;
+}
+
+/* Focus Timer Inner Circle & Pro Tip Light Theme */
+.ns-timer-inner-circle {
+  background: #0f172a;
+}
+[data-theme="light"] .ns-timer-inner-circle,
+body.light-theme .ns-timer-inner-circle {
+  background: #ffffff !important;
+}
+
+[data-theme="light"] .ns-timer-inner-circle .display-3,
+body.light-theme .ns-timer-inner-circle .display-3 {
+  color: #0f172a !important;
+}
+
+.ns-pro-tip-box {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+[data-theme="light"] .ns-pro-tip-box,
+body.light-theme .ns-pro-tip-box {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .ns-pro-tip-box .text-white-50,
+body.light-theme .ns-pro-tip-box .text-white-50 {
+  color: #1e293b !important;
+}
+
+/* Progress Trends & Chart Tabs Light Theme */
+.ns-tab-container {
+  background: rgba(15, 23, 42, 0.7);
+}
+[data-theme="light"] .ns-tab-container,
+body.light-theme .ns-tab-container {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.ns-chart-tab-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.ns-chart-tab-btn:hover {
+  color: #ffffff;
+}
+
+.ns-chart-tab-btn.active {
+  background: #3b82f6;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="light"] .ns-chart-tab-btn,
+body.light-theme .ns-chart-tab-btn {
+  color: #64748b;
+}
+
+[data-theme="light"] .ns-chart-tab-btn:hover,
+body.light-theme .ns-chart-tab-btn:hover {
+  color: #0f172a;
+}
+
+[data-theme="light"] .ns-chart-tab-btn.active,
+body.light-theme .ns-chart-tab-btn.active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.ns-chart-box {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+[data-theme="light"] .ns-chart-box,
+body.light-theme .ns-chart-box {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Global bg-dark class light theme override */
+[data-theme="light"] .bg-dark,
+body.light-theme .bg-dark {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-white,
+body.light-theme .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-white-50,
+body.light-theme .text-white-50 {
+  color: #475569 !important;
+}
+
+

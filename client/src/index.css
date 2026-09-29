@@ -16,6 +16,27 @@ body,
   background:#030712;
   color:#f8fafc;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="light"],
+body.light-theme {
+  --ns-bg-dark: #f8fafc;
+  --ns-surface: #ffffff;
+  --ns-surface-card: #ffffff;
+  --ns-surface-hover: #f1f5f9;
+  --ns-border: rgba(0, 0, 0, 0.08);
+  --ns-text-main: #0f172a;
+  --ns-text-muted: #475569;
+}
+
+[data-theme="light"] html,
+[data-theme="light"] body,
+[data-theme="light"] #root,
+body.light-theme,
+body.light-theme #root {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
 }
 
 body{

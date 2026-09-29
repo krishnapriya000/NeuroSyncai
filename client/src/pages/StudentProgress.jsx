@@ -149,7 +149,7 @@ function StudentProgress() {
           </div>
 
           {/* Time Filter Tabs */}
-          <div className="d-flex align-items-center gap-1 bg-dark p-1 rounded-3 border border-secondary border-opacity-25 align-self-start align-self-md-center">
+          <div className="d-flex align-items-center gap-1 ns-tab-container p-1 rounded-3 border border-secondary border-opacity-25 align-self-start align-self-md-center">
             <button
               className={`ns-chart-tab-btn ${period === "week" ? "active" : ""}`}
               onClick={() => handlePeriodChange("week")}
@@ -179,7 +179,7 @@ function StudentProgress() {
                 <div className="spinner-border text-primary mb-3" role="status">
                   <span className="visually-hidden">Loading...</span>
                 </div>
-                <h5 className="text-white">Calculating your analytics score...</h5>
+                <h5 className="fw-bold">Calculating your analytics score...</h5>
                 <p className="text-muted small mb-0">Analyzing study tasks, focus sessions, mood logs, and goals.</p>
               </div>
             </div>
@@ -190,7 +190,7 @@ function StudentProgress() {
         {!loading && error && (
           <div className="ns-card p-4 text-center my-4 border-danger border-opacity-50">
             <FiAlertCircle size={40} className="text-danger mb-2" />
-            <h5 className="text-white fw-bold mb-2">Unable to Load Progress</h5>
+            <h5 className="fw-bold mb-2">Unable to Load Progress</h5>
             <p className="text-muted mb-3">{error}</p>
             <button
               className="ns-btn-primary px-4 py-2"
@@ -205,9 +205,9 @@ function StudentProgress() {
           <>
             {/* EMPTY STATE */}
             {!data.hasData && (
-              <div className="ns-card p-4 mb-4 text-center border-primary border-opacity-25" style={{ background: "rgba(30, 41, 59, 0.4)" }}>
+              <div className="ns-card p-4 mb-4 text-center border-primary border-opacity-25">
                 <FiInfo size={36} className="text-primary mb-2" />
-                <h5 className="text-white fw-bold mb-1">No progress data available yet.</h5>
+                <h5 className="fw-bold mb-1">No progress data available yet.</h5>
                 <p className="text-muted mb-3" style={{ maxWidth: "600px", margin: "0 auto", fontSize: "0.9rem" }}>
                   Complete your first daily check-in, study task or focus session to start building your personal growth and productivity analytics.
                 </p>
@@ -228,7 +228,7 @@ function StudentProgress() {
             {/* 2. OVERALL PROGRESS SCORE CARD */}
             <div className="row g-4 mb-4">
               <div className="col-12">
-                <div className="ns-card p-4 position-relative overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)", border: "1px solid rgba(139, 92, 246, 0.25)" }}>
+                <div className="ns-card p-4 position-relative overflow-hidden">
                   <div className="row align-items-center g-4">
                     <div className="col-lg-7 col-md-8">
                       <div className="d-flex align-items-center gap-2 mb-2">
@@ -239,8 +239,8 @@ function StudentProgress() {
                           {data.status}
                         </span>
                       </div>
-                      <h3 className="text-white fw-extrabold mb-2">Overall Progress</h3>
-                      <p className="text-white-50 mb-3" style={{ fontSize: "0.92rem", maxWidth: "580px" }}>
+                      <h3 className="fw-extrabold mb-2">Overall Progress</h3>
+                      <p className="text-muted mb-3" style={{ fontSize: "0.92rem", maxWidth: "580px" }}>
                         Weighted index calculated from your study completion (30%), goal milestones (20%), focus sessions (20%), mood consistency (15%), journaling (10%), and daily check-ins (5%).
                       </p>
 
@@ -281,7 +281,7 @@ function StudentProgress() {
                           </defs>
                         </svg>
                         <div className="position-absolute text-center">
-                          <div className="display-5 fw-extrabold text-white lh-1">{data.overallProgress}%</div>
+                          <div className="display-5 fw-extrabold lh-1">{data.overallProgress}%</div>
                           <div className="text-muted fw-semibold mt-1" style={{ fontSize: "0.68rem", letterSpacing: "1px" }}>
                             PROGRESS SCORE
                           </div>
@@ -305,14 +305,14 @@ function StudentProgress() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-white fw-bold mb-0">
+                    <h3 className="fw-bold mb-0">
                       {data.study.completed} / {data.study.total}
                     </h3>
                     <div className="text-primary fw-semibold small mt-1">
                       {data.study.completionRate}% completed
                     </div>
                   </div>
-                  <div className="progress mt-3 bg-dark border border-secondary border-opacity-25" style={{ height: "6px" }}>
+                  <div className="progress mt-3 border border-secondary border-opacity-25" style={{ height: "6px" }}>
                     <div
                       className="progress-bar bg-primary rounded"
                       style={{ width: `${data.study.completionRate}%` }}
@@ -331,14 +331,14 @@ function StudentProgress() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-white fw-bold mb-0">
+                    <h3 className="fw-bold mb-0">
                       {data.goals.completed} / {data.goals.total}
                     </h3>
                     <div className="text-success fw-semibold small mt-1">
                       {data.goals.active} Active Goals ({data.goals.overallProgress}% total rate)
                     </div>
                   </div>
-                  <div className="progress mt-3 bg-dark border border-secondary border-opacity-25" style={{ height: "6px" }}>
+                  <div className="progress mt-3 border border-secondary border-opacity-25" style={{ height: "6px" }}>
                     <div
                       className="progress-bar bg-success rounded"
                       style={{ width: `${data.goals.overallProgress}%` }}
@@ -357,12 +357,12 @@ function StudentProgress() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-white fw-bold mb-0">{data.focus.totalHours} hrs</h3>
+                    <h3 className="fw-bold mb-0">{data.focus.totalHours} hrs</h3>
                     <div className="text-purple-300 fw-semibold small mt-1" style={{ color: "#c084fc" }}>
                       {data.focus.sessionCount} Sessions (Avg {data.focus.avgDuration} min)
                     </div>
                   </div>
-                  <div className="progress mt-3 bg-dark border border-secondary border-opacity-25" style={{ height: "6px" }}>
+                  <div className="progress mt-3 border border-secondary border-opacity-25" style={{ height: "6px" }}>
                     <div
                       className="progress-bar bg-purple-500 rounded"
                       style={{ width: `${Math.min(100, (data.focus.totalHours / 15) * 100)}%`, backgroundColor: "#8b5cf6" }}
@@ -381,12 +381,12 @@ function StudentProgress() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-white fw-bold mb-0">{data.journal.currentStreak} Days 🔥</h3>
+                    <h3 className="fw-bold mb-0">{data.journal.currentStreak} Days 🔥</h3>
                     <div className="text-warning fw-semibold small mt-1">
                       {data.journal.totalEntriesAllTime} Total Entries (Best: {data.journal.longestStreak} days)
                     </div>
                   </div>
-                  <div className="progress mt-3 bg-dark border border-secondary border-opacity-25" style={{ height: "6px" }}>
+                  <div className="progress mt-3 border border-secondary border-opacity-25" style={{ height: "6px" }}>
                     <div
                       className="progress-bar bg-warning rounded"
                       style={{ width: `${Math.min(100, (data.journal.currentStreak / 7) * 100)}%` }}
@@ -398,16 +398,17 @@ function StudentProgress() {
 
             {/* 4. WEEKLY / MONTHLY PROGRESS TREND CHART */}
             <div className="row g-4 mb-4">
+              {/* Progress Trend Chart */}
               <div className="col-12">
                 <div className="ns-card p-4">
                   <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-3">
                     <div className="d-flex align-items-center gap-2">
                       <FiActivity className="text-primary fs-5" />
-                      <h5 className="mb-0 text-white fw-bold">Progress Trend</h5>
+                      <h5 className="mb-0 fw-bold">Progress Trend</h5>
                     </div>
 
                     {/* Metric Toggle Tabs */}
-                    <div className="d-flex align-items-center gap-1 bg-dark p-1 rounded-3 border border-secondary border-opacity-25">
+                    <div className="d-flex align-items-center gap-1 ns-tab-container p-1 rounded-3 border border-secondary border-opacity-25">
                       <button
                         className={`ns-chart-tab-btn ${activeTrendMetric === "study" ? "active" : ""}`}
                         onClick={() => setActiveTrendMetric("study")}
@@ -436,7 +437,7 @@ function StudentProgress() {
                   </div>
 
                   {/* SVG Chart Container */}
-                  <div className="p-3 rounded-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25 text-center">
+                  <div className="p-3 rounded-4 ns-chart-box border border-secondary border-opacity-25 text-center">
                     {data.trends && data.trends.length > 0 ? (
                       <div>
                         <div className="d-flex justify-content-between align-items-center mb-2 px-2 text-muted" style={{ fontSize: "0.78rem" }}>

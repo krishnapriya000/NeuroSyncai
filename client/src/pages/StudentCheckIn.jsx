@@ -379,13 +379,7 @@ function StudentCheckIn() {
           </div>
         ) : isCompleted && !showForm ? (
           /* ALL 8 SURVEY QUESTIONS AND ANSWERS VIEW */
-          <div
-            className="ns-card p-4 p-md-5 rounded-4 border border-secondary border-opacity-25 shadow-lg mb-4"
-            style={{
-              background: "rgba(15, 23, 42, 0.85)",
-              backdropFilter: "blur(20px)",
-            }}
-          >
+          <div className="ns-card p-4 p-md-5 rounded-4 border border-secondary border-opacity-25 shadow-lg mb-4">
             {/* Header Badge & Date */}
             <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pb-3 mb-4 border-bottom border-secondary border-opacity-25 gap-2">
               <div className="d-flex align-items-center gap-3">
@@ -393,7 +387,7 @@ function StudentCheckIn() {
                   <FiCheckCircle size={28} />
                 </div>
                 <div>
-                  <h4 className="text-white fw-bold mb-0">Check-in Submitted & Recorded</h4>
+                  <h4 className="fw-bold mb-0">Check-in Submitted & Recorded</h4>
                   <span className="text-muted small">Here are all your survey questions and answers.</span>
                 </div>
               </div>
@@ -409,10 +403,9 @@ function StudentCheckIn() {
               {/* Question 1 */}
               <div className="col-12 col-md-6">
                 <div 
-                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
                   style={{ 
-                    background: "rgba(30, 41, 59, 0.6)", 
-                    border: "1px solid rgba(59, 130, 246, 0.25)" 
+                    border: "1px solid rgba(59, 130, 246, 0.3)" 
                   }}
                 >
                   <div>
@@ -420,14 +413,14 @@ function StudentCheckIn() {
                       <FiSmile size={18} />
                       <span className="fw-bold small text-uppercase tracking-wider">Question 1 • Feeling</span>
                     </div>
-                    <div className="text-white-50 small mb-3">How are you feeling today?</div>
+                    <div className="text-muted small mb-3">How are you feeling today?</div>
                   </div>
                   <div>
                     <span 
                       className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
                       style={{
                         background: "rgba(59, 130, 246, 0.2)",
-                        color: "#93C5FD",
+                        color: "#3b82f6",
                         border: "1px solid rgba(59, 130, 246, 0.4)",
                         fontSize: "0.95rem"
                       }}
@@ -441,10 +434,9 @@ function StudentCheckIn() {
               {/* Question 2 */}
               <div className="col-12 col-md-6">
                 <div 
-                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
                   style={{ 
-                    background: "rgba(30, 41, 59, 0.6)", 
-                    border: "1px solid rgba(14, 165, 233, 0.25)" 
+                    border: "1px solid rgba(14, 165, 233, 0.3)" 
                   }}
                 >
                   <div>
@@ -452,14 +444,14 @@ function StudentCheckIn() {
                       <FiMoon size={18} />
                       <span className="fw-bold small text-uppercase tracking-wider">Question 2 • Sleep</span>
                     </div>
-                    <div className="text-white-50 small mb-3">How many hours did you sleep last night?</div>
+                    <div className="text-muted small mb-3">How many hours did you sleep last night?</div>
                   </div>
                   <div>
                     <span 
                       className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
                       style={{
                         background: "rgba(14, 165, 233, 0.2)",
-                        color: "#7DD3FC",
+                        color: "#0284c7",
                         border: "1px solid rgba(14, 165, 233, 0.4)",
                         fontSize: "0.95rem"
                       }}
@@ -473,10 +465,9 @@ function StudentCheckIn() {
               {/* Question 3 */}
               <div className="col-12 col-md-6">
                 <div 
-                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
                   style={{ 
-                    background: "rgba(30, 41, 59, 0.6)", 
-                    border: "1px solid rgba(245, 158, 11, 0.25)" 
+                    border: "1px solid rgba(245, 158, 11, 0.3)" 
                   }}
                 >
                   <div>
@@ -484,10 +475,10 @@ function StudentCheckIn() {
                       <FiActivity size={18} />
                       <span className="fw-bold small text-uppercase tracking-wider">Question 3 • Stress</span>
                     </div>
-                    <div className="text-white-50 small mb-3">How stressed do you feel today? (1–10)</div>
+                    <div className="text-muted small mb-3">How stressed do you feel today? (1–10)</div>
                   </div>
                   <div className="d-flex align-items-center gap-3">
-                    <div className="display-6 fw-bold text-white">
+                    <div className="display-6 fw-bold">
                       {answers.stressLevel}<span className="fs-5 text-muted">/10</span>
                     </div>
                     <span 
@@ -508,10 +499,9 @@ function StudentCheckIn() {
               {/* Question 4 */}
               <div className="col-12 col-md-6">
                 <div 
-                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
                   style={{ 
-                    background: "rgba(30, 41, 59, 0.6)", 
-                    border: "1px solid rgba(34, 197, 94, 0.25)" 
+                    border: "1px solid rgba(34, 197, 94, 0.3)" 
                   }}
                 >
                   <div>
@@ -519,10 +509,10 @@ function StudentCheckIn() {
                       <FiZap size={18} />
                       <span className="fw-bold small text-uppercase tracking-wider">Question 4 • Motivation</span>
                     </div>
-                    <div className="text-white-50 small mb-3">How motivated are you to study today? (1–10)</div>
+                    <div className="text-muted small mb-3">How motivated are you to study today? (1–10)</div>
                   </div>
                   <div className="d-flex align-items-center gap-3">
-                    <div className="display-6 fw-bold text-white">
+                    <div className="display-6 fw-bold">
                       {answers.motivationLevel}<span className="fs-5 text-muted">/10</span>
                     </div>
                     <span 
@@ -543,10 +533,9 @@ function StudentCheckIn() {
               {/* Question 5 */}
               <div className="col-12 col-md-6">
                 <div 
-                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
                   style={{ 
-                    background: "rgba(30, 41, 59, 0.6)", 
-                    border: "1px solid rgba(239, 68, 68, 0.25)" 
+                    border: "1px solid rgba(239, 68, 68, 0.3)" 
                   }}
                 >
                   <div>
@@ -554,14 +543,14 @@ function StudentCheckIn() {
                       <FiAlertCircle size={18} />
                       <span className="fw-bold small text-uppercase tracking-wider">Question 5 • Challenge</span>
                     </div>
-                    <div className="text-white-50 small mb-3">What is your biggest challenge today?</div>
+                    <div className="text-muted small mb-3">What is your biggest challenge today?</div>
                   </div>
                   <div>
                     <span 
                       className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
                       style={{
                         background: "rgba(239, 68, 68, 0.2)",
-                        color: "#FCA5A5",
+                        color: "#dc2626",
                         border: "1px solid rgba(239, 68, 68, 0.4)",
                         fontSize: "0.95rem"
                       }}
@@ -575,10 +564,9 @@ function StudentCheckIn() {
               {/* Question 6 */}
               <div className="col-12 col-md-6">
                 <div 
-                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
                   style={{ 
-                    background: "rgba(30, 41, 59, 0.6)", 
-                    border: "1px solid rgba(245, 158, 11, 0.25)" 
+                    border: "1px solid rgba(245, 158, 11, 0.3)" 
                   }}
                 >
                   <div>
@@ -586,14 +574,14 @@ function StudentCheckIn() {
                       <FiBatteryCharging size={18} />
                       <span className="fw-bold small text-uppercase tracking-wider">Question 6 • Energy Level</span>
                     </div>
-                    <div className="text-white-50 small mb-3">How is your energy level today?</div>
+                    <div className="text-muted small mb-3">How is your energy level today?</div>
                   </div>
                   <div>
                     <span 
                       className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
                       style={{
                         background: "rgba(245, 158, 11, 0.2)",
-                        color: "#FDE047",
+                        color: "#d97706",
                         border: "1px solid rgba(245, 158, 11, 0.4)",
                         fontSize: "0.95rem"
                       }}
@@ -607,10 +595,9 @@ function StudentCheckIn() {
               {/* Question 7 */}
               <div className="col-12 col-md-6">
                 <div 
-                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
                   style={{ 
-                    background: "rgba(30, 41, 59, 0.6)", 
-                    border: "1px solid rgba(168, 85, 247, 0.25)" 
+                    border: "1px solid rgba(168, 85, 247, 0.3)" 
                   }}
                 >
                   <div>
@@ -618,14 +605,14 @@ function StudentCheckIn() {
                       <FiTarget size={18} />
                       <span className="fw-bold small text-uppercase tracking-wider">Question 7 • Main Goal</span>
                     </div>
-                    <div className="text-white-50 small mb-3">What is your main goal today?</div>
+                    <div className="text-muted small mb-3">What is your main goal today?</div>
                   </div>
                   <div>
                     <span 
                       className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
                       style={{
                         background: "rgba(168, 85, 247, 0.2)",
-                        color: "#E9D5FF",
+                        color: "#7e22ce",
                         border: "1px solid rgba(168, 85, 247, 0.4)",
                         fontSize: "0.95rem"
                       }}
@@ -639,10 +626,9 @@ function StudentCheckIn() {
               {/* Question 8 */}
               <div className="col-12 col-md-6">
                 <div 
-                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" 
+                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
                   style={{ 
-                    background: "rgba(30, 41, 59, 0.6)", 
-                    border: "1px solid rgba(6, 182, 212, 0.25)" 
+                    border: "1px solid rgba(6, 182, 212, 0.3)" 
                   }}
                 >
                   <div>
@@ -650,14 +636,14 @@ function StudentCheckIn() {
                       <FiMessageSquare size={18} />
                       <span className="fw-bold small text-uppercase tracking-wider">Question 8 • AI Companion</span>
                     </div>
-                    <div className="text-white-50 small mb-3">Would you like to talk with NeuroSync AI today?</div>
+                    <div className="text-muted small mb-3">Would you like to talk with NeuroSync AI today?</div>
                   </div>
                   <div>
                     <span 
                       className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
                       style={{
                         background: "rgba(6, 182, 212, 0.2)",
-                        color: "#67E8F9",
+                        color: "#0891b2",
                         border: "1px solid rgba(6, 182, 212, 0.4)",
                         fontSize: "0.95rem"
                       }}

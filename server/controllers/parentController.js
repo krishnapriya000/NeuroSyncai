@@ -890,4 +890,513 @@ exports.getLatestChildFaceAnalysis = async (req, res) => {
   }
 };
 
+// @desc    Get dynamic parent insights and analytics
+// @route   GET /api/parent/insights
+// @access  Private (Parent)
+exports.getParentInsights = async (req, res) => {
+  try {
+    const parentId = req.user._id;
+    const { childId: selectedChildParam, range } = req.query;
+
+    const rangeDays = range === "today" ? 1 : range === "30days" ? 30 : 7; // Default 7 days
+
+    // Compute date ranges
+    const now = new Date();
+    const todayStr = getTodayDateString();
+
+    const datesList = [];
+    for (let i = rangeDays - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      datesList.push(`${year}-${month}-${day}`);
+    }
+
+    const startDateStr = datesList[0];
+
+    // Previous period dates for comparison
+    const prevDatesList = [];
+    for (let i = (rangeDays * 2) - 1; i >= rangeDays; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      prevDatesList.push(`${year}-${month}-${day}`);
+    }
+    const prevStartDateStr = prevDatesList[0];
+
+    // Fetch active child links for this parent
+    const links = await ParentChild.find({ parentId })
+      .populate("childId", "fullName email profileImage dob dateOfBirth gender role occupation age")
+      .sort({ createdAt: -1 });
+
+    const childrenList = links.map((link) => {
+      let name = "";
+      if (link.childId) {
+        name = link.childId.fullName;
+      } else if (link.dependentInfo) {
+        name = link.dependentInfo.fullName || "Dependent Child";
+      } else {
+        name = "Child";
+      }
+      return {
+        id: link._id.toString(),
+        relationshipId: link._id.toString(),
+        childId: link.childId ? link.childId._id.toString() : null,
+        name,
+        isDependentOnly: link.isDependentOnly,
+      };
+    });
+
+    // Filter target links based on selectedChildParam
+    let filteredLinks = links;
+    if (selectedChildParam && selectedChildParam !== "all") {
+      filteredLinks = links.filter(
+        (l) =>
+          l._id.toString() === selectedChildParam ||
+          (l.childId && l.childId._id.toString() === selectedChildParam)
+      );
+    }
+
+    const targetParentChildIds = filteredLinks.map((l) => l._id);
+    const targetStudentIds = filteredLinks.map((l) => (l.childId ? l.childId._id : null)).filter(Boolean);
+
+    // 1. Fetch Parent Check-Ins for current and previous period
+    const parentCheckInsCurrent = await ParentCheckIn.find({
+      parentId,
+      parentChildId: { $in: targetParentChildIds },
+      date: { $in: datesList },
+    }).sort({ date: -1 });
+
+    const parentCheckInsPrev = await ParentCheckIn.find({
+      parentId,
+      parentChildId: { $in: targetParentChildIds },
+      date: { $in: prevDatesList },
+    });
+
+    // 2. Fetch Student Daily Check-Ins for current and previous period
+    let dailyCheckInsCurrent = [];
+    let dailyCheckInsPrev = [];
+    if (targetStudentIds.length > 0) {
+      dailyCheckInsCurrent = await DailyCheckIn.find({
+        studentId: { $in: targetStudentIds },
+        date: { $in: datesList },
+      }).sort({ date: -1 });
+
+      dailyCheckInsPrev = await DailyCheckIn.find({
+        studentId: { $in: targetStudentIds },
+        date: { $in: prevDatesList },
+      });
+    }
+
+    // 3. Fetch Mood Tracker entries for current period
+    let moodTrackerCurrent = [];
+    if (targetStudentIds.length > 0) {
+      moodTrackerCurrent = await MoodTracker.find({
+        studentId: { $in: targetStudentIds },
+        date: { $in: datesList },
+      }).sort({ createdAt: -1 });
+    }
+
+    // 4. Fetch Face Analysis entries for current period
+    const faceStartDate = new Date(now);
+    faceStartDate.setDate(faceStartDate.getDate() - (rangeDays - 1));
+    faceStartDate.setHours(0, 0, 0, 0);
+
+    const faceAnalysisRecords = await ChildFaceAnalysis.find({
+      parentId,
+      parentChildId: { $in: targetParentChildIds },
+      analyzedAt: { $gte: faceStartDate },
+    }).sort({ analyzedAt: -1 });
+
+    // Helper function to convert feeling/mood to numeric score out of 10
+    const getMoodScoreValue = (item) => {
+      if (item.wellbeingScore !== undefined) {
+        return item.wellbeingScore * 2;
+      }
+      if (item.feeling || item.mood) {
+        const val = (item.feeling || item.mood || "").toLowerCase();
+        if (val.includes("very happy") || val.includes("joy") || val.includes("excited")) return 10;
+        if (val.includes("happy") || val.includes("positive")) return 8.5;
+        if (val.includes("calm") || val.includes("focused")) return 8;
+        if (val.includes("neutral") || val.includes("okay")) return 6;
+        if (val.includes("tired") || val.includes("sleepy") || val.includes("irritated")) return 4.5;
+        if (val.includes("sad") || val.includes("anxious") || val.includes("stressed") || val.includes("angry")) return 3;
+      }
+      if (item.stressLevel !== undefined) {
+        return Math.max(1, 11 - item.stressLevel);
+      }
+      return 7;
+    };
+
+    // Calculate Mood Scores
+    let currentScores = [];
+    parentCheckInsCurrent.forEach((ci) => currentScores.push(getMoodScoreValue(ci)));
+    dailyCheckInsCurrent.forEach((ci) => currentScores.push(getMoodScoreValue(ci)));
+
+    let prevScores = [];
+    parentCheckInsPrev.forEach((ci) => prevScores.push(getMoodScoreValue(ci)));
+    dailyCheckInsPrev.forEach((ci) => prevScores.push(getMoodScoreValue(ci)));
+
+    const avgCurrentMoodScore = currentScores.length > 0
+      ? Number((currentScores.reduce((a, b) => a + b, 0) / currentScores.length).toFixed(1))
+      : 7.5;
+
+    const avgPrevMoodScore = prevScores.length > 0
+      ? Number((prevScores.reduce((a, b) => a + b, 0) / prevScores.length).toFixed(1))
+      : avgCurrentMoodScore;
+
+    const moodScoreChange = Number((avgCurrentMoodScore - avgPrevMoodScore).toFixed(1));
+
+    // Calculate Check-in Completion
+    const totalExpectedCheckIns = Math.max(1, rangeDays * Math.max(1, targetParentChildIds.length));
+
+    const checkInSet = new Set();
+    parentCheckInsCurrent.forEach((ci) => checkInSet.add(`${ci.parentChildId}_${ci.date}`));
+    dailyCheckInsCurrent.forEach((ci) => checkInSet.add(`${ci.studentId}_${ci.date}`));
+
+    const completedCheckInsCount = checkInSet.size;
+    const checkInCompletionRate = Math.min(100, Math.round((completedCheckInsCount / totalExpectedCheckIns) * 100));
+
+    // Dominant Emotion
+    const emotionCounts = {};
+    const registerEmotion = (emo) => {
+      if (!emo) return;
+      let formatted = emo.trim().charAt(0).toUpperCase() + emo.trim().slice(1).toLowerCase();
+      if (formatted.includes("Happy") || formatted.includes("Joy")) formatted = "Happy";
+      else if (formatted.includes("Calm") || formatted.includes("Focus")) formatted = "Calm";
+      else if (formatted.includes("Stressed") || formatted.includes("Anxious")) formatted = "Stressed";
+      else if (formatted.includes("Tired") || formatted.includes("Sleepy")) formatted = "Tired";
+      else if (formatted.includes("Neutral")) formatted = "Neutral";
+
+      emotionCounts[formatted] = (emotionCounts[formatted] || 0) + 1;
+    };
+
+    faceAnalysisRecords.forEach((fa) => registerEmotion(fa.expression));
+    parentCheckInsCurrent.forEach((ci) => registerEmotion(ci.mood));
+    dailyCheckInsCurrent.forEach((ci) => registerEmotion(ci.feeling));
+    moodTrackerCurrent.forEach((mt) => registerEmotion(mt.mood));
+
+    let dominantEmotion = "Calm";
+    let maxCount = -1;
+    Object.keys(emotionCounts).forEach((emo) => {
+      if (emotionCounts[emo] > maxCount) {
+        maxCount = emotionCounts[emo];
+        dominantEmotion = emo;
+      }
+    });
+    if (Object.keys(emotionCounts).length === 0) {
+      dominantEmotion = "No Data";
+    }
+
+    // Wellness Trend
+    let wellnessTrend = "Stable";
+    if (currentScores.length === 0) {
+      wellnessTrend = "Stable";
+    } else if (moodScoreChange >= 0.3) {
+      wellnessTrend = "Improving";
+    } else if (moodScoreChange <= -0.3 || avgCurrentMoodScore < 5.5) {
+      wellnessTrend = "Needs Attention";
+    } else {
+      wellnessTrend = "Stable";
+    }
+
+    // Mood Trend Daily Series
+    const dailyMoodTrend = datesList.map((dateStr) => {
+      const dObj = new Date(dateStr + "T00:00:00");
+      const dayName = dObj.toLocaleDateString("en-US", { weekday: "short" });
+      const displayDate = dObj.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+      const dayParentCIs = parentCheckInsCurrent.filter((ci) => ci.date === dateStr);
+      const dayDailyCIs = dailyCheckInsCurrent.filter((ci) => ci.date === dateStr);
+      const dayMoodTrackers = moodTrackerCurrent.filter((mt) => mt.date === dateStr);
+
+      const dayScores = [
+        ...dayParentCIs.map((ci) => getMoodScoreValue(ci)),
+        ...dayDailyCIs.map((ci) => getMoodScoreValue(ci)),
+      ];
+
+      const dayMoodScore = dayScores.length > 0
+        ? Number((dayScores.reduce((a, b) => a + b, 0) / dayScores.length).toFixed(1))
+        : null;
+
+      let stress = null;
+      const stressVals = dayDailyCIs.map((ci) => ci.stressLevel).filter((v) => v !== undefined);
+      if (stressVals.length > 0) {
+        stress = Math.round(stressVals.reduce((a, b) => a + b, 0) / stressVals.length);
+      }
+
+      let energy = "Normal";
+      if (dayParentCIs.length > 0 && dayParentCIs[0].energy) {
+        energy = dayParentCIs[0].energy;
+      } else if (dayDailyCIs.length > 0 && dayDailyCIs[0].energyLevel) {
+        energy = dayDailyCIs[0].energyLevel;
+      }
+
+      let sleepHours = "N/A";
+      if (dayDailyCIs.length > 0 && dayDailyCIs[0].sleepHours) {
+        sleepHours = dayDailyCIs[0].sleepHours;
+      }
+
+      let moodStr = "Neutral";
+      if (dayParentCIs.length > 0) moodStr = dayParentCIs[0].mood;
+      else if (dayDailyCIs.length > 0) moodStr = dayDailyCIs[0].feeling;
+      else if (dayMoodTrackers.length > 0) moodStr = dayMoodTrackers[0].mood;
+
+      return {
+        date: dateStr,
+        dayName,
+        displayDate,
+        moodScore: dayMoodScore,
+        mood: moodStr,
+        stress,
+        energy,
+        sleepHours,
+        hasData: dayScores.length > 0,
+      };
+    });
+
+    // Emotional Distribution
+    const standardEmotions = ["Calm", "Happy", "Neutral", "Tired", "Stressed"];
+    const totalRecordedEmotions = Object.values(emotionCounts).reduce((a, b) => a + b, 0);
+
+    const emotionalDistribution = standardEmotions.map((emo) => {
+      const cnt = emotionCounts[emo] || 0;
+      const percentage = totalRecordedEmotions > 0
+        ? Math.round((cnt / totalRecordedEmotions) * 100)
+        : 0;
+      return {
+        emotion: emo,
+        count: cnt,
+        percentage,
+      };
+    });
+
+    Object.keys(emotionCounts).forEach((emo) => {
+      if (!standardEmotions.includes(emo)) {
+        const cnt = emotionCounts[emo];
+        const percentage = totalRecordedEmotions > 0 ? Math.round((cnt / totalRecordedEmotions) * 100) : 0;
+        emotionalDistribution.push({ emotion: emo, count: cnt, percentage });
+      }
+    });
+
+    // Weekly Check-in Activity Bar Chart
+    const weeklyCheckInActivity = datesList.map((dateStr) => {
+      const dObj = new Date(dateStr + "T00:00:00");
+      const dayName = dObj.toLocaleDateString("en-US", { weekday: "short" });
+
+      const dayParentCIs = parentCheckInsCurrent.filter((ci) => ci.date === dateStr);
+      const dayDailyCIs = dailyCheckInsCurrent.filter((ci) => ci.date === dateStr);
+
+      const count = dayParentCIs.length + dayDailyCIs.length;
+
+      const details = [
+        ...dayParentCIs.map((ci) => ({
+          childName: ci.childName || "Child",
+          type: "Parent Check-in",
+          mood: ci.mood,
+          wellbeingScore: ci.wellbeingScore,
+          notes: ci.additionalNotes || ci.unusualBehaviorNote || "",
+        })),
+        ...dayDailyCIs.map((ci) => ({
+          childName: "Student",
+          type: "Daily Check-in",
+          mood: ci.feeling,
+          wellbeingScore: Math.round((11 - (ci.stressLevel || 5)) / 2),
+          notes: ci.biggestChallenge || ci.mainGoal || "",
+        })),
+      ];
+
+      return {
+        date: dateStr,
+        dayName,
+        completedCount: count,
+        details,
+      };
+    });
+
+    // Face Emotion Trend Timeline
+    const faceEmotionTrend = faceAnalysisRecords.map((fa) => {
+      const analyzedDate = new Date(fa.analyzedAt);
+      return {
+        id: fa._id,
+        date: fa.analyzedAt,
+        dateStr: analyzedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+        expression: fa.expression,
+        confidence: fa.confidence,
+        childName: fa.childName || "Child",
+      };
+    });
+
+    // AI Parent Insight Generation
+    let aiSummary = "";
+    let aiPattern = "";
+    let aiAction = "";
+
+    if (currentScores.length === 0) {
+      aiSummary = "No check-in records have been submitted during this selected timeframe.";
+      aiPattern = "Observed pattern: Check-in completion is currently pending.";
+      aiAction = "Suggested action: Encourage your child to complete a daily check-in or submit a quick parent check-in.";
+    } else {
+      aiSummary = `Your child's average mood score was ${avgCurrentMoodScore}/10 (${dominantEmotion.toLowerCase()} overall) across ${completedCheckInsCount} completed check-ins.`;
+
+      if (wellnessTrend === "Improving") {
+        aiPattern = "Observed pattern: Emotional positivity and engagement have shown a healthy upward trend.";
+        aiAction = "Suggested action: Acknowledge your child's positive efforts and maintain open, encouraging family discussions.";
+      } else if (wellnessTrend === "Needs Attention") {
+        aiPattern = "Observed pattern: Slight fluctuations in mood or elevated stress levels were detected on certain days.";
+        aiAction = "Suggested action: Consider having a short relaxed conversation and encourage a calming restorative activity.";
+      } else {
+        aiPattern = "Observed pattern: Emotional balance remained steady and consistent throughout the period.";
+        aiAction = "Suggested action: Keep up the consistent daily routine and plan a fun family activity this weekend.";
+      }
+    }
+
+    const aiParentInsight = {
+      summary: aiSummary,
+      observedPattern: aiPattern,
+      suggestedAction: aiAction,
+    };
+
+    // Attention Patterns
+    let attentionPatterns = {
+      hasPattern: false,
+      patternTitle: "No unusual pattern detected.",
+      description: "Child wellness metrics and check-in consistency remain stable.",
+      details: [],
+    };
+
+    const lowMoodDays = dailyMoodTrend.filter((d) => d.hasData && d.moodScore !== null && d.moodScore < 5.5);
+    const highStressDays = dailyMoodTrend.filter((d) => d.hasData && d.stress !== null && d.stress >= 7);
+    const unusualBehaviorCIs = parentCheckInsCurrent.filter((ci) => ci.unusualBehavior);
+
+    if (unusualBehaviorCIs.length > 0) {
+      attentionPatterns = {
+        hasPattern: true,
+        patternTitle: "Behavioral Note Flagged",
+        description: `Unusual behavior was flagged in ${unusualBehaviorCIs.length} parent check-in(s).`,
+        details: unusualBehaviorCIs.map((ci) => ({
+          date: ci.date,
+          childName: ci.childName,
+          note: ci.unusualBehaviorNote || "Unusual behavior noted by parent.",
+        })),
+      };
+    } else if (highStressDays.length >= 2) {
+      attentionPatterns = {
+        hasPattern: true,
+        patternTitle: "Repeated High Stress Detected",
+        description: `High stress levels were recorded on ${highStressDays.length} separate days in this period.`,
+        details: highStressDays.map((d) => ({
+          date: d.displayDate,
+          note: `Stress level logged at ${d.stress}/10.`,
+        })),
+      };
+    } else if (lowMoodDays.length >= 2) {
+      attentionPatterns = {
+        hasPattern: true,
+        patternTitle: "Repeated Low Mood Score",
+        description: `Mood scores dropped below average on ${lowMoodDays.length} days in this period.`,
+        details: lowMoodDays.map((d) => ({
+          date: d.displayDate,
+          note: `Mood score recorded as ${d.moodScore}/10 (${d.mood}).`,
+        })),
+      };
+    } else if (checkInCompletionRate < 40 && totalExpectedCheckIns >= 3) {
+      attentionPatterns = {
+        hasPattern: true,
+        patternTitle: "Reduced Check-in Activity",
+        description: `Check-in completion rate is currently at ${checkInCompletionRate}%.`,
+        details: [
+          {
+            date: todayStr,
+            note: `${completedCheckInsCount} out of ${totalExpectedCheckIns} expected check-ins completed.`,
+          },
+        ],
+      };
+    }
+
+    // Recent Check-ins Table
+    const recentCheckIns = [];
+
+    parentCheckInsCurrent.forEach((ci) => {
+      recentCheckIns.push({
+        id: ci._id.toString(),
+        date: ci.date,
+        childName: ci.childName || "Child",
+        mood: ci.mood,
+        emotion: ci.mood,
+        status: "Completed",
+        type: "Parent Check-in",
+        details: {
+          wellbeingScore: ci.wellbeingScore,
+          energy: ci.energy,
+          socialInteraction: ci.socialInteraction,
+          unusualBehavior: ci.unusualBehavior,
+          unusualBehaviorNote: ci.unusualBehaviorNote,
+          additionalNotes: ci.additionalNotes,
+        },
+        createdAt: ci.createdAt,
+      });
+    });
+
+    dailyCheckInsCurrent.forEach((ci) => {
+      recentCheckIns.push({
+        id: ci._id.toString(),
+        date: ci.date,
+        childName: "Student",
+        mood: ci.feeling,
+        emotion: ci.feeling,
+        status: "Completed",
+        type: "Daily Check-in",
+        details: {
+          sleepHours: ci.sleepHours,
+          stressLevel: ci.stressLevel,
+          motivationLevel: ci.motivationLevel,
+          biggestChallenge: ci.biggestChallenge,
+          mainGoal: ci.mainGoal,
+        },
+        createdAt: ci.createdAt,
+      });
+    });
+
+    recentCheckIns.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+    const paginatedRecentCheckIns = recentCheckIns.slice(0, 15);
+
+    return res.status(200).json({
+      success: true,
+      range,
+      rangeDays,
+      children: childrenList,
+      selectedChildId: selectedChildParam || "all",
+      overview: {
+        moodScore: avgCurrentMoodScore,
+        moodScoreChange,
+        completedCheckIns: completedCheckInsCount,
+        expectedCheckIns: totalExpectedCheckIns,
+        checkInCompletionRate,
+        dominantEmotion,
+        wellnessTrend,
+        totalCheckInsRecorded: currentScores.length,
+      },
+      dailyMoodTrend,
+      emotionalDistribution,
+      weeklyCheckInActivity,
+      faceEmotionTrend,
+      aiParentInsight,
+      attentionPatterns,
+      recentCheckIns: paginatedRecentCheckIns,
+    });
+  } catch (error) {
+    console.error("Get Parent Insights Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch parent insights: " + error.message,
+    });
+  }
+};
+
+
 

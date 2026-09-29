@@ -203,11 +203,7 @@ function MoodHistoryCard({ refreshKey }) {
               return (
                 <div
                   key={item._id}
-                  className="p-3 rounded-4 transition-all hover-lift"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.03)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                  }}
+                  className="p-3 rounded-4 transition-all hover-lift ns-mood-history-item"
                 >
                   {/* Header Row: Emoji, Name, Intensity, Reason */}
                   <div className="d-flex align-items-center justify-content-between mb-2">
@@ -218,7 +214,7 @@ function MoodHistoryCard({ refreshKey }) {
                           {item.mood}
                         </span>
                         <span
-                          className="badge rounded-pill bg-white bg-opacity-10 text-white"
+                          className="badge rounded-pill ns-intensity-badge"
                           style={{ fontSize: "0.75rem", padding: "0.3em 0.7em" }}
                         >
                           Intensity: {item.intensity}/10
@@ -230,7 +226,7 @@ function MoodHistoryCard({ refreshKey }) {
                       className="badge rounded-3 fw-normal"
                       style={{
                         background: "rgba(59, 130, 246, 0.15)",
-                        color: "#93C5FD",
+                        color: "#3b82f6",
                         border: "1px solid rgba(59, 130, 246, 0.3)",
                         fontSize: "0.8rem",
                         padding: "0.4em 0.8em",
@@ -243,12 +239,10 @@ function MoodHistoryCard({ refreshKey }) {
                   {/* Notes */}
                   {item.notes && (
                     <p
-                      className="text-white-50 mb-2 mt-2 p-2 rounded-3"
+                      className="mb-2 mt-2 p-2 rounded-3 ns-mood-notes"
                       style={{
                         fontSize: "0.88rem",
                         lineHeight: 1.4,
-                        background: "rgba(0, 0, 0, 0.2)",
-                        border: "1px solid rgba(255, 255, 255, 0.05)",
                       }}
                     >
                       <FiFileText className="me-1 text-info" /> {item.notes}

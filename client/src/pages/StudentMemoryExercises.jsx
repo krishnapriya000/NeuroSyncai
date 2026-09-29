@@ -315,7 +315,14 @@ function StudentMemoryExercises() {
                   </div>
 
                   <div className="d-flex align-items-center gap-3">
-                    <span className="badge rounded-pill px-3 py-1.5 fw-bold bg-purple-500 bg-opacity-20 text-purple-300 border border-purple-500 border-opacity-30">
+                    <span
+                      className="badge rounded-pill px-3.5 py-2 fw-bold text-white shadow-sm"
+                      style={{
+                        background: "linear-gradient(135deg, #8B5CF6, #6366F1)",
+                        border: "1px solid rgba(192, 132, 252, 0.4)",
+                        fontSize: "0.85rem",
+                      }}
+                    >
                       Score: {item.score} pts
                     </span>
                   </div>

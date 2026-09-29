@@ -2,7 +2,7 @@ import React from "react";
 import { FiMessageSquare, FiCalendar } from "react-icons/fi";
 import { HiSparkles } from "react-icons/hi";
 
-function HeroWelcomeCard({ studentName = "Alex", onTalkClick }) {
+function HeroWelcomeCard({ studentName = "Student", onTalkClick }) {
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",

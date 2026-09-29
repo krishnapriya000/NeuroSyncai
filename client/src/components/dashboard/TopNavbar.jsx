@@ -1,14 +1,54 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSearch, FiBell, FiMenu, FiUser, FiSettings, FiLogOut, FiChevronDown } from "react-icons/fi";
+import { FiSearch, FiBell, FiMenu, FiUser, FiSettings, FiLogOut, FiChevronDown, FiSun, FiMoon } from "react-icons/fi";
 
-function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
+function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const [recentUnread, setRecentUnread] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Theme State ("dark" or "light")
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("neurosync_theme") || "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "light") {
+      document.body.classList.add("light-theme");
+    } else {
+      document.body.classList.remove("light-theme");
+    }
+    localStorage.setItem("neurosync_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
+  // Retrieve logged-in user details from localStorage
+  const getLoggedUser = () => {
+    try {
+      const stored = localStorage.getItem("neurosync_current_user");
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {}
+    return null;
+  };
+
+  const loggedUser = getLoggedUser();
+  
+  // Resolve user full name: if prop provided and not default "Alex Morgan", use it; else fallback to stored user or "User"
+  const displayName = (propStudentName && propStudentName !== "Alex Morgan" && propStudentName !== "Student")
+    ? propStudentName
+    : (loggedUser?.fullName || loggedUser?.name || propStudentName || "User");
+
+  const displayRole = loggedUser?.role || "Student";
+  const userInitial = displayName ? displayName.trim().charAt(0).toUpperCase() : "U";
 
   useEffect(() => {
     const fetchTopNavNotifications = async () => {
@@ -50,7 +90,7 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
         </button>
         <div>
           <h2 className="mb-0 text-white fw-bold fs-5 d-flex align-items-center gap-2">
-            Welcome back, <span className="text-transparent bg-clip-text" style={{ background: "linear-gradient(135deg, #60A5FA, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{studentName}</span> 👋
+            Welcome back, <span className="text-transparent bg-clip-text" style={{ background: "linear-gradient(135deg, #60A5FA, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{displayName}</span> 👋
           </h2>
           <p className="mb-0 text-muted d-none d-md-block" style={{ fontSize: "0.8rem" }}>
             Here is your cognitive & emotional summary for today.
@@ -70,7 +110,18 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
       </div>
 
       {/* Right: Actions & User Profile Dropdown */}
-      <div className="d-flex align-items-center gap-3 position-relative">
+      <div className="d-flex align-items-center gap-2 gap-sm-3 position-relative">
+        {/* Theme Mode Toggle Button */}
+        <button
+          className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center text-white border-0 position-relative"
+          style={{ width: "42px", height: "42px", background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+          onClick={toggleTheme}
+          title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Theme`}
+          aria-label="Toggle Theme"
+        >
+          {theme === "dark" ? <FiSun size={18} className="text-warning" /> : <FiMoon size={18} className="text-primary" />}
+        </button>
+
         {/* Notifications Icon */}
         <div className="position-relative">
           <button 
@@ -156,11 +207,11 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
                 border: "2px solid rgba(255, 255, 255, 0.2)"
               }}
             >
-              {studentName ? studentName.trim().charAt(0).toUpperCase() : "S"}
+              {userInitial}
             </div>
             <div className="d-none d-md-block text-start">
-              <div className="fw-semibold lh-1" style={{ fontSize: "0.9rem" }}>{studentName}</div>
-              <div className="text-muted" style={{ fontSize: "0.75rem" }}>Student Profile</div>
+              <div className="fw-semibold lh-1" style={{ fontSize: "0.9rem" }}>{displayName}</div>
+              <div className="text-muted text-capitalize" style={{ fontSize: "0.75rem" }}>{displayRole} Profile</div>
             </div>
             <FiChevronDown className="text-muted d-none d-md-block" />
           </button>
@@ -178,8 +229,8 @@ function TopNavbar({ studentName = "Alex Morgan", toggleSidebar }) {
               }}
             >
               <div className="p-2 border-bottom border-secondary border-opacity-25">
-                <div className="fw-bold">{studentName}</div>
-                <span className="badge bg-primary text-white mt-1">Student</span>
+                <div className="fw-bold">{displayName}</div>
+                <span className="badge bg-primary text-white mt-1 text-capitalize">{displayRole}</span>
               </div>
               <div className="d-flex flex-column gap-1 mt-2">
                 <button 

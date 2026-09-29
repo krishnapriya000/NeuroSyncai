@@ -12,11 +12,13 @@ import {
   FiUser,
   FiSettings,
   FiLogOut,
-  FiX
+  FiX,
+  FiCalendar
 } from "react-icons/fi";
 
 const workspaceNavItems = [
   { id: "overview", label: "Overview", icon: FiGrid },
+  { id: "neuroplan", label: "✨ NeuroPlan Planner", icon: FiCalendar },
   { id: "checkin", label: "Daily Check-in", icon: FiCheckSquare },
   { id: "mood", label: "Mood & Stress", icon: FiSmile },
   { id: "balance", label: "Work-Life Balance", icon: FiCompass },
@@ -40,7 +42,9 @@ function ProfessionalSidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
     if (isOpen && setIsOpen) {
       setIsOpen(false);
     }
-    if (id === "profile" || id === "settings") {
+    if (id === "neuroplan") {
+      navigate("/neuroplan");
+    } else if (id === "profile" || id === "settings") {
       navigate("/professional/profile");
     } else if (id === "checkin") {
       navigate("/professional/checkin");

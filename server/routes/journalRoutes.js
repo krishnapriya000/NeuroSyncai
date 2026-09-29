@@ -9,6 +9,7 @@ const {
   deleteJournalEntry,
   getJournalAnalysis,
   analyzeJournalEntry,
+  getJournalAnalytics,
   getJournalInsights,
   getWeeklyJournalReflection,
 } = require("../controllers/journalController");
@@ -16,7 +17,9 @@ const {
 // All journal routes require JWT authentication
 router.use(protect);
 
-// Journal Insights & Summary Routes
+// Analytics & Insights Routes
+router.get("/analytics", getJournalAnalytics);
+router.post("/analyze", analyzeJournalEntry);
 router.get("/insights", getJournalInsights);
 router.get("/weekly-reflection", getWeeklyJournalReflection);
 

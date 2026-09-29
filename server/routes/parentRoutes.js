@@ -16,11 +16,15 @@ const {
   submitParentCheckIn,
   saveChildFaceAnalysis,
   getLatestChildFaceAnalysis,
+  getParentInsights,
 } = require("../controllers/parentController");
 
 // All parent routes require JWT auth and Parent role
 router.use(protect);
 router.use(parentOnly);
+
+// Parent Insights & Analytics Endpoint
+router.get("/insights", getParentInsights);
 
 // Parent Profile Endpoints
 router.get("/profile", getParentProfile);
@@ -45,3 +49,4 @@ router.get("/check-ins/:id/today", getTodayCheckInForChild);
 router.post("/check-ins", submitParentCheckIn);
 
 module.exports = router;
+

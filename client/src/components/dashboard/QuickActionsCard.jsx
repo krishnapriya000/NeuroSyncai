@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   FiPlusCircle, 
   FiEdit3, 
@@ -6,13 +7,16 @@ import {
   FiClock, 
   FiMessageSquare,
   FiZap,
-  FiX
+  FiX,
+  FiCalendar
 } from "react-icons/fi";
 
 function QuickActionsCard({ onActionSelect }) {
+  const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null);
 
   const actions = [
+    { id: "neuroplan", label: "NeuroPlan AI", icon: FiCalendar, color: "#a855f7" },
     { id: "mood", label: "Add Mood", icon: FiPlusCircle, color: "#ec4899" },
     { id: "journal", label: "Write Journal", icon: FiEdit3, color: "#8b5cf6" },
     { id: "goal", label: "Add Goal", icon: FiTarget, color: "#3b82f6" },
@@ -21,6 +25,10 @@ function QuickActionsCard({ onActionSelect }) {
   ];
 
   const handleAction = (action) => {
+    if (action.id === "neuroplan") {
+      navigate("/neuroplan");
+      return;
+    }
     setActiveModal(action.label);
     if (onActionSelect) onActionSelect(action.id);
   };

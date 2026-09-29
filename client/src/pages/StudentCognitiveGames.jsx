@@ -362,7 +362,14 @@ function StudentCognitiveGames() {
                   </div>
 
                   <div className="d-flex align-items-center gap-3">
-                    <span className="badge rounded-pill px-3 py-1.5 fw-bold bg-primary text-white">
+                    <span
+                      className="badge rounded-pill px-3.5 py-2 fw-bold text-white shadow-sm"
+                      style={{
+                        background: "linear-gradient(135deg, #3B82F6, #2563EB)",
+                        border: "1px solid rgba(59, 130, 246, 0.5)",
+                        fontSize: "0.85rem",
+                      }}
+                    >
                       Score: {item.score} pts
                     </span>
                   </div>

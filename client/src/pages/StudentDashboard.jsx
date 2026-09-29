@@ -21,8 +21,20 @@ import { FiSmile, FiZap, FiClock, FiTarget } from "react-icons/fi";
 function StudentDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [studentName, setStudentName] = useState(() => {
+    const storedUser = localStorage.getItem("neurosync_current_user");
+    if (storedUser) {
+      try {
+        const userObj = JSON.parse(storedUser);
+        if (userObj.fullName || userObj.name) {
+          return userObj.fullName || userObj.name;
+        }
+      } catch (e) {}
+    }
+    return "Student";
+  });
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [studentName, setStudentName] = useState("Alex Morgan");
   const [goalSummary, setGoalSummary] = useState(null);
 
   // Daily Check-in state

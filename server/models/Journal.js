@@ -1,5 +1,48 @@
 const mongoose = require("mongoose");
 
+const analysisSchema = new mongoose.Schema(
+  {
+    sentiment: {
+      type: String,
+      enum: ["positive", "negative", "neutral", "Positive", "Negative", "Neutral"],
+      default: "neutral",
+    },
+    moodScore: {
+      type: Number,
+      min: 1,
+      max: 10,
+      default: 5,
+    },
+    stressLevel: {
+      type: String,
+      default: "low",
+    },
+    energyLevel: {
+      type: String,
+      default: "medium",
+    },
+    emotions: {
+      happy: { type: Number, default: 0 },
+      calm: { type: Number, default: 0 },
+      tired: { type: Number, default: 0 },
+      stressed: { type: Number, default: 0 },
+    },
+    summary: {
+      type: String,
+      default: "",
+    },
+    keyThemes: {
+      type: [String],
+      default: [],
+    },
+    analyzedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
 const journalSchema = new mongoose.Schema(
   {
     userId: {
@@ -21,6 +64,10 @@ const journalSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    analysis: {
+      type: analysisSchema,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -33,3 +80,4 @@ journalSchema.index({ userId: 1, createdAt: -1 });
 const Journal = mongoose.model("Journal", journalSchema, "journals");
 
 module.exports = Journal;
+

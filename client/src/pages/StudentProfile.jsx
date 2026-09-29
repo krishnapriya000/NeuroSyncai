@@ -31,16 +31,37 @@ function StudentProfile() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Student Profile State
-  const [userProfile, setUserProfile] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    dob: "",
-    gender: "Other",
-    occupation: "",
-    lifestyle: "",
-    profileImage: "",
-    role: "Student",
+  const [userProfile, setUserProfile] = useState(() => {
+    const storedUser = localStorage.getItem("neurosync_current_user");
+    if (storedUser) {
+      try {
+        const u = JSON.parse(storedUser);
+        return {
+          fullName: u.fullName || u.name || "",
+          email: u.email || "",
+          phone: u.phone || "",
+          dob: u.dob || (u.dateOfBirth ? u.dateOfBirth.split("T")[0] : "") || "",
+          gender: u.gender || "Other",
+          occupation: u.occupation || "",
+          lifestyle: u.lifestyle || "",
+          profileImage: u.profileImage || "",
+          role: u.role || "Student",
+        };
+      } catch (e) {
+        console.error("Error parsing stored user:", e);
+      }
+    }
+    return {
+      fullName: "",
+      email: "",
+      phone: "",
+      dob: "",
+      gender: "Other",
+      occupation: "",
+      lifestyle: "",
+      profileImage: "",
+      role: "Student",
+    };
   });
 
   const [isLoading, setIsLoading] = useState(true);

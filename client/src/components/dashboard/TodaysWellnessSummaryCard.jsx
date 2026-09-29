@@ -90,13 +90,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
   // 1. Loading State
   if (loading) {
     return (
-      <div 
-        className="p-4 rounded-4 text-white shadow-sm mb-4 position-relative overflow-hidden"
-        style={{
-          background: "#0F172A",
-          border: "1px solid rgba(255, 255, 255, 0.08)"
-        }}
-      >
+      <div className="ns-card ns-wellness-card p-4 rounded-4 shadow-sm mb-4 position-relative overflow-hidden">
         <div className="d-flex align-items-center justify-content-center py-4 gap-3 text-secondary">
           <div className="spinner-border text-primary spinner-border-sm" role="status" />
           <span className="fw-medium">Analyzing today's survey response...</span>
@@ -108,13 +102,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
   // 2. Error State
   if (error) {
     return (
-      <div 
-        className="p-4 rounded-4 text-white shadow-sm mb-4 position-relative overflow-hidden"
-        style={{
-          background: "#0F172A",
-          border: "1px solid rgba(239, 68, 68, 0.2)"
-        }}
-      >
+      <div className="ns-card ns-wellness-card p-4 rounded-4 shadow-sm mb-4 position-relative overflow-hidden border-danger border-opacity-25">
         <div className="d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center gap-2 text-danger">
             <span>⚠️</span>
@@ -136,13 +124,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
   // 3. Empty State (No check-in found for today)
   if (!data || !data.hasData) {
     return (
-      <div 
-        className="p-4 rounded-4 text-white shadow-sm mb-4 position-relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)",
-          border: "1px solid rgba(59, 130, 246, 0.2)"
-        }}
-      >
+      <div className="ns-card ns-wellness-card p-4 rounded-4 shadow-sm mb-4 position-relative overflow-hidden">
         <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
           <div>
             <div className="d-flex align-items-center gap-2 mb-1">
@@ -183,13 +165,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
   const strokeDashoffset = circumference - (overallScore / 100) * circumference;
 
   return (
-    <div 
-      className="p-4 rounded-4 text-white shadow-sm mb-4 position-relative overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
-        border: "1px solid rgba(255, 255, 255, 0.1)"
-      }}
-    >
+    <div className="ns-card ns-wellness-card p-4 rounded-4 shadow-sm mb-4 position-relative overflow-hidden">
       {/* Header Bar */}
       <div className="d-flex flex-wrap align-items-center justify-content-between mb-4 border-bottom border-secondary border-opacity-25 pb-3 gap-2">
         <div className="d-flex align-items-center gap-2">
@@ -222,11 +198,11 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
             <div className="position-relative d-inline-flex align-items-center justify-content-center mb-2">
               <svg width="120" height="120" viewBox="0 0 120 120">
                 <circle
+                  className="ns-wellness-gauge-track"
                   cx="60"
                   cy="60"
                   r={radius}
                   fill="none"
-                  stroke="rgba(255, 255, 255, 0.08)"
                   strokeWidth="10"
                 />
                 <circle
@@ -259,13 +235,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
 
         {/* Personalized Recommendation Banner */}
         <div className="col-12 col-md-8">
-          <div 
-            className="p-3 rounded-4 h-100 d-flex flex-column justify-content-center"
-            style={{ 
-              background: "linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%)",
-              border: "1px solid rgba(59, 130, 246, 0.2)"
-            }}
-          >
+          <div className="ns-recommendation-box p-3 rounded-4 h-100 d-flex flex-column justify-content-center">
             <div className="d-flex align-items-center gap-2 text-warning mb-2">
               <FiInfo size={20} />
               <span className="fw-bold text-white small uppercase tracking-wide">Personalized Recommendation</span>
@@ -281,10 +251,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
       <div className="row g-3">
         {/* 1. 😊 Mood */}
         <div className="col-12 col-sm-6 col-lg-4">
-          <div 
-            className="p-3 rounded-4 h-100 d-flex flex-column justify-content-between"
-            style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}
-          >
+          <div className="ns-wellness-item p-3 rounded-4 h-100 d-flex flex-column justify-content-between">
             <div className="d-flex align-items-center justify-content-between mb-2">
               <div className="d-flex align-items-center gap-2 text-warning">
                 <FiSmile size={18} />
@@ -302,10 +269,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
 
         {/* 2. 😴 Sleep Hours */}
         <div className="col-12 col-sm-6 col-lg-4">
-          <div 
-            className="p-3 rounded-4 h-100 d-flex flex-column justify-content-between"
-            style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}
-          >
+          <div className="ns-wellness-item p-3 rounded-4 h-100 d-flex flex-column justify-content-between">
             <div className="d-flex align-items-center justify-content-between mb-2">
               <div className="d-flex align-items-center gap-2 text-info">
                 <FiMoon size={18} />
@@ -323,10 +287,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
 
         {/* 3. ⚡ Energy Level */}
         <div className="col-12 col-sm-6 col-lg-4">
-          <div 
-            className="p-3 rounded-4 h-100 d-flex flex-column justify-content-between"
-            style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}
-          >
+          <div className="ns-wellness-item p-3 rounded-4 h-100 d-flex flex-column justify-content-between">
             <div className="d-flex align-items-center justify-content-between mb-2">
               <div className="d-flex align-items-center gap-2 text-success">
                 <FiZap size={18} />
@@ -341,10 +302,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
 
         {/* 4. 📚 Motivation Level */}
         <div className="col-12 col-sm-6 col-lg-4">
-          <div 
-            className="p-3 rounded-4 h-100 d-flex flex-column justify-content-between"
-            style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}
-          >
+          <div className="ns-wellness-item p-3 rounded-4 h-100 d-flex flex-column justify-content-between">
             <div className="d-flex align-items-center justify-content-between mb-2">
               <div className="d-flex align-items-center gap-2 text-primary">
                 <FiBook size={18} />
@@ -362,10 +320,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
 
         {/* 5. 😌 Stress Level */}
         <div className="col-12 col-sm-6 col-lg-4">
-          <div 
-            className="p-3 rounded-4 h-100 d-flex flex-column justify-content-between"
-            style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}
-          >
+          <div className="ns-wellness-item p-3 rounded-4 h-100 d-flex flex-column justify-content-between">
             <div className="d-flex align-items-center justify-content-between mb-2">
               <div className="d-flex align-items-center gap-2 text-danger">
                 <FiActivity size={18} />
@@ -383,10 +338,7 @@ function TodaysWellnessSummaryCard({ loading, error, data, onRetry }) {
 
         {/* 6. 🎯 Today's Goal */}
         <div className="col-12 col-sm-6 col-lg-4">
-          <div 
-            className="p-3 rounded-4 h-100 d-flex flex-column justify-content-between"
-            style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.06)" }}
-          >
+          <div className="ns-wellness-item p-3 rounded-4 h-100 d-flex flex-column justify-content-between">
             <div className="d-flex align-items-center justify-content-between mb-2">
               <div className="d-flex align-items-center gap-2 text-indigo-400">
                 <FiTarget size={18} />

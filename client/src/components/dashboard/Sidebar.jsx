@@ -29,6 +29,7 @@ import SeniorMedicationReminderManager from "../senior/SeniorMedicationReminderM
 // Student Dashboard Navigation Items
 const studentNavItems = [
   { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/student/dashboard" },
+  { id: "neuroplan", label: "✨ NeuroPlan Daily", icon: FiCalendar, path: "/neuroplan" },
   { id: "checkin", label: "Daily Check-in", icon: FiCheckSquare, path: "/student/checkin" },
   { id: "mood-tracker", label: "Mood Tracker", icon: FiSmile, path: "/student/mood-tracker" },
   { id: "journal", label: "Journal", icon: FiBookOpen, path: "/student/journal" },
@@ -47,6 +48,7 @@ const studentNavItems = [
 // Parent Dashboard Navigation Items
 const parentNavItems = [
   { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/parent/dashboard" },
+  { id: "neuroplan", label: "✨ NeuroPlan Planner", icon: FiCalendar, path: "/neuroplan" },
   { id: "children", label: "Children", icon: FiUsers, path: "/parent/children" },
   { id: "check-in", label: "Daily Check-in", icon: FiCheckSquare, path: "/parent/check-in" },
   { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/parent/mood-tracker" },
@@ -62,6 +64,7 @@ const parentNavItems = [
 // Senior Citizen Dashboard Navigation Items
 const seniorNavItems = [
   { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/senior/dashboard" },
+  { id: "neuroplan", label: "✨ NeuroPlan Planner", icon: FiCalendar, path: "/neuroplan" },
   { id: "daily-checkin", label: "Daily Check-in", icon: FiCheckSquare, path: "/senior/daily-checkin" },
   { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/senior/mood" },
   { id: "health-activity", label: "Health & Activity", icon: FiActivity, path: "/senior/health-activity" },

@@ -207,11 +207,10 @@ function StudentFocusTimer() {
                 }}
               >
                 <div
-                  className="w-100 h-100 rounded-circle d-flex flex-column align-items-center justify-content-center"
-                  style={{ background: "#0f172a" }}
+                  className="w-100 h-100 rounded-circle d-flex flex-column align-items-center justify-content-center ns-timer-inner-circle"
                 >
                   <span
-                    className="fw-bold text-white display-3"
+                    className="fw-bold display-3"
                     style={{ letterSpacing: "2px", fontFamily: "monospace" }}
                   >
                     {formatTime(timeLeft)}
@@ -258,20 +257,20 @@ function StudentFocusTimer() {
           {/* Sidebar Info & Task Focus */}
           <div className="col-lg-4">
             <div className="ns-card p-4 mb-4">
-              <h5 className="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+              <h5 className="fw-bold mb-3 d-flex align-items-center gap-2">
                 <FiTarget className="text-primary" /> Active Study Focus
               </h5>
               <div className="mb-3">
                 <label className="text-muted small mb-1">Current Subject / Task</label>
                 <input
                   type="text"
-                  className="form-control bg-dark border-secondary text-white"
+                  className="form-control ns-planner-input"
                   value={selectedTask}
                   onChange={(e) => setSelectedTask(e.target.value)}
                   placeholder="e.g. DBMS Unit 3 Revision"
                 />
               </div>
-              <div className="p-3 rounded" style={{ background: "rgba(30,41,59,0.6)", fontSize: "0.86rem" }}>
+              <div className="p-3 rounded ns-pro-tip-box" style={{ fontSize: "0.86rem" }}>
                 <p className="text-white-50 mb-1 fw-semibold">Pro Focus Tip:</p>
                 <p className="text-muted mb-0">
                   Put your mobile phone in silent mode and keep a bottle of water nearby.
