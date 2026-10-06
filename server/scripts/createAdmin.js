@@ -5,7 +5,7 @@ const User = require("../models/User");
 
 const adminData = {
   fullName: "Admin",
-  email: "krishnaak0404@gmail.com".toLowerCase(),
+  email: "neurosync00@gmail.com".toLowerCase(),
   password: "Krishna#4",
   role: "Admin",
 };
@@ -21,13 +21,17 @@ async function createOrUpdateAdmin() {
     await mongoose.connect(mongoUri);
     console.log("Connected to MongoDB...");
 
-    let user = await User.findOne({ email: adminData.email });
+    let user =
+      (await User.findOne({ email: adminData.email })) ||
+      (await User.findOne({ email: "krishnaak0404@gmail.com" })) ||
+      (await User.findOne({ role: "Admin" }));
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(adminData.password, salt);
 
     if (user) {
       user.fullName = adminData.fullName;
+      user.email = adminData.email;
       user.password = hashedPassword;
       user.role = adminData.role;
       user.isVerified = true;
