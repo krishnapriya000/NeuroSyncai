@@ -22,6 +22,25 @@ function AdminDashboard() {
   // Active Tab: "dashboard" | "users-students" | "users-parents" | "users-professionals" | "users-seniors" | "wellness-analytics" | "feedback" | "notifications" | "settings"
   const [activeTab, setActiveTab] = useState("dashboard");
 
+  // Theme State ("light" or "dark") - defaults to light mode for Admin Dashboard
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("neurosync_theme") || "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "light") {
+      document.body.classList.add("light-theme");
+    } else {
+      document.body.classList.remove("light-theme");
+    }
+    localStorage.setItem("neurosync_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
   // Dashboard Data State
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -194,10 +213,22 @@ function AdminDashboard() {
   };
 
   return (
-    <div className="admin-dashboard-layout" style={{ minHeight: "100vh", background: "#030712", color: "#f8fafc" }}>
+    <div 
+      className="admin-dashboard-layout" 
+      style={{ 
+        minHeight: "100vh", 
+        background: theme === "light" ? "#F5F7FB" : "#0B0F19", 
+        color: theme === "light" ? "#111827" : "#F8FAFC",
+        transition: "all 0.3s ease"
+      }}
+    >
       {/* Background Ambient Glows */}
-      <div className="bg-ambient-glow" />
-      <div className="bg-ambient-secondary" />
+      {theme === "dark" && (
+        <>
+          <div className="bg-ambient-glow" />
+          <div className="bg-ambient-secondary" />
+        </>
+      )}
 
       {/* 1. FIXED COLLAPSIBLE SIDEBAR */}
       <AdminSidebar 
@@ -207,10 +238,11 @@ function AdminDashboard() {
         onLogout={handleLogout}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        theme={theme}
       />
 
-      {/* 2. MAIN CONTENT AREA (Offset by sidebar width on large screens) */}
-      <div className="admin-main-wrapper flex-grow-1" style={{ marginLeft: "270px" }}>
+      {/* 2. MAIN CONTENT AREA (Offset by sidebar width 260px on large screens) */}
+      <div className="admin-main-wrapper flex-grow-1" style={{ marginLeft: "260px" }}>
         
         {/* TOP HEADER */}
         <AdminHeader 
@@ -219,10 +251,15 @@ function AdminDashboard() {
           toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           onRefreshData={loadAllData}
           activeTabTitle={getTabTitle()}
+          activeTab={activeTab}
+          onSelectTab={(tab) => setActiveTab(tab)}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          users={users}
         />
 
         {/* BODY CONTENT CONTAINER */}
-        <main className="p-4">
+        <main className="p-4" style={{ paddingTop: "96px" }}>
           
           {/* Toast Alert Banner */}
           {toastMessage.text && (
@@ -317,6 +354,9 @@ function AdminDashboard() {
         @media (max-width: 991.98px) {
           .admin-main-wrapper {
             margin-left: 0 !important;
+          }
+          .admin-header {
+            left: 0 !important;
           }
           .admin-sidebar {
             transform: translateX(-100%);

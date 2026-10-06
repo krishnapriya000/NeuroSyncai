@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiMessageSquare, FiSearch, FiCheckCircle, FiTrash2, FiClock, FiStar, FiUser } from "react-icons/fi";
+import { FiMessageSquare, FiSearch, FiCheckCircle, FiTrash2, FiClock, FiStar, FiPieChart, FiBarChart2 } from "react-icons/fi";
 
 function AdminFeedback() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -76,114 +76,264 @@ function AdminFeedback() {
     }
   };
 
-  return (
-    <div className="admin-feedback-section">
-      {/* Header & Search */}
-      <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3">
-        <div>
-          <h4 className="fw-bold text-white mb-1 d-flex align-items-center gap-2">
-            <FiMessageSquare className="text-info" /> User Feedback Management ({filteredFeedbacks.length})
-          </h4>
-          <p className="text-secondary small mb-0">
-            Review user ratings, category feedback, mark items as resolved, and track user satisfaction
-          </p>
-        </div>
+  // Feedback Analytics Data
+  const ratingDistribution = [
+    { label: "5 Stars (Excellent)", pct: 68, color: "#10B981" },
+    { label: "4 Stars (Good)", pct: 22, color: "#7C5CFC" },
+    { label: "3 Stars (Average)", pct: 7, color: "#F59E0B" },
+    { label: "1-2 Stars (Issues)", pct: 3, color: "#EF4444" },
+  ];
 
-        {/* Search Bar */}
-        <div className="input-group input-group-sm" style={{ width: "260px" }}>
-          <span className="input-group-text bg-dark border-secondary border-opacity-25 text-secondary">
-            <FiSearch />
-          </span>
-          <input 
-            type="text"
-            className="form-control bg-dark text-white border-secondary border-opacity-25"
-            placeholder="Search feedback..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+  const categoryActivity = [
+    { category: "Daily Survey", count: 48, pct: 90 },
+    { category: "Parent Portal", count: 32, pct: 65 },
+    { category: "Focus Timer", count: 26, pct: 52 },
+    { category: "Senior Care", count: 18, pct: 38 },
+  ];
+
+  return (
+    <div className="admin-feedback-section" style={{ maxWidth: "1500px", margin: "0 auto" }}>
+      {/* Header & Search */}
+      <div className="p-4 rounded-4 mb-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
+        <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+          <div>
+            <h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+              <FiMessageSquare className="text-primary" /> User Feedback & Satisfaction
+            </h4>
+            <p className="text-secondary small mb-0">
+              Review user ratings, category feedback, mark items as resolved, and track user satisfaction
+            </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border" style={{ maxWidth: "280px", borderColor: "#CBD5E1" }}>
+            <span className="input-group-text bg-white border-0 ps-3 text-secondary">
+              <FiSearch size={15} />
+            </span>
+            <input 
+              type="text"
+              className="form-control border-0 bg-white pe-3"
+              placeholder="Search feedback..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ fontSize: "0.85rem" }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Feedback Items Grid */}
-      <div className="row g-3">
-        {filteredFeedbacks.length > 0 ? (
-          filteredFeedbacks.map((fb) => (
-            <div key={fb.id} className="col-12 col-md-6">
-              <div 
-                className="p-4 rounded-4 text-white h-100 d-flex flex-column justify-content-between"
-                style={{
-                  background: "rgba(15, 23, 42, 0.75)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                }}
-              >
-                <div>
-                  {/* Top Header: User Info & Status */}
-                  <div className="d-flex align-items-center justify-content-between mb-2">
+      {/* VISUAL CHARTS ROW: RATING PIE/DONUT CHART + CATEGORY BAR CHART */}
+      <div className="row g-4 mb-4">
+        {/* 1. RATING PIE/DONUT CHART */}
+        <div className="col-12 col-lg-5">
+          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
+              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+                <FiPieChart style={{ color: "#F59E0B" }} /> Satisfaction Rating Breakdown
+              </h6>
+              <span className="extra-small text-secondary fw-semibold">Overall 4.8 / 5.0</span>
+            </div>
+
+            <div className="d-flex flex-column align-items-center justify-content-center py-2">
+              <div className="position-relative d-flex align-items-center justify-content-center mb-3">
+                <svg width="150" height="150" viewBox="0 0 42 42" className="donut-svg">
+                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F1F5F9" strokeWidth="4.5" />
+                  {/* Segment 1: 5 Stars 68% */}
+                  <circle
+                    cx="21"
+                    cy="21"
+                    r="15.91549430918954"
+                    fill="transparent"
+                    stroke="#10B981"
+                    strokeWidth="4.5"
+                    strokeDasharray="68 32"
+                    strokeDashoffset="25"
+                  />
+                  {/* Segment 2: 4 Stars 22% */}
+                  <circle
+                    cx="21"
+                    cy="21"
+                    r="15.91549430918954"
+                    fill="transparent"
+                    stroke="#7C5CFC"
+                    strokeWidth="4.5"
+                    strokeDasharray="22 78"
+                    strokeDashoffset="-43"
+                  />
+                  {/* Segment 3: 3 Stars 7% */}
+                  <circle
+                    cx="21"
+                    cy="21"
+                    r="15.91549430918954"
+                    fill="transparent"
+                    stroke="#F59E0B"
+                    strokeWidth="4.5"
+                    strokeDasharray="7 93"
+                    strokeDashoffset="-65"
+                  />
+                </svg>
+                <div className="position-absolute text-center">
+                  <span className="fw-bold d-block text-dark lh-1" style={{ fontSize: "1.25rem" }}>4.8 ★</span>
+                  <span className="extra-small text-secondary" style={{ fontSize: "0.68rem" }}>Avg Score</span>
+                </div>
+              </div>
+
+              {/* Legend List */}
+              <div className="w-100 d-flex flex-column gap-2">
+                {ratingDistribution.map((item, idx) => (
+                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: "#F8FAFC" }}>
                     <div className="d-flex align-items-center gap-2">
-                      <div className="rounded-circle bg-primary bg-opacity-20 text-primary fw-bold d-flex align-items-center justify-content-center" style={{ width: "36px", height: "36px" }}>
-                        {fb.user.charAt(0)}
-                      </div>
-                      <div>
-                        <h6 className="fw-bold text-white mb-0">{fb.user}</h6>
-                        <span className="text-secondary extra-small">{fb.email} • <strong className="text-info">{fb.role}</strong></span>
-                      </div>
+                      <span className="rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: item.color }} />
+                      <span className="small fw-semibold text-dark" style={{ fontSize: "0.82rem" }}>{item.label}</span>
                     </div>
-
-                    <span className={`badge ${fb.status === "Resolved" ? "bg-success" : "bg-warning"} bg-opacity-20 ${fb.status === "Resolved" ? "text-success" : "text-warning"} px-3 py-1 rounded-pill small`}>
-                      {fb.status === "Resolved" ? "✅ Resolved" : "⏳ Pending"}
-                    </span>
+                    <span className="extra-small fw-bold text-dark">{item.pct}%</span>
                   </div>
-
-                  {/* Rating & Category */}
-                  <div className="d-flex align-items-center gap-2 my-2">
-                    <div className="d-flex text-warning">
-                      {[...Array(fb.rating)].map((_, i) => (
-                        <FiStar key={i} size={14} fill="#f59e0b" />
-                      ))}
-                    </div>
-                    <span className="badge bg-secondary bg-opacity-20 text-white extra-small">
-                      {fb.category}
-                    </span>
-                  </div>
-
-                  {/* Comment Text */}
-                  <p className="text-white-80 small mb-3" style={{ lineHeight: "1.5" }}>
-                    "{fb.comment}"
-                  </p>
-                </div>
-
-                {/* Footer Controls */}
-                <div className="d-flex align-items-center justify-content-between border-top border-secondary border-opacity-25 pt-3 mt-2">
-                  <span className="text-secondary extra-small d-flex align-items-center gap-1">
-                    <FiClock size={12} /> Received: {fb.date}
-                  </span>
-
-                  <div className="d-flex gap-1.5">
-                    <button
-                      onClick={() => toggleResolve(fb.id)}
-                      className={`btn ${fb.status === "Resolved" ? "btn-outline-secondary" : "btn-outline-success"} btn-sm px-3 rounded-pill extra-small d-inline-flex align-items-center gap-1`}
-                    >
-                      <FiCheckCircle size={12} /> {fb.status === "Resolved" ? "Mark Pending" : "Mark Resolved"}
-                    </button>
-
-                    <button
-                      onClick={() => deleteFeedback(fb.id)}
-                      className="btn btn-outline-danger btn-sm px-2.5 rounded-pill extra-small"
-                      title="Delete Feedback"
-                    >
-                      <FiTrash2 size={12} />
-                    </button>
-                  </div>
-                </div>
-
+                ))}
               </div>
             </div>
-          ))
-        ) : (
-          <div className="col-12 text-center text-secondary py-5">
-            No feedback entries found matching your search term.
           </div>
-        )}
+        </div>
+
+        {/* 2. CATEGORY ACTIVITY BAR CHART */}
+        <div className="col-12 col-lg-7">
+          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
+              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+                <FiBarChart2 style={{ color: "#7C5CFC" }} /> Feedback Volume by Category
+              </h6>
+              <span className="extra-small text-secondary fw-semibold">Total Submissions</span>
+            </div>
+
+            <div className="d-flex flex-column gap-3 py-2">
+              {categoryActivity.map((item, idx) => (
+                <div key={idx}>
+                  <div className="d-flex justify-content-between small mb-1">
+                    <span className="fw-semibold text-dark" style={{ fontSize: "0.85rem" }}>{item.category}</span>
+                    <span className="extra-small fw-bold text-secondary">{item.count} Submissions ({item.pct}%)</span>
+                  </div>
+                  <div className="progress" style={{ height: "10px", background: "#F1F5F9" }}>
+                    <div 
+                      className="progress-bar rounded-pill" 
+                      style={{ 
+                        width: `${item.pct}%`, 
+                        background: idx === 0 ? "linear-gradient(90deg, #7C5CFC, #4F8CFF)" : idx === 1 ? "linear-gradient(90deg, #06B6D4, #0891B2)" : idx === 2 ? "linear-gradient(90deg, #10B981, #059669)" : "linear-gradient(90deg, #F59E0B, #D97706)",
+                        transition: "width 0.6s ease" 
+                      }} 
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Feedback Items Grid Card */}
+      <div className="p-4 rounded-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
+        <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3" style={{ borderColor: "#E2E8F0" }}>
+          <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+            <FiMessageSquare style={{ color: "#7C5CFC" }} /> Customer Feedback Activity Log
+          </h6>
+          <span className="extra-small text-secondary fw-semibold">
+            Showing {filteredFeedbacks.length} Entries
+          </span>
+        </div>
+
+        <div className="row g-3">
+          {filteredFeedbacks.length > 0 ? (
+            filteredFeedbacks.map((fb) => (
+              <div key={fb.id} className="col-12 col-md-6">
+                <div 
+                  className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between border transition-all"
+                  style={{
+                    background: "#F8FAFC",
+                    borderColor: "#E2E8F0",
+                  }}
+                >
+                  <div>
+                    {/* Top Header: User Info & Status */}
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <div className="d-flex align-items-center gap-2">
+                        <div 
+                          className="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center shadow-sm" 
+                          style={{ width: "36px", height: "36px", background: "linear-gradient(135deg, #7C5CFC, #4F8CFF)", fontSize: "0.9rem" }}
+                        >
+                          {fb.user.charAt(0)}
+                        </div>
+                        <div>
+                          <h6 className="fw-bold text-dark mb-0" style={{ fontSize: "0.92rem" }}>{fb.user}</h6>
+                          <span className="text-secondary extra-small" style={{ fontSize: "0.75rem" }}>{fb.email} • <strong style={{ color: "#7C5CFC" }}>{fb.role}</strong></span>
+                        </div>
+                      </div>
+
+                      <span 
+                        className="px-2.5 py-1 rounded-pill extra-small fw-bold"
+                        style={{
+                          background: fb.status === "Resolved" ? "rgba(16, 185, 129, 0.12)" : "rgba(245, 158, 11, 0.12)",
+                          color: fb.status === "Resolved" ? "#047857" : "#B45309",
+                        }}
+                      >
+                        {fb.status === "Resolved" ? "✅ Resolved" : "⏳ Pending"}
+                      </span>
+                    </div>
+
+                    {/* Rating & Category */}
+                    <div className="d-flex align-items-center gap-2 my-2">
+                      <div className="d-flex text-warning">
+                        {[...Array(fb.rating)].map((_, i) => (
+                          <FiStar key={i} size={14} fill="#F59E0B" color="#F59E0B" />
+                        ))}
+                      </div>
+                      <span className="px-2 py-0.5 rounded extra-small fw-bold bg-white text-secondary border" style={{ fontSize: "0.73rem" }}>
+                        {fb.category}
+                      </span>
+                    </div>
+
+                    {/* Comment Text */}
+                    <p className="text-dark small mb-3" style={{ lineHeight: "1.5", fontSize: "0.86rem" }}>
+                      "{fb.comment}"
+                    </p>
+                  </div>
+
+                  {/* Footer Controls */}
+                  <div className="d-flex align-items-center justify-content-between border-top pt-3 mt-2" style={{ borderColor: "#E2E8F0" }}>
+                    <span className="text-secondary extra-small d-flex align-items-center gap-1" style={{ fontSize: "0.76rem" }}>
+                      <FiClock size={12} /> Received: {fb.date}
+                    </span>
+
+                    <div className="d-flex gap-1.5">
+                      <button
+                        onClick={() => toggleResolve(fb.id)}
+                        className={`btn btn-sm px-3 rounded-pill extra-small fw-semibold d-inline-flex align-items-center gap-1 border-0`}
+                        style={{
+                          background: fb.status === "Resolved" ? "#E2E8F0" : "rgba(16, 185, 129, 0.15)",
+                          color: fb.status === "Resolved" ? "#475569" : "#047857",
+                          fontSize: "0.75rem"
+                        }}
+                      >
+                        <FiCheckCircle size={12} /> {fb.status === "Resolved" ? "Mark Pending" : "Mark Resolved"}
+                      </button>
+
+                      <button
+                        onClick={() => deleteFeedback(fb.id)}
+                        className="btn btn-sm p-1.5 rounded-circle border-0 text-danger"
+                        style={{ background: "rgba(239, 68, 68, 0.12)" }}
+                        title="Delete Feedback"
+                      >
+                        <FiTrash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-12 text-center text-secondary py-5 small">
+              No feedback entries found matching your search term.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

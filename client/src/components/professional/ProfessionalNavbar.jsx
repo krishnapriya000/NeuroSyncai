@@ -1,13 +1,44 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSearch, FiBell, FiMenu, FiUser, FiSettings, FiLogOut, FiChevronDown, FiBriefcase, FiSun, FiMoon } from "react-icons/fi";
+import { FiSearch, FiBell, FiMenu, FiUser, FiSettings, FiLogOut, FiChevronDown, FiBriefcase, FiSun, FiMoon, FiX } from "react-icons/fi";
+
+const PROFESSIONAL_SEARCH_ITEMS = [
+  { id: "dash", title: "Professional Dashboard", category: "Core", path: "/professional/dashboard", keywords: ["dashboard", "home", "overview", "summary"], icon: "💼" },
+  { id: "focus", title: "Focus Sessions & Pomodoro Timer", category: "Productivity", path: "/professional/focus", keywords: ["focus", "timer", "pomodoro", "work", "deep work", "session"], icon: "⏱️" },
+  { id: "mood", title: "Mood & Stress Tracker", category: "Wellbeing", path: "/professional/mood-tracker", keywords: ["mood", "stress", "emotional", "tracker", "checkin"], icon: "😊" },
+  { id: "journal", title: "Reflective Journal & Notes", category: "Wellbeing", path: "/professional/journal", keywords: ["journal", "notes", "thoughts", "writing", "diary"], icon: "📖" },
+  { id: "insights", title: "Work-Life Balance Insights", category: "Analytics", path: "/professional/insights", keywords: ["insights", "analytics", "balance", "stats", "work-life"], icon: "📈" },
+  { id: "profile", title: "Profile & Account Settings", category: "Account", path: "/professional/profile", keywords: ["profile", "settings", "account", "user", "password"], icon: "👤" },
+];
 
 function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onTabChange }) {
   const navigate = useNavigate();
+  const searchInputRef = useRef(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [displayName, setDisplayName] = useState(userName);
   const [userPhoto, setUserPhoto] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Keyboard shortcut listener (Ctrl+K or Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchOpen(true);
+        searchInputRef.current?.focus();
+      }
+      if (e.key === "Escape") {
+        setIsSearchOpen(false);
+        searchInputRef.current?.blur();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("neurosync_theme") || "dark";
@@ -50,6 +81,18 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
     navigate("/login");
   };
 
+  // Filter Search Items
+  const filteredResults = searchQuery.trim() === ""
+    ? PROFESSIONAL_SEARCH_ITEMS
+    : PROFESSIONAL_SEARCH_ITEMS.filter((item) => {
+        const q = searchQuery.toLowerCase().trim();
+        return (
+          item.title.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q) ||
+          item.keywords.some((kw) => kw.toLowerCase().includes(q))
+        );
+      });
+
   return (
     <header className="ns-topbar">
       {/* Left: Mobile Menu Toggle & Greeting */}
@@ -72,14 +115,115 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
       </div>
 
       {/* Center: Search Bar */}
-      <div className="ns-search-box d-none d-sm-block">
+      <div className="ns-search-box position-relative d-none d-sm-block">
         <FiSearch className="ns-search-icon" />
         <input 
+          ref={searchInputRef}
           type="text" 
           className="ns-search-input" 
-          placeholder="Search insights, tasks..." 
+          placeholder="Search insights, tasks... (⌘K)" 
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setIsSearchOpen(true);
+          }}
+          onFocus={() => setIsSearchOpen(true)}
         />
-        <span className="ns-search-kbd">⌘K</span>
+        {searchQuery ? (
+          <button
+            type="button"
+            className="btn btn-sm p-0 border-0 position-absolute end-0 top-50 translate-middle-y me-3 text-muted"
+            style={{ fontSize: "0.8rem", cursor: "pointer" }}
+            onClick={() => {
+              setSearchQuery("");
+              setIsSearchOpen(false);
+            }}
+            title="Clear Search"
+          >
+            <FiX size={15} />
+          </button>
+        ) : (
+          <span className="ns-search-kbd">⌘K</span>
+        )}
+
+        {/* Live Search Modal / Results Dropdown */}
+        {isSearchOpen && (
+          <>
+            {/* Backdrop click listener */}
+            <div 
+              className="position-fixed"
+              style={{ top: 0, left: 0, right: 0, bottom: 0, zIndex: 1040 }}
+              onClick={() => setIsSearchOpen(false)}
+            />
+
+            <div 
+              className="position-absolute start-0 mt-2 p-2 rounded-4 shadow-lg"
+              style={{
+                width: "360px",
+                maxHeight: "380px",
+                background: theme === "light" ? "#FFFFFF" : "#0F172A",
+                border: theme === "light" ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                color: theme === "light" ? "#0F172A" : "#FFFFFF",
+                boxShadow: theme === "light" ? "0 12px 36px rgba(0, 0, 0, 0.15)" : "0 12px 36px rgba(0, 0, 0, 0.6)",
+                zIndex: 1050,
+                display: "flex",
+                flexDirection: "column"
+              }}
+            >
+              <div className="px-3 py-2 border-bottom d-flex align-items-center justify-content-between" style={{ borderColor: theme === "light" ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
+                <span className="extra-small fw-bold text-uppercase tracking-wider" style={{ color: theme === "light" ? "#64748B" : "#94A3B8", fontSize: "0.72rem" }}>
+                  {searchQuery.trim() ? `Search Results (${filteredResults.length})` : "Quick Navigation & Features"}
+                </span>
+                <span className="badge bg-primary bg-opacity-15 text-primary extra-small px-2 py-0.5 rounded-pill" style={{ fontSize: "0.7rem" }}>⌘K Shortcut</span>
+              </div>
+
+              <div className="p-1 overflow-y-auto" style={{ maxHeight: "310px" }}>
+                {filteredResults.length > 0 ? (
+                  filteredResults.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="w-100 btn text-start p-2.5 rounded-3 d-flex align-items-center justify-content-between border-0 transition-all mb-1"
+                      style={{
+                        background: "transparent",
+                        color: theme === "light" ? "#0F172A" : "#F8FAFC",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = theme === "light" ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        setSearchQuery("");
+                        navigate(item.path);
+                      }}
+                    >
+                      <div className="d-flex align-items-center gap-2.5 overflow-hidden">
+                        <span className="fs-5 flex-shrink-0">{item.icon}</span>
+                        <div className="overflow-hidden">
+                          <div className="fw-semibold text-truncate" style={{ fontSize: "0.86rem", color: theme === "light" ? "#0F172A" : "#FFFFFF" }}>
+                            {item.title}
+                          </div>
+                          <div className="extra-small text-truncate" style={{ fontSize: "0.72rem", color: theme === "light" ? "#64748B" : "#94A3B8" }}>
+                            {item.path}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="badge rounded-pill extra-small px-2 py-1 ms-2 flex-shrink-0" style={{ background: "rgba(99, 102, 241, 0.15)", color: "#818cf8", border: "1px solid rgba(99, 102, 241, 0.25)", fontSize: "0.68rem" }}>
+                        {item.category}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-muted" style={{ fontSize: "0.85rem" }}>
+                    No matching features for "<strong>{searchQuery}</strong>".
+                    <div className="mt-1 extra-small opacity-75" style={{ fontSize: "0.75rem" }}>Try searching "focus", "insights", "journal", or "mood".</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Right: Notifications & User Profile Menu */}

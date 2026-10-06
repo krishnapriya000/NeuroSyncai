@@ -321,18 +321,27 @@ select::placeholder {
 /* Top Navbar */
 .ns-topbar {
   height: var(--ns-topbar-height);
-  position: sticky;
+  position: fixed;
   top: 0;
+  right: 0;
+  left: var(--ns-sidebar-width);
   z-index: 1020;
   background: rgba(5, 8, 22, 0.85);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--ns-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  margin-left: var(--ns-sidebar-width);
+  margin-left: 0;
   transition: var(--ns-transition);
+}
+
+[data-theme="light"] .ns-topbar,
+body.light-theme .ns-topbar {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
 .ns-brand-logo {
@@ -414,6 +423,7 @@ select::placeholder {
 .ns-main-content {
   margin-left: var(--ns-sidebar-width);
   padding: 2rem;
+  margin-top: var(--ns-topbar-height);
   min-height: calc(100vh - var(--ns-topbar-height));
   transition: var(--ns-transition);
 }
@@ -828,6 +838,7 @@ select::placeholder {
   }
 
   .ns-topbar {
+    left: 0;
     margin-left: 0;
     padding: 0 1rem;
   }
@@ -1238,6 +1249,183 @@ body.light-theme .ns-search-input {
 [data-theme="light"] .ns-search-icon,
 body.light-theme .ns-search-icon {
   color: #64748b !important;
+}
+
+/* ADMIN DASHBOARD LIGHT MODE OVERRIDES */
+[data-theme="light"] .admin-dashboard-layout,
+body.light-theme .admin-dashboard-layout {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .admin-header,
+body.light-theme .admin-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Premium Dark Admin Sidebar Enforcement */
+.admin-sidebar,
+[data-theme="light"] .admin-sidebar,
+body.light-theme .admin-sidebar {
+  background: #15132B !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #E5E7EB !important;
+}
+
+.admin-sidebar .ns-sidebar-btn,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn,
+body.light-theme .admin-sidebar .ns-sidebar-btn {
+  color: #94A3B8 !important;
+  background: transparent !important;
+}
+
+.admin-sidebar .ns-sidebar-btn span,
+.admin-sidebar .ns-sidebar-btn svg,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn span,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn svg,
+body.light-theme .admin-sidebar .ns-sidebar-btn span,
+body.light-theme .admin-sidebar .ns-sidebar-btn svg {
+  color: #94A3B8 !important;
+}
+
+.admin-sidebar .ns-sidebar-btn:hover,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn:hover,
+body.light-theme .admin-sidebar .ns-sidebar-btn:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #FFFFFF !important;
+}
+
+.admin-sidebar .ns-sidebar-btn:hover span,
+.admin-sidebar .ns-sidebar-btn:hover svg,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn:hover span,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn:hover svg,
+body.light-theme .admin-sidebar .ns-sidebar-btn:hover span,
+body.light-theme .admin-sidebar .ns-sidebar-btn:hover svg {
+  color: #FFFFFF !important;
+}
+
+.admin-sidebar .ns-sidebar-btn.active,
+.admin-sidebar .nav-link.active,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn.active,
+[data-theme="light"] .admin-sidebar .nav-link.active,
+body.light-theme .admin-sidebar .ns-sidebar-btn.active,
+body.light-theme .admin-sidebar .nav-link.active {
+  background: linear-gradient(135deg, #7C5CFC 0%, #4F8CFF 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 16px rgba(124, 92, 252, 0.4) !important;
+  opacity: 1 !important;
+}
+
+.admin-sidebar .ns-sidebar-btn.active span,
+.admin-sidebar .ns-sidebar-btn.active svg,
+.admin-sidebar .nav-link.active span,
+.admin-sidebar .nav-link.active svg,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn.active span,
+[data-theme="light"] .admin-sidebar .ns-sidebar-btn.active svg,
+[data-theme="light"] .admin-sidebar .nav-link.active span,
+[data-theme="light"] .admin-sidebar .nav-link.active svg,
+body.light-theme .admin-sidebar .ns-sidebar-btn.active span,
+body.light-theme .admin-sidebar .ns-sidebar-btn.active svg,
+body.light-theme .admin-sidebar .nav-link.active span,
+body.light-theme .admin-sidebar .nav-link.active svg {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout div[style*="rgba(15, 23, 42"]:not(.admin-sidebar),
+[data-theme="light"] .admin-dashboard-layout div[style*="#030712"]:not(.admin-sidebar),
+[data-theme="light"] .admin-dashboard-layout .card:not(.admin-sidebar),
+[data-theme="light"] .admin-dashboard-layout .p-4.rounded-4:not(.admin-sidebar),
+body.light-theme .admin-dashboard-layout div[style*="rgba(15, 23, 42"]:not(.admin-sidebar),
+body.light-theme .admin-dashboard-layout div[style*="#030712"]:not(.admin-sidebar),
+body.light-theme .admin-dashboard-layout .card:not(.admin-sidebar),
+body.light-theme .admin-dashboard-layout .p-4.rounded-4:not(.admin-sidebar) {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout .main-content .text-white,
+[data-theme="light"] .admin-dashboard-layout .main-content h1,
+[data-theme="light"] .admin-dashboard-layout .main-content h2,
+[data-theme="light"] .admin-dashboard-layout .main-content h3,
+[data-theme="light"] .admin-dashboard-layout .main-content h4,
+[data-theme="light"] .admin-dashboard-layout .main-content h5,
+[data-theme="light"] .admin-dashboard-layout .main-content h6,
+body.light-theme .admin-dashboard-layout .main-content .text-white,
+body.light-theme .admin-dashboard-layout .main-content h1,
+body.light-theme .admin-dashboard-layout .main-content h2,
+body.light-theme .admin-dashboard-layout .main-content h3,
+body.light-theme .admin-dashboard-layout .main-content h4,
+body.light-theme .admin-dashboard-layout .main-content h5,
+body.light-theme .admin-dashboard-layout .main-content h6 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout .text-secondary,
+body.light-theme .admin-dashboard-layout .text-secondary {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout .bg-dark,
+[data-theme="light"] .admin-dashboard-layout div[class*="bg-dark"],
+body.light-theme .admin-dashboard-layout .bg-dark,
+body.light-theme .admin-dashboard-layout div[class*="bg-dark"] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout table,
+[data-theme="light"] .admin-dashboard-layout .table,
+[data-theme="light"] .admin-dashboard-layout .table-dark,
+body.light-theme .admin-dashboard-layout table,
+body.light-theme .admin-dashboard-layout .table,
+body.light-theme .admin-dashboard-layout .table-dark {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout table th,
+[data-theme="light"] .admin-dashboard-layout .table th,
+[data-theme="light"] .admin-dashboard-layout .table-dark th,
+body.light-theme .admin-dashboard-layout table th,
+body.light-theme .admin-dashboard-layout .table th,
+body.light-theme .admin-dashboard-layout .table-dark th {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout table td,
+[data-theme="light"] .admin-dashboard-layout .table td,
+[data-theme="light"] .admin-dashboard-layout .table-dark td,
+body.light-theme .admin-dashboard-layout table td,
+body.light-theme .admin-dashboard-layout .table td,
+body.light-theme .admin-dashboard-layout .table-dark td {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout table tr:hover td,
+[data-theme="light"] .admin-dashboard-layout .table tr:hover td,
+[data-theme="light"] .admin-dashboard-layout .table-dark tr:hover td,
+body.light-theme .admin-dashboard-layout table tr:hover td,
+body.light-theme .admin-dashboard-layout .table tr:hover td,
+body.light-theme .admin-dashboard-layout .table-dark tr:hover td {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .admin-dashboard-layout .input-group-text,
+body.light-theme .admin-dashboard-layout .input-group-text {
+  background-color: #f1f5f9 !important;
+  color: #64748b !important;
+  border-color: #cbd5e1 !important;
 }
 
 [data-theme="light"] .ns-search-kbd,
