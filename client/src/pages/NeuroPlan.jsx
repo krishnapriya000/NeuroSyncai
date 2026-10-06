@@ -5,6 +5,7 @@ import ProfessionalSidebar from "../components/professional/ProfessionalSidebar"
 import TopNavbar from "../components/dashboard/TopNavbar";
 import ProfessionalNavbar from "../components/professional/ProfessionalNavbar";
 import DashboardFooter from "../components/dashboard/DashboardFooter";
+import WeeklyToDoPlanner from "../components/dashboard/WeeklyToDoPlanner";
 
 import {
   FiCalendar,
@@ -77,6 +78,9 @@ function NeuroPlan() {
       </div>
     );
   };
+
+  // View Mode: "weekly-todo" (Aesthetic Weekly To-Do Planner) vs "ai-daily" (AI Daily Schedule)
+  const [activeViewTab, setActiveViewTab] = useState("weekly-todo");
 
   // Navigation & User State
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -593,8 +597,43 @@ function NeuroPlan() {
           </div>
         </div>
 
-        {/* SECTION B: DAILY OVERVIEW CARDS */}
-        <div className="row g-3 mb-4">
+        {/* VIEW MODE SELECTION TABS */}
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 p-2.5 rounded-4 ns-view-tab-container">
+          <div className="nav nav-pills gap-2">
+            <button
+              type="button"
+              className={`nav-link rounded-pill px-3.5 py-2.5 fw-bold d-flex align-items-center gap-2 border-0 transition-all ${
+                activeViewTab === "weekly-todo" ? "text-white shadow-lg ns-keep-white" : "ns-view-tab-btn-inactive"
+              }`}
+              style={activeViewTab === "weekly-todo" ? { background: "linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%)", boxShadow: "0 4px 15px rgba(236, 72, 153, 0.3)" } : { background: "transparent" }}
+              onClick={() => setActiveViewTab("weekly-todo")}
+            >
+              <span>🌸 Aesthetic Weekly To-Do Planner</span>
+              <span className="badge bg-white text-dark rounded-pill px-2 py-0.5 ms-1" style={{ fontSize: "0.68rem" }}>Popular</span>
+            </button>
+
+            <button
+              type="button"
+              className={`nav-link rounded-pill px-3.5 py-2.5 fw-bold d-flex align-items-center gap-2 border-0 transition-all ${
+                activeViewTab === "ai-daily" ? "text-white shadow-lg ns-keep-white" : "ns-view-tab-btn-inactive"
+              }`}
+              style={activeViewTab === "ai-daily" ? { background: "linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)", boxShadow: "0 4px 15px rgba(99, 102, 241, 0.3)" } : { background: "transparent" }}
+              onClick={() => setActiveViewTab("ai-daily")}
+            >
+              <FiZap />
+              <span>AI Daily Focus Schedule</span>
+            </button>
+          </div>
+        </div>
+
+        {activeViewTab === "weekly-todo" ? (
+          <div className="mb-5">
+            <WeeklyToDoPlanner userRole={user?.role} />
+          </div>
+        ) : (
+          <>
+            {/* SECTION B: DAILY OVERVIEW CARDS */}
+            <div className="row g-3 mb-4">
           <div className="col-6 col-md-4 col-lg-2">
             <div className="ns-overview-metric-card h-100 d-flex flex-column justify-content-between">
               <span className="text-muted extra-small fw-semibold text-uppercase tracking-wider" style={{ fontSize: "0.72rem" }}>Wake Up</span>
@@ -1332,6 +1371,8 @@ function NeuroPlan() {
               </div>
             </div>
           </div>
+        )}
+        </>
         )}
       </main>
 

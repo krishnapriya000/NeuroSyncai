@@ -123,16 +123,16 @@ function AttentionChallengeGame({ onClose, onGameComplete, initialDifficulty = "
   };
 
   return (
-    <div className="ns-card p-4 p-md-5 rounded-4 border border-secondary border-opacity-25" style={{ background: "rgba(15, 23, 42, 0.95)" }}>
+    <div className="ns-card p-4 p-md-5 rounded-4 shadow-sm">
       {/* Top Header */}
       <div className="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary border-opacity-25 pb-3">
         <div className="d-flex align-items-center gap-3">
-          <button className="btn btn-sm btn-outline-light rounded-circle p-2" onClick={onClose} title="Back to Games">
+          <button className="btn btn-sm btn-outline-secondary rounded-circle p-2 btn-animated" onClick={onClose} title="Back to Games">
             <FiArrowLeft size={18} />
           </button>
           <div>
-            <h3 className="text-white fw-bold mb-0">🎯 Attention Challenge</h3>
-            <span className="text-muted small">Spot and select the target item as quickly as possible</span>
+            <h3 className="text-theme-primary fw-bold mb-0">🎯 Attention Challenge</h3>
+            <span className="text-theme-secondary small">Spot and select the target item as quickly as possible</span>
           </div>
         </div>
 
@@ -141,7 +141,7 @@ function AttentionChallengeGame({ onClose, onGameComplete, initialDifficulty = "
             {["Easy", "Medium", "Hard"].map((lvl) => (
               <button
                 key={lvl}
-                className={`btn btn-sm ${difficulty === lvl ? "btn-primary" : "btn-outline-secondary"}`}
+                className={`btn btn-sm rounded-pill px-3 ${difficulty === lvl ? "btn-primary fw-bold" : "btn-outline-secondary"}`}
                 onClick={() => setDifficulty(lvl)}
               >
                 {lvl}
@@ -152,10 +152,10 @@ function AttentionChallengeGame({ onClose, onGameComplete, initialDifficulty = "
 
         {gameState === "playing" && (
           <div className="d-flex align-items-center gap-4">
-            <div className="text-white fw-bold d-flex align-items-center gap-1 fs-6">
-              <FiClock className="text-purple-400" /> {timeTaken}s
+            <div className="text-theme-primary fw-bold d-flex align-items-center gap-1.5 fs-6">
+              <FiClock className="text-purple-500" /> {timeTaken}s
             </div>
-            <span className="badge bg-primary px-3 py-1 rounded-pill">
+            <span className="badge bg-primary px-3 py-1.5 rounded-pill fw-bold">
               Round {currentRound + 1} / {totalRounds}
             </span>
           </div>
@@ -165,23 +165,23 @@ function AttentionChallengeGame({ onClose, onGameComplete, initialDifficulty = "
       {/* INSTRUCTIONS VIEW */}
       {gameState === "instructions" && (
         <div className="py-4 text-center mx-auto" style={{ maxWidth: "550px" }}>
-          <div className="fs-1 mb-3">🎯</div>
-          <h4 className="text-white fw-bold mb-2">How to Play</h4>
-          <p className="text-white-50 mb-4" style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
+          <div className="fs-1 mb-3 ns-float-icon">🎯</div>
+          <h4 className="text-theme-primary fw-bold mb-2">How to Play</h4>
+          <p className="text-theme-secondary mb-4" style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
             A target item will be displayed at the top. Scan the grid quickly and click on the target item before time runs out!
           </p>
           <div className="d-flex justify-content-center gap-3 mb-4">
-            <div className="p-3 rounded bg-dark border border-secondary border-opacity-25 flex-grow-1 text-center">
-              <div className="text-muted small mb-1">Difficulty</div>
+            <div className="p-3 rounded-3 ns-stat-card-item flex-grow-1 text-center">
+              <div className="text-theme-secondary small mb-1">Difficulty</div>
               <div className="text-primary fw-bold">{difficulty}</div>
             </div>
-            <div className="p-3 rounded bg-dark border border-secondary border-opacity-25 flex-grow-1 text-center">
-              <div className="text-muted small mb-1">Grid Size</div>
-              <div className="text-white fw-bold">{gridSize} Tiles</div>
+            <div className="p-3 rounded-3 ns-stat-card-item flex-grow-1 text-center">
+              <div className="text-theme-secondary small mb-1">Grid Size</div>
+              <div className="text-theme-primary fw-bold">{gridSize} Tiles</div>
             </div>
           </div>
           <button
-            className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold w-100 shadow"
+            className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold w-100 shadow btn-animated"
             onClick={handleStartGame}
           >
             <FiPlay className="me-2" /> Start Game
@@ -193,8 +193,8 @@ function AttentionChallengeGame({ onClose, onGameComplete, initialDifficulty = "
       {gameState === "playing" && (
         <div className="py-2 text-center mx-auto" style={{ maxWidth: "500px" }}>
           {/* Target Display */}
-          <div className="p-3 mb-4 rounded-4 bg-dark border border-primary border-opacity-30 d-flex align-items-center justify-content-center gap-3">
-            <span className="text-white-50 fw-semibold">Target to click:</span>
+          <div className="p-3 mb-4 rounded-4 ns-score-hero-card d-flex align-items-center justify-content-center gap-3">
+            <span className="text-theme-secondary fw-semibold">Target to click:</span>
             <span className="fs-2">{targetItem}</span>
           </div>
 
@@ -206,8 +206,8 @@ function AttentionChallengeGame({ onClose, onGameComplete, initialDifficulty = "
                 className={gridSize === 16 ? "col-3" : gridSize === 12 ? "col-3" : "col-4"}
               >
                 <button
-                  className="btn btn-outline-secondary p-3 w-100 rounded-3 fs-2 border border-secondary border-opacity-25 bg-dark shadow-sm hover-scale"
-                  style={{ minHeight: "75px", transition: "transform 0.1s" }}
+                  className="btn btn-outline-secondary p-3 w-100 rounded-3 fs-2 ns-stat-card-item shadow-sm btn-animated"
+                  style={{ minHeight: "75px" }}
                   onClick={() => handleTileClick(item)}
                 >
                   {item}

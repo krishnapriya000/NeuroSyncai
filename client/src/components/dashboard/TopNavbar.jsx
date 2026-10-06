@@ -82,17 +82,18 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
       {/* Left: Mobile Menu Toggle & Greeting */}
       <div className="d-flex align-items-center gap-3">
         <button 
-          className="btn text-white p-1 d-lg-none border-0" 
+          className="btn p-1 d-lg-none border-0" 
+          style={{ color: theme === "light" ? "#0F172A" : "#FFFFFF" }}
           onClick={toggleSidebar}
           aria-label="Toggle Sidebar"
         >
           <FiMenu size={24} />
         </button>
         <div>
-          <h2 className="mb-0 text-white fw-bold fs-5 d-flex align-items-center gap-2">
-            Welcome back, <span className="text-transparent bg-clip-text" style={{ background: "linear-gradient(135deg, #60A5FA, #A78BFA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{displayName}</span> 👋
+          <h2 className="mb-0 fw-bold fs-5 d-flex align-items-center gap-2" style={{ color: theme === "light" ? "#0F172A" : "#FFFFFF" }}>
+            Welcome back, <span className="text-transparent bg-clip-text" style={{ background: "linear-gradient(135deg, #3B82F6, #8B5CF6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{displayName}</span> 👋
           </h2>
-          <p className="mb-0 text-muted d-none d-md-block" style={{ fontSize: "0.8rem" }}>
+          <p className="mb-0 d-none d-md-block" style={{ fontSize: "0.8rem", color: theme === "light" ? "#64748B" : "#94A3B8" }}>
             Here is your cognitive & emotional summary for today.
           </p>
         </div>
@@ -113,8 +114,14 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
       <div className="d-flex align-items-center gap-2 gap-sm-3 position-relative">
         {/* Theme Mode Toggle Button */}
         <button
-          className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center text-white border-0 position-relative"
-          style={{ width: "42px", height: "42px", background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+          className="btn rounded-circle p-2 d-flex align-items-center justify-content-center border-0 position-relative transition-all shadow-sm"
+          style={{ 
+            width: "42px", 
+            height: "42px", 
+            background: theme === "light" ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)", 
+            border: theme === "light" ? "1px solid #CBD5E1" : "1px solid rgba(255, 255, 255, 0.12)",
+            color: theme === "light" ? "#0F172A" : "#FFFFFF" 
+          }}
           onClick={toggleTheme}
           title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Theme`}
           aria-label="Toggle Theme"
@@ -122,19 +129,25 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
           {theme === "dark" ? <FiSun size={18} className="text-warning" /> : <FiMoon size={18} className="text-primary" />}
         </button>
 
-        {/* Notifications Icon */}
+        {/* Notifications Icon Button */}
         <div className="position-relative">
           <button 
-            className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center text-white border-0 position-relative"
-            style={{ width: "42px", height: "42px", background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+            className="btn rounded-circle p-2 d-flex align-items-center justify-content-center border-0 position-relative transition-all shadow-sm"
+            style={{ 
+              width: "42px", 
+              height: "42px", 
+              background: theme === "light" ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)", 
+              border: theme === "light" ? "1px solid #CBD5E1" : "1px solid rgba(255, 255, 255, 0.12)",
+              color: theme === "light" ? "#334155" : "#FFFFFF" 
+            }}
             onClick={() => setShowNotifications(!showNotifications)}
             title="Notifications"
           >
-            <FiBell size={18} />
+            <FiBell size={18} style={{ color: theme === "light" ? "#334155" : "#FFFFFF" }} />
             {unreadCount > 0 && (
               <span 
-                className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-dark rounded-circle"
-                style={{ width: "10px", height: "10px" }}
+                className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border rounded-circle"
+                style={{ width: "10px", height: "10px", borderColor: theme === "light" ? "#FFFFFF" : "#0F172A" }}
               />
             )}
           </button>
@@ -142,17 +155,19 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
           {/* Notifications Popover */}
           {showNotifications && (
             <div 
-              className="position-absolute end-0 mt-2 p-3 rounded-4 shadow-lg text-white"
+              className="position-absolute end-0 mt-2 p-3 rounded-4 shadow-lg"
               style={{
                 width: "320px",
-                background: "#0F172A",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
+                background: theme === "light" ? "#FFFFFF" : "#0F172A",
+                border: theme === "light" ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)",
                 backdropFilter: "blur(20px)",
+                color: theme === "light" ? "#0F172A" : "#FFFFFF",
+                boxShadow: theme === "light" ? "0 10px 30px rgba(0, 0, 0, 0.12)" : "0 10px 30px rgba(0, 0, 0, 0.5)",
                 zIndex: 1050
               }}
             >
               <div className="d-flex align-items-center justify-content-between mb-2">
-                <h6 className="fw-bold mb-0 fs-6">Notifications</h6>
+                <h6 className="fw-bold mb-0 fs-6" style={{ color: theme === "light" ? "#0F172A" : "#FFFFFF" }}>Notifications</h6>
                 <span className="badge bg-primary rounded-pill">{unreadCount} New</span>
               </div>
               <div className="d-flex flex-column gap-2 mb-2" style={{ fontSize: "0.83rem", maxHeight: "240px", overflowY: "auto" }}>
@@ -160,26 +175,30 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
                   recentUnread.map((item) => (
                     <div 
                       key={item._id} 
-                      className="p-2 rounded bg-white bg-opacity-10 cursor-pointer"
-                      style={{ cursor: "pointer" }}
+                      className="p-2.5 rounded-3 cursor-pointer transition-all"
+                      style={{ 
+                        cursor: "pointer",
+                        background: theme === "light" ? "#F8FAFC" : "rgba(255, 255, 255, 0.08)",
+                        border: theme === "light" ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)"
+                      }}
                       onClick={() => {
                         setShowNotifications(false);
                         if (item.link) navigate(item.link);
                         else navigate("/student/notifications");
                       }}
                     >
-                      <div className="fw-semibold text-truncate">{item.title}</div>
-                      <div className="text-muted text-truncate" style={{ fontSize: "0.78rem" }}>{item.message}</div>
+                      <div className="fw-semibold text-truncate mb-0.5" style={{ color: theme === "light" ? "#0F172A" : "#F8FAFC" }}>{item.title}</div>
+                      <div className="text-truncate" style={{ fontSize: "0.78rem", color: theme === "light" ? "#475569" : "#CBD5E1" }}>{item.message}</div>
                     </div>
                   ))
                 ) : (
-                  <div className="p-3 text-center text-muted" style={{ fontSize: "0.8rem" }}>
+                  <div className="p-3 text-center" style={{ fontSize: "0.8rem", color: theme === "light" ? "#64748b" : "#94a3b8" }}>
                     No unread notifications right now.
                   </div>
                 )}
               </div>
               <button
-                className="btn btn-sm btn-outline-primary w-100 rounded-pill mt-1"
+                className="btn btn-sm btn-outline-primary w-100 rounded-pill mt-1 fw-medium"
                 style={{ fontSize: "0.78rem" }}
                 onClick={() => {
                   setShowNotifications(false);
@@ -195,7 +214,8 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
         {/* User Profile Menu */}
         <div className="position-relative">
           <button 
-            className="btn p-1 d-flex align-items-center gap-2 text-white border-0 bg-transparent"
+            className="btn p-1 d-flex align-items-center gap-2 border-0 bg-transparent"
+            style={{ color: theme === "light" ? "#0F172A" : "#FFFFFF" }}
             onClick={() => setShowProfileMenu(!showProfileMenu)}
           >
             <div 
@@ -210,32 +230,34 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
               {userInitial}
             </div>
             <div className="d-none d-md-block text-start">
-              <div className="fw-semibold lh-1" style={{ fontSize: "0.9rem" }}>{displayName}</div>
-              <div className="text-muted text-capitalize" style={{ fontSize: "0.75rem" }}>{displayRole} Profile</div>
+              <div className="fw-semibold lh-1" style={{ fontSize: "0.9rem", color: theme === "light" ? "#0F172A" : "#FFFFFF" }}>{displayName}</div>
+              <div className="text-capitalize" style={{ fontSize: "0.75rem", color: theme === "light" ? "#475569" : "#94A3B8" }}>{displayRole} Profile</div>
             </div>
-            <FiChevronDown className="text-muted d-none d-md-block" />
+            <FiChevronDown style={{ color: theme === "light" ? "#64748B" : "#94A3B8" }} className="d-none d-md-block" />
           </button>
 
           {/* Profile Dropdown */}
           {showProfileMenu && (
             <div 
-              className="position-absolute end-0 mt-2 p-2 rounded-4 shadow-lg text-white"
+              className="position-absolute end-0 mt-2 p-2 rounded-4 shadow-lg"
               style={{
                 width: "220px",
-                background: "#0F172A",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
+                background: theme === "light" ? "#FFFFFF" : "#0F172A",
+                border: theme === "light" ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)",
                 backdropFilter: "blur(20px)",
+                color: theme === "light" ? "#0F172A" : "#FFFFFF",
+                boxShadow: theme === "light" ? "0 10px 30px rgba(0, 0, 0, 0.12)" : "0 10px 30px rgba(0, 0, 0, 0.5)",
                 zIndex: 1050
               }}
             >
-              <div className="p-2 border-bottom border-secondary border-opacity-25">
-                <div className="fw-bold">{displayName}</div>
+              <div className="p-2 border-bottom" style={{ borderColor: theme === "light" ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
+                <div className="fw-bold" style={{ color: theme === "light" ? "#0F172A" : "#FFFFFF" }}>{displayName}</div>
                 <span className="badge bg-primary text-white mt-1 text-capitalize">{displayRole}</span>
               </div>
               <div className="d-flex flex-column gap-1 mt-2">
                 <button 
-                  className="btn text-white-50 text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2" 
-                  style={{ fontSize: "0.88rem" }}
+                  className="btn text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2 fw-medium" 
+                  style={{ fontSize: "0.88rem", color: theme === "light" ? "#334155" : "#CBD5E1" }}
                   onClick={() => {
                     setShowProfileMenu(false);
                     navigate("/student/profile");
@@ -244,8 +266,8 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
                   <FiUser /> View Profile
                 </button>
                 <button 
-                  className="btn text-white-50 text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2" 
-                  style={{ fontSize: "0.88rem" }}
+                  className="btn text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2 fw-medium" 
+                  style={{ fontSize: "0.88rem", color: theme === "light" ? "#334155" : "#CBD5E1" }}
                   onClick={() => {
                     setShowProfileMenu(false);
                     navigate("/student/settings");
@@ -254,7 +276,7 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
                   <FiSettings /> Account Settings
                 </button>
                 <button 
-                  className="btn text-danger text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2 mt-1" 
+                  className="btn text-danger text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2 mt-1 fw-medium" 
                   style={{ fontSize: "0.88rem" }} 
                   onClick={handleLogout}
                 >

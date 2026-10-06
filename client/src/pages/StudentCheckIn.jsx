@@ -19,7 +19,9 @@ import {
   FiCheckSquare,
   FiCalendar,
   FiRefreshCw,
-  FiGrid
+  FiGrid,
+  FiStar,
+  FiChevronRight
 } from "react-icons/fi";
 import "../styles/studentDashboard.css";
 
@@ -32,7 +34,7 @@ const getTodayString = () => {
   return `${year}-${month}-${day}`;
 };
 
-// Display mapping helpers for clean emoji labels and high-contrast text
+// Display mapping helpers for clean emoji labels and text
 const formatFeeling = (val) => {
   if (!val) return "Not specified";
   const map = {
@@ -296,7 +298,7 @@ function StudentCheckIn() {
 
   // Stress Level Badge helper
   const getStressLabel = (val) => {
-    if (val <= 3) return { text: "Low Stress", color: "#22c55e" };
+    if (val <= 3) return { text: "Low Stress", color: "#10b981" };
     if (val <= 6) return { text: "Moderate Stress", color: "#f59e0b" };
     return { text: "High Stress", color: "#ef4444" };
   };
@@ -305,7 +307,7 @@ function StudentCheckIn() {
   const getMotivationLabel = (val) => {
     if (val <= 3) return { text: "Low Motivation", color: "#ef4444" };
     if (val <= 6) return { text: "Moderate Motivation", color: "#f59e0b" };
-    return { text: "High Motivation 🔥", color: "#3b82f6" };
+    return { text: "High Motivation", color: "#3b82f6" };
   };
 
   const progressPercent = Math.round((currentStep / 8) * 100);
@@ -328,23 +330,32 @@ function StudentCheckIn() {
 
       {/* Main Content */}
       <main className="ns-main-content">
-        {/* Page Header */}
+        {/* Compact Page Header */}
         <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
           <div>
-            <div className="d-flex align-items-center gap-2 mb-1">
+            <div className="d-flex align-items-center gap-2 mb-1.5">
               <span
-                className="badge rounded-pill px-3 py-2"
+                className="badge rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5"
                 style={{
-                  background: "rgba(59, 130, 246, 0.15)",
-                  color: "#60A5FA",
-                  border: "1px solid rgba(59, 130, 246, 0.3)",
+                  background: "rgba(99, 102, 241, 0.12)",
+                  color: "#818cf8",
+                  border: "1px solid rgba(99, 102, 241, 0.25)",
+                  fontSize: "0.78rem",
+                  fontWeight: 600
                 }}
               >
-                <FiCheckSquare className="me-1" /> Student Daily Check-in
+                <FiCheckSquare size={13} /> Student Daily Check-in
               </span>
+              {isCompleted && !showForm && (
+                <span className="badge rounded-pill px-2.5 py-1 bg-success bg-opacity-15 text-success border border-success border-opacity-25" style={{ fontSize: "0.72rem" }}>
+                  ✓ Recorded {lastCheckInDateStr || getTodayString()}
+                </span>
+              )}
             </div>
-            <h1 className="text-white fw-bold fs-3 mb-1">Daily Check-in Survey & Responses</h1>
-            <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
+            <h1 className="fw-bold mb-1" style={{ fontSize: "1.75rem", color: "var(--ns-text-main, #ffffff)" }}>
+              Daily Check-in Survey & Responses
+            </h1>
+            <p className="text-muted mb-0" style={{ fontSize: "0.88rem" }}>
               Track your daily mood, sleep, stress levels, goals, and AI companion preferences.
             </p>
           </div>
@@ -352,18 +363,18 @@ function StudentCheckIn() {
           {isCompleted && !showForm && (
             <button
               type="button"
-              className="btn px-4 py-2.5 rounded-3 text-white fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg"
+              className="btn px-3.5 py-2 rounded-pill text-white fw-semibold d-inline-flex align-items-center gap-2 shadow-sm transition-all"
               style={{
-                background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
                 border: "none",
-                transition: "all 0.3s ease",
+                fontSize: "0.88rem"
               }}
               onClick={() => {
                 setShowForm(true);
                 setCurrentStep(1);
               }}
             >
-              <FiEdit3 size={18} />
+              <FiEdit3 size={16} />
               <span>Retake / Update Survey</span>
             </button>
           )}
@@ -378,302 +389,189 @@ function StudentCheckIn() {
             <div>Loading check-in survey status...</div>
           </div>
         ) : isCompleted && !showForm ? (
-          /* ALL 8 SURVEY QUESTIONS AND ANSWERS VIEW */
-          <div className="ns-card p-4 p-md-5 rounded-4 border border-secondary border-opacity-25 shadow-lg mb-4">
-            {/* Header Badge & Date */}
-            <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between pb-3 mb-4 border-bottom border-secondary border-opacity-25 gap-2">
-              <div className="d-flex align-items-center gap-3">
-                <div className="rounded-circle bg-success bg-opacity-20 text-success p-2.5 d-flex align-items-center justify-content-center border border-success border-opacity-30">
-                  <FiCheckCircle size={28} />
+          /* COMPACT ELEGANT WELLNESS DASHBOARD VIEW */
+          <div className="ns-checkin-wrapper">
+            {/* 1. TODAY'S WELLBEING SNAPSHOT (Coherent Metrics Area) */}
+            <div className="ns-wellness-card p-4 border mb-4">
+              <div className="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom" style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}>
+                <div className="d-flex align-items-center gap-2.5">
+                  <div className="p-2 rounded-circle ns-pulse-icon" style={{ background: "rgba(99, 102, 241, 0.15)", color: "#818cf8" }}>
+                    <FiStar size={18} />
+                  </div>
+                  <div>
+                    <h5 className="fw-bold mb-0 ns-tile-val" style={{ fontSize: "1.08rem" }}>Today's Wellbeing Snapshot</h5>
+                    <span className="ns-tile-sub">Recorded on {lastCheckInDateStr || getTodayString()}</span>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="fw-bold mb-0">Check-in Submitted & Recorded</h4>
-                  <span className="text-muted small">Here are all your survey questions and answers.</span>
-                </div>
-              </div>
-              {lastCheckInDateStr && (
-                <span className="badge rounded-pill px-3 py-2 bg-dark text-white border border-secondary border-opacity-25 d-flex align-items-center gap-1.5 align-self-start align-self-sm-center">
-                  <FiCalendar className="text-primary" /> Recorded: {lastCheckInDateStr}
+                <span className="badge rounded-pill px-3 py-1.5 bg-success bg-opacity-15 text-success border border-success border-opacity-25 extra-small fw-semibold">
+                  ✓ Verified Submission
                 </span>
-              )}
+              </div>
+
+              {/* 6 Compact Metric Components */}
+              <div className="row g-3">
+                {/* Metric 1: Feeling */}
+                <div className="col-12 col-sm-6 col-lg-4">
+                  <div className="ns-metric-tile h-100 d-flex flex-column justify-content-between">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="ns-tile-label">Feeling</span>
+                      <FiSmile className="text-primary" size={16} />
+                    </div>
+                    <div className="ns-tile-val mb-1">{formatFeeling(answers.feeling)}</div>
+                    <span className="ns-tile-sub">Current Mood Status</span>
+                  </div>
+                </div>
+
+                {/* Metric 2: Sleep Duration */}
+                <div className="col-12 col-sm-6 col-lg-4">
+                  <div className="ns-metric-tile h-100 d-flex flex-column justify-content-between">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="ns-tile-label">Sleep Duration</span>
+                      <FiMoon className="text-info" size={16} />
+                    </div>
+                    <div className="ns-tile-val mb-1">{formatSleep(answers.sleepHours)}</div>
+                    <span className="ns-tile-sub">Night Rest Quality</span>
+                  </div>
+                </div>
+
+                {/* Metric 3: Stress Level */}
+                <div className="col-12 col-sm-6 col-lg-4">
+                  <div className="ns-metric-tile h-100 d-flex flex-column justify-content-between">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="ns-tile-label">Stress Level</span>
+                      <FiActivity className="text-warning" size={16} />
+                    </div>
+                    <div className="d-flex align-items-baseline gap-2 mb-2">
+                      <span className="ns-tile-val fs-4">{answers.stressLevel}</span>
+                      <span className="ns-tile-sub">/ 10</span>
+                      <span className="badge px-2.5 py-1 rounded-pill ms-auto extra-small fw-semibold" style={{ background: `${getStressLabel(answers.stressLevel).color}20`, color: getStressLabel(answers.stressLevel).color }}>
+                        {getStressLabel(answers.stressLevel).text}
+                      </span>
+                    </div>
+                    <div className="progress rounded-pill overflow-hidden" style={{ height: "5px", background: "rgba(255,255,255,0.1)" }}>
+                      <div className="progress-bar rounded-pill ns-animated-progress-bar" style={{ width: `${(answers.stressLevel / 10) * 100}%`, background: getStressLabel(answers.stressLevel).color }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metric 4: Motivation */}
+                <div className="col-12 col-sm-6 col-lg-4">
+                  <div className="ns-metric-tile h-100 d-flex flex-column justify-content-between">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="ns-tile-label">Motivation</span>
+                      <FiZap className="text-success" size={16} />
+                    </div>
+                    <div className="d-flex align-items-baseline gap-2 mb-2">
+                      <span className="ns-tile-val fs-4">{answers.motivationLevel}</span>
+                      <span className="ns-tile-sub">/ 10</span>
+                      <span className="badge px-2.5 py-1 rounded-pill ms-auto extra-small fw-semibold" style={{ background: `${getMotivationLabel(answers.motivationLevel).color}20`, color: getMotivationLabel(answers.motivationLevel).color }}>
+                        {getMotivationLabel(answers.motivationLevel).text}
+                      </span>
+                    </div>
+                    <div className="progress rounded-pill overflow-hidden" style={{ height: "5px", background: "rgba(255,255,255,0.1)" }}>
+                      <div className="progress-bar rounded-pill ns-animated-progress-bar" style={{ width: `${(answers.motivationLevel / 10) * 100}%`, background: getMotivationLabel(answers.motivationLevel).color }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metric 5: Energy Level */}
+                <div className="col-12 col-sm-6 col-lg-4">
+                  <div className="ns-metric-tile h-100 d-flex flex-column justify-content-between">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="ns-tile-label">Energy Reserve</span>
+                      <FiBatteryCharging className="text-warning" size={16} />
+                    </div>
+                    <div className="ns-tile-val mb-1">{formatEnergy(answers.energyLevel)}</div>
+                    <span className="ns-tile-sub">Physical Energy</span>
+                  </div>
+                </div>
+
+                {/* Metric 6: Today's Main Challenge (Reflective Insight) */}
+                <div className="col-12 col-sm-6 col-lg-4">
+                  <div className="ns-metric-tile ns-metric-tile-challenge h-100 d-flex flex-column justify-content-between">
+                    <div className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="ns-tile-label" style={{ color: "#f87171" }}>Today's Main Challenge</span>
+                      <FiAlertCircle className="text-danger" size={16} />
+                    </div>
+                    <div className="ns-tile-val mb-1">{formatChallenge(answers.biggestChallenge)}</div>
+                    <span className="ns-tile-sub">Primary Obstacle Focus</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* 8 Questions & Answers Grid */}
-            <div className="row g-4">
-              {/* Question 1 */}
+            {/* 2. GOAL & AI COMPANION HIGHLIGHT SECTION */}
+            <div className="row g-4 mb-4">
+              {/* Primary Focus Goal */}
               <div className="col-12 col-md-6">
-                <div 
-                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
-                  style={{ 
-                    border: "1px solid rgba(59, 130, 246, 0.3)" 
-                  }}
-                >
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#60A5FA" }}>
-                      <FiSmile size={18} />
-                      <span className="fw-bold small text-uppercase tracking-wider">Question 1 • Feeling</span>
-                    </div>
-                    <div className="text-muted small mb-3">How are you feeling today?</div>
-                  </div>
-                  <div>
-                    <span 
-                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
-                      style={{
-                        background: "rgba(59, 130, 246, 0.2)",
-                        color: "#3b82f6",
-                        border: "1px solid rgba(59, 130, 246, 0.4)",
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      {formatFeeling(answers.feeling)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Question 2 */}
-              <div className="col-12 col-md-6">
-                <div 
-                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
-                  style={{ 
-                    border: "1px solid rgba(14, 165, 233, 0.3)" 
-                  }}
-                >
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#38BDF8" }}>
-                      <FiMoon size={18} />
-                      <span className="fw-bold small text-uppercase tracking-wider">Question 2 • Sleep</span>
-                    </div>
-                    <div className="text-muted small mb-3">How many hours did you sleep last night?</div>
-                  </div>
-                  <div>
-                    <span 
-                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
-                      style={{
-                        background: "rgba(14, 165, 233, 0.2)",
-                        color: "#0284c7",
-                        border: "1px solid rgba(14, 165, 233, 0.4)",
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      {formatSleep(answers.sleepHours)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Question 3 */}
-              <div className="col-12 col-md-6">
-                <div 
-                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
-                  style={{ 
-                    border: "1px solid rgba(245, 158, 11, 0.3)" 
-                  }}
-                >
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#FBBF24" }}>
-                      <FiActivity size={18} />
-                      <span className="fw-bold small text-uppercase tracking-wider">Question 3 • Stress</span>
-                    </div>
-                    <div className="text-muted small mb-3">How stressed do you feel today? (1–10)</div>
-                  </div>
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="display-6 fw-bold">
-                      {answers.stressLevel}<span className="fs-5 text-muted">/10</span>
-                    </div>
-                    <span 
-                      className="px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
-                      style={{ 
-                        backgroundColor: `${getStressLabel(answers.stressLevel).color}25`,
-                        color: getStressLabel(answers.stressLevel).color,
-                        border: `1px solid ${getStressLabel(answers.stressLevel).color}55`,
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      {getStressLabel(answers.stressLevel).text}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Question 4 */}
-              <div className="col-12 col-md-6">
-                <div 
-                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
-                  style={{ 
-                    border: "1px solid rgba(34, 197, 94, 0.3)" 
-                  }}
-                >
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#4ADE80" }}>
-                      <FiZap size={18} />
-                      <span className="fw-bold small text-uppercase tracking-wider">Question 4 • Motivation</span>
-                    </div>
-                    <div className="text-muted small mb-3">How motivated are you to study today? (1–10)</div>
-                  </div>
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="display-6 fw-bold">
-                      {answers.motivationLevel}<span className="fs-5 text-muted">/10</span>
-                    </div>
-                    <span 
-                      className="px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
-                      style={{ 
-                        backgroundColor: `${getMotivationLabel(answers.motivationLevel).color}25`,
-                        color: getMotivationLabel(answers.motivationLevel).color,
-                        border: `1px solid ${getMotivationLabel(answers.motivationLevel).color}55`,
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      {getMotivationLabel(answers.motivationLevel).text}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Question 5 */}
-              <div className="col-12 col-md-6">
-                <div 
-                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
-                  style={{ 
-                    border: "1px solid rgba(239, 68, 68, 0.3)" 
-                  }}
-                >
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#F87171" }}>
-                      <FiAlertCircle size={18} />
-                      <span className="fw-bold small text-uppercase tracking-wider">Question 5 • Challenge</span>
-                    </div>
-                    <div className="text-muted small mb-3">What is your biggest challenge today?</div>
-                  </div>
-                  <div>
-                    <span 
-                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
-                      style={{
-                        background: "rgba(239, 68, 68, 0.2)",
-                        color: "#dc2626",
-                        border: "1px solid rgba(239, 68, 68, 0.4)",
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      {formatChallenge(answers.biggestChallenge)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Question 6 */}
-              <div className="col-12 col-md-6">
-                <div 
-                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
-                  style={{ 
-                    border: "1px solid rgba(245, 158, 11, 0.3)" 
-                  }}
-                >
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#FBBF24" }}>
-                      <FiBatteryCharging size={18} />
-                      <span className="fw-bold small text-uppercase tracking-wider">Question 6 • Energy Level</span>
-                    </div>
-                    <div className="text-muted small mb-3">How is your energy level today?</div>
-                  </div>
-                  <div>
-                    <span 
-                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
-                      style={{
-                        background: "rgba(245, 158, 11, 0.2)",
-                        color: "#d97706",
-                        border: "1px solid rgba(245, 158, 11, 0.4)",
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      {formatEnergy(answers.energyLevel)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Question 7 */}
-              <div className="col-12 col-md-6">
-                <div 
-                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
-                  style={{ 
-                    border: "1px solid rgba(168, 85, 247, 0.3)" 
-                  }}
-                >
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#C084FC" }}>
+                <div className="ns-action-card h-100">
+                  <div className="d-flex align-items-center gap-2.5 mb-3">
+                    <div className="p-2 rounded-circle ns-pulse-icon" style={{ background: "rgba(168, 85, 247, 0.15)", color: "#c084fc" }}>
                       <FiTarget size={18} />
-                      <span className="fw-bold small text-uppercase tracking-wider">Question 7 • Main Goal</span>
                     </div>
-                    <div className="text-muted small mb-3">What is your main goal today?</div>
+                    <div>
+                      <h6 className="fw-bold ns-tile-val mb-0" style={{ fontSize: "1rem" }}>Primary Focus Goal</h6>
+                      <span className="ns-tile-sub">Today's target objective</span>
+                    </div>
                   </div>
-                  <div>
-                    <span 
-                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
-                      style={{
-                        background: "rgba(168, 85, 247, 0.2)",
-                        color: "#7e22ce",
-                        border: "1px solid rgba(168, 85, 247, 0.4)",
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      {formatGoal(answers.mainGoal)}
-                    </span>
+                  <div className="ns-action-inner-box d-flex align-items-center gap-3">
+                    <span className="fw-bold fs-6 ns-tile-val">{formatGoal(answers.mainGoal)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Question 8 */}
+              {/* AI Wellness Companion */}
               <div className="col-12 col-md-6">
-                <div 
-                  className="ns-checkin-q-card h-100 d-flex flex-column justify-content-between" 
-                  style={{ 
-                    border: "1px solid rgba(6, 182, 212, 0.3)" 
-                  }}
-                >
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1" style={{ color: "#22D3EE" }}>
-                      <FiMessageSquare size={18} />
-                      <span className="fw-bold small text-uppercase tracking-wider">Question 8 • AI Companion</span>
+                <div className="ns-action-card h-100">
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <div className="d-flex align-items-center gap-2.5">
+                      <div className="p-2 rounded-circle ns-pulse-icon" style={{ background: "rgba(6, 182, 212, 0.15)", color: "#22d3ee" }}>
+                        <FiMessageSquare size={18} />
+                      </div>
+                      <div>
+                        <h6 className="fw-bold ns-tile-val mb-0" style={{ fontSize: "1rem" }}>AI Companion Preference</h6>
+                        <span className="ns-tile-sub">NeuroSync AI Chat</span>
+                      </div>
                     </div>
-                    <div className="text-muted small mb-3">Would you like to talk with NeuroSync AI today?</div>
+                    {answers.talkToAI === "Yes" && (
+                      <button
+                        type="button"
+                        className="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm transition-all"
+                        style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", border: "none", fontSize: "0.8rem" }}
+                        onClick={() => navigate("/student/ai-companion")}
+                      >
+                        Start Chat <FiChevronRight size={14} />
+                      </button>
+                    )}
                   </div>
-                  <div>
-                    <span 
-                      className="d-inline-flex align-items-center px-3.5 py-2 rounded-3 fw-semibold shadow-sm"
-                      style={{
-                        background: "rgba(6, 182, 212, 0.2)",
-                        color: "#0891b2",
-                        border: "1px solid rgba(6, 182, 212, 0.4)",
-                        fontSize: "0.95rem"
-                      }}
-                    >
-                      {formatTalkAI(answers.talkToAI)}
-                    </span>
+                  <div className="ns-action-inner-box d-flex align-items-center gap-3">
+                    <span className="fw-bold fs-6 ns-tile-val">{formatTalkAI(answers.talkToAI)}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Footer Actions */}
-            <div className="d-flex flex-wrap align-items-center justify-content-between mt-5 pt-3 border-top border-secondary border-opacity-25 gap-3">
+            {/* 3. FOOTER NAVIGATION ACTIONS */}
+            <div className="ns-action-card d-flex flex-wrap align-items-center justify-content-between gap-3">
               <button
                 type="button"
-                className="btn btn-outline-secondary text-white rounded-pill px-4 py-2 border-secondary d-flex align-items-center gap-2"
+                className="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 transition-all fw-semibold"
+                style={{ fontSize: "0.88rem" }}
                 onClick={() => {
                   setShowForm(true);
                   setCurrentStep(1);
                 }}
               >
-                <FiRefreshCw size={16} /> Retake / Update Survey
+                <FiRefreshCw size={15} /> Retake / Update Survey
               </button>
 
               <button
                 type="button"
-                className="btn btn-primary rounded-pill px-5 py-2.5 fw-bold d-flex align-items-center gap-2 shadow-lg"
+                className="btn btn-primary rounded-pill px-5 py-2.5 fw-bold d-flex align-items-center gap-2 shadow-lg transition-all"
+                style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", border: "none" }}
                 onClick={() => navigate("/student/dashboard")}
               >
-                <FiGrid size={18} /> Go to Dashboard 🚀
+                <FiGrid size={17} /> Back to Dashboard
               </button>
             </div>
           </div>

@@ -263,21 +263,15 @@ function StudentCognitiveGames() {
           <div className="row g-4 mb-4">
             {gamesList.map((game) => (
               <div key={game.id} className="col-12 col-md-6 col-xl-4">
-                <div
-                  className="ns-card p-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden shadow-sm hover-lift"
-                  style={{
-                    background: "rgba(15, 23, 42, 0.8)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                  }}
-                >
+                <div className="ns-card ns-game-card p-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden shadow-sm">
                   <div>
                     <div className="d-flex align-items-center justify-content-between mb-3">
-                      <span className="fs-1">{game.icon}</span>
+                      <span className="fs-1 ns-float-icon">{game.icon}</span>
                       <span
                         className="badge rounded-pill px-3 py-1 fw-bold"
                         style={{
                           background: "rgba(139, 92, 246, 0.15)",
-                          color: "#C084FC",
+                          color: "#8B5CF6",
                           border: "1px solid rgba(139, 92, 246, 0.3)",
                           fontSize: "0.75rem",
                         }}
@@ -286,14 +280,14 @@ function StudentCognitiveGames() {
                       </span>
                     </div>
 
-                    <h3 className="text-white fw-bold fs-5 mb-2">{game.title}</h3>
-                    <p className="text-white-50 mb-3" style={{ fontSize: "0.88rem", lineHeight: "1.5" }}>
+                    <h3 className="text-theme-primary fw-bold fs-5 mb-2">{game.title}</h3>
+                    <p className="text-theme-secondary mb-3" style={{ fontSize: "0.88rem", lineHeight: "1.5" }}>
                       {game.description}
                     </p>
 
-                    <div className="d-flex flex-wrap gap-1 mb-4">
+                    <div className="d-flex flex-wrap gap-1.5 mb-4">
                       {game.tracks.map((t, idx) => (
-                        <span key={idx} className="badge bg-dark bg-opacity-60 text-muted border border-secondary border-opacity-25" style={{ fontSize: "0.7rem" }}>
+                        <span key={idx} className="badge ns-stat-card-item text-theme-secondary border" style={{ fontSize: "0.72rem" }}>
                           ✓ {t}
                         </span>
                       ))}
@@ -302,7 +296,7 @@ function StudentCognitiveGames() {
 
                   <button
                     type="button"
-                    className="btn px-4 py-2.5 rounded-3 text-white fw-bold d-flex align-items-center justify-content-center gap-2 w-100 shadow"
+                    className="btn px-4 py-2.5 rounded-3 text-white fw-bold d-flex align-items-center justify-content-center gap-2 w-100 shadow btn-animated"
                     style={{
                       background: game.gradient,
                       border: "none",
@@ -321,20 +315,20 @@ function StudentCognitiveGames() {
         {/* RECENT COGNITIVE PERFORMANCE HISTORY */}
         <div className="ns-card p-4">
           <div className="d-flex align-items-center justify-content-between mb-3">
-            <h4 className="text-white fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
+            <h4 className="text-theme-primary fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
               <FiPieChart className="text-primary" /> Recent Game Results
             </h4>
-            <span className="text-muted small">Live MongoDB records</span>
+            <span className="text-theme-secondary small">Live MongoDB records</span>
           </div>
 
           {loadingStats ? (
             <div className="text-center py-4">
               <div className="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
-              <p className="text-muted small mb-0">Loading recent game results...</p>
+              <p className="text-theme-secondary small mb-0">Loading recent game results...</p>
             </div>
           ) : gameHistory.length === 0 ? (
             <div className="text-center py-4">
-              <p className="text-muted small mb-0">
+              <p className="text-theme-secondary small mb-0">
                 No cognitive game results recorded yet. Choose a game above to start your first challenge!
               </p>
             </div>
@@ -343,19 +337,15 @@ function StudentCognitiveGames() {
               {gameHistory.map((item) => (
                 <div
                   key={item._id}
-                  className="d-flex align-items-center justify-content-between p-3 rounded-3"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.03)",
-                    border: "1px solid rgba(255, 255, 255, 0.06)",
-                  }}
+                  className="ns-stat-card-item d-flex align-items-center justify-content-between p-3 rounded-3"
                 >
                   <div className="d-flex align-items-center gap-3">
                     <span className="fs-3">
                       {item.gameType === "pattern-recognition" ? "🧩" : item.gameType === "attention-challenge" ? "🎯" : item.gameType === "number-sequence" ? "🔢" : item.gameType === "problem-solving" ? "💡" : "⚡"}
                     </span>
                     <div>
-                      <h5 className="text-white fw-semibold fs-6 mb-0 text-capitalize">{item.gameType.replace("-", " ")}</h5>
-                      <span className="text-muted small">
+                      <h5 className="text-theme-primary fw-semibold fs-6 mb-0 text-capitalize">{item.gameType.replace("-", " ")}</h5>
+                      <span className="text-theme-secondary small">
                         Difficulty: {item.difficulty} • Accuracy: {item.accuracy}% • Time: {item.timeTaken}s
                       </span>
                     </div>

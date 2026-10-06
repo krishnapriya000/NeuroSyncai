@@ -86,56 +86,82 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
       <div className="d-flex align-items-center gap-3 position-relative">
         {/* Theme Toggle Switch */}
         <button
-          className="btn rounded-circle p-2 d-flex align-items-center justify-content-center text-white border-0"
-          style={{ width: "42px", height: "42px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.15)" }}
+          className="btn rounded-circle p-2 d-flex align-items-center justify-content-center border-0 transition-all shadow-sm"
+          style={{ 
+            width: "42px", 
+            height: "42px", 
+            background: theme === "light" ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)", 
+            border: theme === "light" ? "1px solid #CBD5E1" : "1px solid rgba(255, 255, 255, 0.15)",
+            color: theme === "light" ? "#0F172A" : "#FFFFFF"
+          }}
           onClick={toggleTheme}
           title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
           {theme === "dark" ? <FiSun size={19} className="text-warning" /> : <FiMoon size={19} className="text-primary" />}
         </button>
 
-        {/* Notifications Icon */}
+        {/* Notifications Icon Button */}
         <div className="position-relative">
           <button 
-            className="btn btn-dark rounded-circle p-2 d-flex align-items-center justify-content-center text-white border-0 position-relative"
-            style={{ width: "42px", height: "42px", background: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.08)" }}
+            className="btn rounded-circle p-2 d-flex align-items-center justify-content-center border-0 position-relative transition-all shadow-sm"
+            style={{ 
+              width: "42px", 
+              height: "42px", 
+              background: theme === "light" ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)", 
+              border: theme === "light" ? "1px solid #CBD5E1" : "1px solid rgba(255, 255, 255, 0.12)",
+              color: theme === "light" ? "#334155" : "#FFFFFF"
+            }}
             onClick={() => {
               setShowNotifications(!showNotifications);
               setShowProfileMenu(false);
             }}
             title="Notifications"
           >
-            <FiBell size={18} />
+            <FiBell size={18} style={{ color: theme === "light" ? "#334155" : "#FFFFFF" }} />
             <span 
-              className="position-absolute top-0 start-100 translate-middle p-1 bg-primary border border-dark rounded-circle"
-              style={{ width: "10px", height: "10px" }}
+              className="position-absolute top-0 start-100 translate-middle p-1 bg-primary border rounded-circle"
+              style={{ width: "10px", height: "10px", borderColor: theme === "light" ? "#FFFFFF" : "#0F172A" }}
             ></span>
           </button>
 
           {/* Notifications Popover */}
           {showNotifications && (
             <div 
-              className="position-absolute end-0 mt-2 p-3 rounded-4 shadow-lg text-white"
+              className="position-absolute end-0 mt-2 p-3 rounded-4 shadow-lg"
               style={{
                 width: "310px",
-                background: "#0F172A",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
+                background: theme === "light" ? "#FFFFFF" : "#0F172A",
+                border: theme === "light" ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)",
                 backdropFilter: "blur(20px)",
+                color: theme === "light" ? "#0F172A" : "#FFFFFF",
+                boxShadow: theme === "light" ? "0 10px 30px rgba(0, 0, 0, 0.12)" : "0 10px 30px rgba(0, 0, 0, 0.5)",
                 zIndex: 1050
               }}
             >
               <div className="d-flex align-items-center justify-content-between mb-2">
-                <h6 className="fw-bold mb-0 fs-6">Workplace Insights</h6>
+                <h6 className="fw-bold mb-0 fs-6" style={{ color: theme === "light" ? "#0F172A" : "#FFFFFF" }}>Workplace Insights</h6>
                 <span className="badge bg-primary rounded-pill">2 New</span>
               </div>
               <div className="d-flex flex-column gap-2" style={{ fontSize: "0.83rem" }}>
-                <div className="p-2 rounded bg-white bg-opacity-10">
+                <div 
+                  className="p-2 rounded-3"
+                  style={{
+                    background: theme === "light" ? "#F8FAFC" : "rgba(255, 255, 255, 0.08)",
+                    border: theme === "light" ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)"
+                  }}
+                >
                   <div className="fw-semibold text-info">Focus Milestone Reached</div>
-                  <div className="text-muted" style={{ fontSize: "0.78rem" }}>Completed 5 hours of deep focus time today!</div>
+                  <div style={{ fontSize: "0.78rem", color: theme === "light" ? "#475569" : "#CBD5E1" }}>Completed 5 hours of deep focus time today!</div>
                 </div>
-                <div className="p-2 rounded bg-white bg-opacity-5">
+                <div 
+                  className="p-2 rounded-3"
+                  style={{
+                    background: theme === "light" ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)",
+                    border: theme === "light" ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.05)"
+                  }}
+                >
                   <div className="fw-semibold text-warning">Work-Life Balance Tip</div>
-                  <div className="text-muted" style={{ fontSize: "0.78rem" }}>Remember to schedule a short 10-min break after your next session.</div>
+                  <div style={{ fontSize: "0.78rem", color: theme === "light" ? "#475569" : "#CBD5E1" }}>Remember to schedule a short 10-min break after your next session.</div>
                 </div>
               </div>
             </div>
@@ -145,7 +171,8 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
         {/* User Profile Menu */}
         <div className="position-relative">
           <button 
-            className="btn p-1 d-flex align-items-center gap-2 text-white border-0 bg-transparent"
+            className="btn p-1 d-flex align-items-center gap-2 border-0 bg-transparent"
+            style={{ color: theme === "light" ? "#0F172A" : "#FFFFFF" }}
             onClick={() => {
               setShowProfileMenu(!showProfileMenu);
               setShowNotifications(false);
@@ -167,28 +194,30 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
               )}
             </div>
             <div className="d-none d-md-block text-start">
-              <div className="fw-semibold lh-1" style={{ fontSize: "0.9rem" }}>{displayName}</div>
-              <div className="text-muted" style={{ fontSize: "0.75rem" }}>Working Professional</div>
+              <div className="fw-semibold lh-1" style={{ fontSize: "0.9rem", color: theme === "light" ? "#0F172A" : "#FFFFFF" }}>{displayName}</div>
+              <div style={{ fontSize: "0.75rem", color: theme === "light" ? "#475569" : "#94A3B8" }}>Working Professional</div>
             </div>
-            <FiChevronDown className="text-muted d-none d-md-block" />
+            <FiChevronDown style={{ color: theme === "light" ? "#64748B" : "#94A3B8" }} className="d-none d-md-block" />
           </button>
 
           {/* Profile Dropdown */}
           {showProfileMenu && (
             <div 
-              className="position-absolute end-0 mt-2 p-2 rounded-4 shadow-lg text-white"
+              className="position-absolute end-0 mt-2 p-2 rounded-4 shadow-lg"
               style={{
                 width: "230px",
-                background: "#0F172A",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
+                background: theme === "light" ? "#FFFFFF" : "#0F172A",
+                border: theme === "light" ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)",
                 backdropFilter: "blur(20px)",
+                color: theme === "light" ? "#0F172A" : "#FFFFFF",
+                boxShadow: theme === "light" ? "0 10px 30px rgba(0, 0, 0, 0.12)" : "0 10px 30px rgba(0, 0, 0, 0.5)",
                 zIndex: 1050
               }}
             >
-              <div className="p-2 border-bottom border-secondary border-opacity-25">
-                <div className="fw-bold">{displayName}</div>
+              <div className="p-2 border-bottom" style={{ borderColor: theme === "light" ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
+                <div className="fw-bold" style={{ color: theme === "light" ? "#0F172A" : "#FFFFFF" }}>{displayName}</div>
                 <div className="d-flex align-items-center gap-1 mt-1">
-                  <span className="badge bg-primary bg-opacity-25 text-blue-300 border border-primary border-opacity-30">
+                  <span className="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-30">
                     <FiBriefcase className="me-1" style={{ fontSize: "0.75rem" }} />
                     Working Professional
                   </span>
@@ -196,8 +225,8 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
               </div>
               <div className="d-flex flex-column gap-1 mt-2">
                 <button 
-                  className="btn text-white-50 text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2" 
-                  style={{ fontSize: "0.88rem" }}
+                  className="btn text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2 fw-medium" 
+                  style={{ fontSize: "0.88rem", color: theme === "light" ? "#334155" : "#CBD5E1" }}
                   onClick={() => {
                     setShowProfileMenu(false);
                     if (onTabChange) onTabChange("profile");
@@ -207,8 +236,8 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
                   <FiUser /> View Profile
                 </button>
                 <button 
-                  className="btn text-white-50 text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2" 
-                  style={{ fontSize: "0.88rem" }}
+                  className="btn text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2 fw-medium" 
+                  style={{ fontSize: "0.88rem", color: theme === "light" ? "#334155" : "#CBD5E1" }}
                   onClick={() => {
                     setShowProfileMenu(false);
                     if (onTabChange) onTabChange("settings");
@@ -218,7 +247,7 @@ function ProfessionalNavbar({ userName = "Professional User", toggleSidebar, onT
                   <FiSettings /> Account Settings
                 </button>
                 <button 
-                  className="btn text-danger text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2 mt-1" 
+                  className="btn text-danger text-start p-2 rounded border-0 hover-bg-light d-flex align-items-center gap-2 mt-1 fw-medium" 
                   style={{ fontSize: "0.88rem" }} 
                   onClick={handleLogout}
                 >

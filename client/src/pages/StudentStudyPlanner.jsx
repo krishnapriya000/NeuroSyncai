@@ -524,9 +524,17 @@ function StudentStudyPlanner() {
               </span>
             </div>
             <h1 className="text-white fw-bold fs-3 mb-1">Study Planner</h1>
-            <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
+            <p className="text-muted mb-2" style={{ fontSize: "0.9rem" }}>
               Plan your study sessions, organize your tasks, and stay on track.
             </p>
+            <button
+              type="button"
+              className="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm"
+              style={{ background: "linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%)", border: "none", fontSize: "0.82rem" }}
+              onClick={() => navigate("/neuroplan")}
+            >
+              <span>🌸 Open Aesthetic Weekly To-Do Planner</span>
+            </button>
           </div>
 
           <button

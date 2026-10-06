@@ -18,64 +18,126 @@ import {
   FiBarChart2,
   FiCompass,
   FiCheckSquare,
-  FiLayers,
-  FiSun,
-  FiActivity
+  FiActivity,
+  FiZap,
+  FiAward,
+  FiShield,
+  FiPhoneCall
 } from "react-icons/fi";
 import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../Logo";
 import SeniorMedicationReminderManager from "../senior/SeniorMedicationReminderManager";
 
-// Student Dashboard Navigation Items
-const studentNavItems = [
-  { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/student/dashboard" },
-  { id: "neuroplan", label: "✨ NeuroPlan Daily", icon: FiCalendar, path: "/neuroplan" },
-  { id: "checkin", label: "Daily Check-in", icon: FiCheckSquare, path: "/student/checkin" },
-  { id: "mood-tracker", label: "Mood Tracker", icon: FiSmile, path: "/student/mood-tracker" },
-  { id: "journal", label: "Journal", icon: FiBookOpen, path: "/student/journal" },
-  { id: "cognitive-games", label: "🧠 Cognitive Games", icon: FiLayers, path: "/student/cognitive-games" },
-  { id: "memory-exercises", label: "🎯 Memory Exercises", icon: FiCpu, path: "/student/memory-exercises" },
-  { id: "ai-companion", label: "AI Recommendations", icon: FiCpu, path: "/student/ai-companion" },
-  { id: "study-planner", label: "Study Planner", icon: FiCalendar, path: "/student/study-planner" },
-  { id: "goals", label: "Goals", icon: FiTarget, path: "/student/goals" },
-  { id: "focus-timer", label: "Focus Session", icon: FiClock, path: "/student/focus-timer" },
-  { id: "progress", label: "Progress", icon: FiTrendingUp, path: "/student/progress" },
-  { id: "notifications", label: "Notifications", icon: FiBell, path: "/student/notifications" },
-  { id: "profile", label: "Profile", icon: FiUser, path: "/student/profile", hasSeparatorBefore: true },
-  { id: "settings", label: "Settings", icon: FiSettings, path: "/student/settings" },
+// Student Dashboard Navigation Sections
+const studentNavSections = [
+  {
+    title: "Main",
+    items: [
+      { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/student/dashboard" },
+      { id: "neuroplan", label: "NeuroPlan Daily", icon: FiZap, path: "/neuroplan", isFeatured: true },
+      { id: "checkin", label: "Daily Check-in", icon: FiCheckSquare, path: "/student/checkin" },
+      { id: "mood-tracker", label: "Mood Tracker", icon: FiSmile, path: "/student/mood-tracker" },
+    ]
+  },
+  {
+    title: "Learning & Focus",
+    items: [
+      { id: "cognitive-games", label: "Cognitive Games", icon: FiActivity, path: "/student/cognitive-games" },
+      { id: "memory-exercises", label: "Memory Exercises", icon: FiAward, path: "/student/memory-exercises" },
+      { id: "study-planner", label: "Study Planner", icon: FiCalendar, path: "/student/study-planner" },
+      { id: "focus-timer", label: "Focus Session", icon: FiClock, path: "/student/focus-timer" },
+      { id: "goals", label: "Goals & Targets", icon: FiTarget, path: "/student/goals" },
+      { id: "journal", label: "Reflective Journal", icon: FiBookOpen, path: "/student/journal" },
+    ]
+  },
+  {
+    title: "Insights & AI",
+    items: [
+      { id: "ai-companion", label: "AI Recommendations", icon: FiCpu, path: "/student/ai-companion" },
+      { id: "progress", label: "Analytics & Progress", icon: FiTrendingUp, path: "/student/progress" },
+      { id: "notifications", label: "Notifications", icon: FiBell, path: "/student/notifications" },
+    ]
+  },
+  {
+    title: "Account",
+    items: [
+      { id: "profile", label: "Profile", icon: FiUser, path: "/student/profile" },
+      { id: "settings", label: "Settings", icon: FiSettings, path: "/student/settings" },
+    ]
+  }
 ];
 
-// Parent Dashboard Navigation Items
-const parentNavItems = [
-  { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/parent/dashboard" },
-  { id: "neuroplan", label: "✨ NeuroPlan Planner", icon: FiCalendar, path: "/neuroplan" },
-  { id: "children", label: "Children", icon: FiUsers, path: "/parent/children" },
-  { id: "check-in", label: "Daily Check-in", icon: FiCheckSquare, path: "/parent/check-in" },
-  { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/parent/mood-tracker" },
-  { id: "ai-companion", label: "Parenting AI", icon: FiCpu, path: "/parent/ai-companion" },
-  { id: "insights", label: "Insights", icon: FiBarChart2, path: "/parent/insights" },
-  { id: "notifications", label: "Notifications", icon: FiBell, path: "/parent/notifications" },
-  { id: "journal", label: "Parent Journal", icon: FiBookOpen, path: "/parent/journal" },
-  { id: "guidance", label: "Parenting Guidance", icon: FiCompass, path: "/parent/guidance" },
-  { id: "profile", label: "Profile", icon: FiUser, path: "/parent/profile", hasSeparatorBefore: true },
-  { id: "settings", label: "Settings", icon: FiSettings, path: "/parent/settings" },
+// Parent Dashboard Navigation Sections
+const parentNavSections = [
+  {
+    title: "Main",
+    items: [
+      { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/parent/dashboard" },
+      { id: "neuroplan", label: "NeuroPlan Planner", icon: FiZap, path: "/neuroplan", isFeatured: true },
+      { id: "children", label: "Children Hub", icon: FiUsers, path: "/parent/children" },
+      { id: "check-in", label: "Daily Check-in", icon: FiCheckSquare, path: "/parent/check-in" },
+    ]
+  },
+  {
+    title: "Wellbeing & Guidance",
+    items: [
+      { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/parent/mood-tracker" },
+      { id: "ai-companion", label: "Parenting AI", icon: FiCpu, path: "/parent/ai-companion" },
+      { id: "guidance", label: "Parenting Guidance", icon: FiCompass, path: "/parent/guidance" },
+      { id: "journal", label: "Parent Journal", icon: FiBookOpen, path: "/parent/journal" },
+    ]
+  },
+  {
+    title: "Analytics",
+    items: [
+      { id: "insights", label: "Family Insights", icon: FiBarChart2, path: "/parent/insights" },
+      { id: "notifications", label: "Notifications", icon: FiBell, path: "/parent/notifications" },
+    ]
+  },
+  {
+    title: "Account",
+    items: [
+      { id: "profile", label: "Profile", icon: FiUser, path: "/parent/profile" },
+      { id: "settings", label: "Settings", icon: FiSettings, path: "/parent/settings" },
+    ]
+  }
 ];
 
-// Senior Citizen Dashboard Navigation Items
-const seniorNavItems = [
-  { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/senior/dashboard" },
-  { id: "neuroplan", label: "✨ NeuroPlan Planner", icon: FiCalendar, path: "/neuroplan" },
-  { id: "daily-checkin", label: "Daily Check-in", icon: FiCheckSquare, path: "/senior/daily-checkin" },
-  { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/senior/mood" },
-  { id: "health-activity", label: "Health & Activity", icon: FiActivity, path: "/senior/health-activity" },
-  { id: "ai-companion", label: "AI Companion", icon: FiCpu, path: "/senior/ai-companion" },
-  { id: "medications", label: "Medication & Reminders", icon: FiClock, path: "/senior/medications" },
-  { id: "journal", label: "Journal", icon: FiBookOpen, path: "/senior/journal" },
-  { id: "family-emergency", label: "Family & Emergency", icon: FiUsers, path: "/senior/family-emergency" },
-  { id: "progress", label: "Progress & Insights", icon: FiTrendingUp, path: "/senior/progress" },
-  { id: "notifications", label: "Notifications", icon: FiBell, path: "/senior/notifications" },
-  { id: "profile", label: "Profile", icon: FiUser, path: "/senior/profile", hasSeparatorBefore: true },
-  { id: "settings", label: "Settings", icon: FiSettings, path: "/senior/settings" },
+// Senior Citizen Dashboard Navigation Sections
+const seniorNavSections = [
+  {
+    title: "Main",
+    items: [
+      { id: "dashboard", label: "Dashboard", icon: FiGrid, path: "/senior/dashboard" },
+      { id: "neuroplan", label: "NeuroPlan Planner", icon: FiZap, path: "/neuroplan", isFeatured: true },
+      { id: "daily-checkin", label: "Daily Check-in", icon: FiCheckSquare, path: "/senior/daily-checkin" },
+      { id: "mood-tracker", label: "Mood & Wellbeing", icon: FiHeart, path: "/senior/mood" },
+    ]
+  },
+  {
+    title: "Health & Care",
+    items: [
+      { id: "health-activity", label: "Health & Vitality", icon: FiActivity, path: "/senior/health-activity" },
+      { id: "medications", label: "Medication Reminders", icon: FiShield, path: "/senior/medications" },
+      { id: "ai-companion", label: "Senior AI Companion", icon: FiCpu, path: "/senior/ai-companion" },
+      { id: "family-emergency", label: "Family & Emergency", icon: FiPhoneCall, path: "/senior/family-emergency" },
+    ]
+  },
+  {
+    title: "Mind & Progress",
+    items: [
+      { id: "journal", label: "Daily Journal", icon: FiBookOpen, path: "/senior/journal" },
+      { id: "progress", label: "Progress & Insights", icon: FiTrendingUp, path: "/senior/progress" },
+      { id: "notifications", label: "Notifications", icon: FiBell, path: "/senior/notifications" },
+    ]
+  },
+  {
+    title: "Account",
+    items: [
+      { id: "profile", label: "Profile", icon: FiUser, path: "/senior/profile" },
+      { id: "settings", label: "Settings", icon: FiSettings, path: "/senior/settings" },
+    ]
+  }
 ];
 
 function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
@@ -86,11 +148,13 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
   // Determine user role and corresponding sidebar navigation
   let isSenior = false;
   let isParent = false;
+  let currentUser = null;
+
   try {
     const userStr = localStorage.getItem("neurosync_current_user");
     if (userStr) {
-      const u = JSON.parse(userStr);
-      const roleClean = (u.role || "").trim().toLowerCase();
+      currentUser = JSON.parse(userStr);
+      const roleClean = (currentUser.role || "").trim().toLowerCase();
       if (roleClean === "senior citizen" || roleClean === "senior") {
         isSenior = true;
       } else if (roleClean === "parent") {
@@ -110,11 +174,16 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
     isSenior = false;
   }
 
-  const currentNavItems = isSenior 
-    ? seniorNavItems 
+  const currentNavSections = isSenior 
+    ? seniorNavSections 
     : isParent 
-    ? parentNavItems 
-    : studentNavItems;
+    ? parentNavSections 
+    : studentNavSections;
+
+  const userName = currentUser?.fullName || currentUser?.name || (isSenior ? "Senior User" : isParent ? "Parent User" : "Student User");
+  const userInitial = userName ? userName.trim().charAt(0).toUpperCase() : "U";
+  const roleBadgeText = isSenior ? "Senior Companion" : isParent ? "Parent Portal" : "Student Portal";
+  const roleBadgeClass = isSenior ? "ns-role-badge-senior" : isParent ? "ns-role-badge-parent" : "ns-role-badge-student";
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -167,75 +236,99 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
       {isOpen && (
         <div 
           className="ns-sidebar-backdrop d-lg-none"
-          onClick={() => setIsOpen(false)}
+          onClick={() => setIsOpen && setIsOpen(false)}
         />
       )}
 
       {/* Fixed Left Sidebar */}
       <aside className={`ns-sidebar ${isOpen ? "open" : ""}`}>
-        <div>
-          {/* Logo & Mobile Close */}
-          <div className="d-flex align-items-center justify-content-between mb-4 px-2">
+        <div className="ns-sidebar-content">
+          {/* Logo & Mobile Close Header */}
+          <div className="d-flex align-items-center justify-content-between mb-3 px-1">
             <Logo />
             <button 
               className="btn text-white-50 p-1 d-lg-none"
-              onClick={() => setIsOpen(false)}
+              onClick={() => setIsOpen && setIsOpen(false)}
               aria-label="Close Sidebar"
             >
-              <FiX size={24} />
+              <FiX size={22} />
             </button>
           </div>
 
-          {/* Navigation Items */}
-          <nav>
+          {/* User Profile Summary Box */}
+          <div className="ns-sidebar-user-card">
+            <div className="ns-user-avatar-badge">
+              {userInitial}
+            </div>
+            <div className="d-flex flex-column overflow-hidden">
+              <span className="text-white fw-bold text-truncate" style={{ fontSize: "0.85rem" }}>
+                {userName}
+              </span>
+              <span className={`ns-role-badge ${roleBadgeClass} mt-0.5`}>
+                {roleBadgeText}
+              </span>
+            </div>
+          </div>
+
+          {/* Nav Content with Scroll */}
+          <div className="ns-sidebar-scroll">
+            <nav>
+              {currentNavSections.map((section, idx) => (
+                <div key={section.title || idx} className="mb-2">
+                  <div className="ns-sidebar-section-title">
+                    {section.title}
+                  </div>
+                  <ul className="ns-nav-list">
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = 
+                        (activeTab && activeTab === item.id) || 
+                        location.pathname === item.path;
+                      const showBadge = item.id === "notifications" && unreadCount > 0;
+
+                      return (
+                        <li key={item.id} className={`ns-nav-item ${isActive ? "active" : ""}`}>
+                          <button
+                            type="button"
+                            onClick={() => handleNavClick(item)}
+                          >
+                            <Icon className="ns-nav-icon" />
+                            <span className="flex-grow-1 text-truncate">{item.label}</span>
+                            {item.isFeatured && (
+                              <span className="ns-nav-featured-badge ms-1">
+                                AI
+                              </span>
+                            )}
+                            {showBadge && (
+                              <span className="badge rounded-pill bg-primary px-2 py-1 ms-1" style={{ fontSize: "0.68rem" }}>
+                                {unreadCount}
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+          </div>
+
+          {/* Bottom Section - Logout */}
+          <div className="pt-3 mt-2 border-top border-secondary border-opacity-25">
             <ul className="ns-nav-list">
-              {currentNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = 
-                  (activeTab && activeTab === item.id) || 
-                  location.pathname === item.path;
-                const showBadge = item.id === "notifications" && unreadCount > 0;
-
-                return (
-                  <React.Fragment key={item.id}>
-                    {item.hasSeparatorBefore && (
-                      <li className="my-2 border-top border-secondary border-opacity-25" style={{ listStyle: "none" }} />
-                    )}
-                    <li className={`ns-nav-item ${isActive ? "active" : ""}`}>
-                      <button
-                        type="button"
-                        onClick={() => handleNavClick(item)}
-                      >
-                        <Icon className="ns-nav-icon" />
-                        <span className="flex-grow-1">{item.label}</span>
-                        {showBadge && (
-                          <span className="badge rounded-pill bg-primary px-2 py-1" style={{ fontSize: "0.7rem" }}>
-                            {unreadCount}
-                          </span>
-                        )}
-                      </button>
-                    </li>
-                  </React.Fragment>
-                );
-              })}
+              <li className="ns-nav-item">
+                <button
+                  type="button"
+                  className="ns-logout-btn"
+                  onClick={handleLogout}
+                >
+                  <FiLogOut className="ns-nav-icon" />
+                  <span>Logout</span>
+                </button>
+              </li>
             </ul>
-          </nav>
-        </div>
-
-        {/* Bottom Section - Logout */}
-        <div className="pt-3 border-top border-secondary border-opacity-25">
-          <ul className="ns-nav-list">
-            <li className="ns-nav-item">
-              <button
-                type="button"
-                className="ns-logout-btn"
-                onClick={handleLogout}
-              >
-                <FiLogOut className="ns-nav-icon" />
-                <span>Logout</span>
-              </button>
-            </li>
-          </ul>
+          </div>
         </div>
       </aside>
 
@@ -245,3 +338,4 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
 }
 
 export default Sidebar;
+

@@ -570,6 +570,8 @@ function StudentJournal() {
   const renderMoodTrendChart = (trendData) => {
     if (!trendData || trendData.length === 0) return null;
 
+    const isLight = typeof document !== "undefined" && (document.body.classList.contains("light-theme") || document.documentElement.getAttribute("data-theme") === "light");
+
     const width = 600;
     const height = 180;
     const paddingX = 40;
@@ -586,7 +588,7 @@ function StudentJournal() {
 
     return (
       <div className="position-relative w-100">
-        <div className="d-flex justify-content-between align-items-center mb-2 px-2 text-muted extra-small">
+        <div className="d-flex justify-content-between align-items-center mb-2 px-2 text-muted extra-small fw-semibold">
           <span>Date</span>
           <span>Mood Score (1-10)</span>
         </div>
@@ -609,8 +611,8 @@ function StudentJournal() {
             const y = height - paddingY - ((level - 1) / 9) * (height - 2 * paddingY);
             return (
               <g key={level}>
-                <line x1={paddingX} y1={y} x2={width - paddingX} y2={y} stroke="rgba(255, 255, 255, 0.06)" strokeDasharray="3" />
-                <text x={paddingX - 10} y={y + 4} fill="rgba(255,255,255,0.4)" fontSize="9" textAnchor="end">
+                <line x1={paddingX} y1={y} x2={width - paddingX} y2={y} stroke={isLight ? "#cbd5e1" : "rgba(255, 255, 255, 0.08)"} strokeDasharray="3" />
+                <text x={paddingX - 10} y={y + 4} fill={isLight ? "#475569" : "rgba(255,255,255,0.7)"} fontSize="10" fontWeight="600" textAnchor="end">
                   {level}
                 </text>
               </g>
@@ -631,9 +633,9 @@ function StudentJournal() {
               onMouseLeave={() => setHoveredPoint(null)}
               style={{ cursor: "pointer" }}
             >
-              <circle cx={p.x} cy={p.y} r="6" fill="#0F172A" stroke="#8B5CF6" strokeWidth="2.5" />
+              <circle cx={p.x} cy={p.y} r="6" fill={isLight ? "#FFFFFF" : "#0F172A"} stroke="#8B5CF6" strokeWidth="2.5" />
               <circle cx={p.x} cy={p.y} r="3" fill="#3B82F6" />
-              <text x={p.x} y={height - 5} fill="rgba(255,255,255,0.6)" fontSize="10" textAnchor="middle">
+              <text x={p.x} y={height - 5} fill={isLight ? "#475569" : "rgba(255,255,255,0.8)"} fontSize="10" fontWeight="600" textAnchor="middle">
                 {p.date}
               </text>
             </g>
@@ -1121,11 +1123,8 @@ function StudentJournal() {
                           analyticsData.keyThemes.map((theme, idx) => (
                             <span
                               key={idx}
-                              className="badge rounded-pill px-3 py-1.5 fw-medium"
+                              className="badge rounded-pill px-3 py-1.5 fw-medium ns-key-theme-badge"
                               style={{
-                                background: "rgba(139, 92, 246, 0.15)",
-                                border: "1px solid rgba(139, 92, 246, 0.3)",
-                                color: "#E2E8F0",
                                 fontSize: "0.8rem",
                               }}
                             >
@@ -1341,10 +1340,10 @@ function StudentJournal() {
                       <div className="pt-2 border-top border-black border-opacity-10 d-flex align-items-center justify-content-between">
                         <button
                           type="button"
-                          className="btn btn-sm btn-dark rounded-pill d-inline-flex align-items-center gap-1 px-3 py-1 text-xs text-white"
+                          className="btn btn-sm btn-dark rounded-pill d-inline-flex align-items-center gap-1 px-3 py-1 text-xs text-white ns-keep-white"
                           onClick={() => handleOpenViewModal(journal)}
                         >
-                          <FiEye size={13} /> Read Entry
+                          <FiEye size={13} className="text-white ns-keep-white" /> Read Entry
                         </button>
 
                         <div className="d-flex align-items-center gap-1">
@@ -1398,8 +1397,8 @@ function StudentJournal() {
                 <div className="ns-diary-book mb-4 p-4">
                   <div className="ns-diary-margin-line" />
                   <div className="ns-diary-bookmark" />
-                  <h4 className="journal-handwriting text-purple-300 fs-2 mb-3">{viewingJournal.title}</h4>
-                  <div className="journal-handwriting fs-4" style={{ whiteSpace: "pre-wrap", lineHeight: "2.1rem", color: "#F8FAFC" }}>
+                  <h4 className="journal-handwriting text-journal-title fs-2 mb-3">{viewingJournal.title}</h4>
+                  <div className="journal-handwriting text-journal-ink fs-4" style={{ whiteSpace: "pre-wrap", lineHeight: "2.1rem" }}>
                     {viewingJournal.content}
                   </div>
                 </div>

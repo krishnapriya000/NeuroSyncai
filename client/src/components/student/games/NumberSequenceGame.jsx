@@ -140,16 +140,16 @@ function NumberSequenceGame({ onClose, onGameComplete, initialDifficulty = "Easy
   const currentQ = questions[currentRound];
 
   return (
-    <div className="ns-card p-4 p-md-5 rounded-4 border border-secondary border-opacity-25" style={{ background: "rgba(15, 23, 42, 0.95)" }}>
+    <div className="ns-card p-4 p-md-5 rounded-4 shadow-sm">
       {/* Top Header */}
       <div className="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary border-opacity-25 pb-3">
         <div className="d-flex align-items-center gap-3">
-          <button className="btn btn-sm btn-outline-light rounded-circle p-2" onClick={onClose} title="Back to Games">
+          <button className="btn btn-sm btn-outline-secondary rounded-circle p-2 btn-animated" onClick={onClose} title="Back to Games">
             <FiArrowLeft size={18} />
           </button>
           <div>
-            <h3 className="text-white fw-bold mb-0">🔢 Number Sequence</h3>
-            <span className="text-muted small">Find the missing number in the math pattern</span>
+            <h3 className="text-theme-primary fw-bold mb-0">🔢 Number Sequence</h3>
+            <span className="text-theme-secondary small">Find the missing number in the math pattern</span>
           </div>
         </div>
 
@@ -158,7 +158,7 @@ function NumberSequenceGame({ onClose, onGameComplete, initialDifficulty = "Easy
             {["Easy", "Medium", "Hard"].map((lvl) => (
               <button
                 key={lvl}
-                className={`btn btn-sm ${difficulty === lvl ? "btn-primary" : "btn-outline-secondary"}`}
+                className={`btn btn-sm rounded-pill px-3 ${difficulty === lvl ? "btn-primary fw-bold" : "btn-outline-secondary"}`}
                 onClick={() => setDifficulty(lvl)}
               >
                 {lvl}
@@ -169,10 +169,10 @@ function NumberSequenceGame({ onClose, onGameComplete, initialDifficulty = "Easy
 
         {gameState === "playing" && (
           <div className="d-flex align-items-center gap-4">
-            <div className="text-white fw-bold d-flex align-items-center gap-1 fs-6">
-              <FiClock className="text-purple-400" /> {timeTaken}s
+            <div className="text-theme-primary fw-bold d-flex align-items-center gap-1.5 fs-6">
+              <FiClock className="text-purple-500" /> {timeTaken}s
             </div>
-            <span className="badge bg-primary px-3 py-1 rounded-pill">
+            <span className="badge bg-primary px-3 py-1.5 rounded-pill fw-bold">
               Round {currentRound + 1} / {questions.length}
             </span>
           </div>
@@ -182,13 +182,13 @@ function NumberSequenceGame({ onClose, onGameComplete, initialDifficulty = "Easy
       {/* INSTRUCTIONS */}
       {gameState === "instructions" && (
         <div className="py-4 text-center mx-auto" style={{ maxWidth: "550px" }}>
-          <div className="fs-1 mb-3">🔢</div>
-          <h4 className="text-white fw-bold mb-2">How to Play</h4>
-          <p className="text-white-50 mb-4" style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
+          <div className="fs-1 mb-3 ns-float-icon">🔢</div>
+          <h4 className="text-theme-primary fw-bold mb-2">How to Play</h4>
+          <p className="text-theme-secondary mb-4" style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
             Review the series of numbers. Identify the mathematical progression (addition, multiplication, squares) and choose the missing number.
           </p>
           <button
-            className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold w-100 shadow"
+            className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold w-100 shadow btn-animated"
             onClick={handleStartGame}
           >
             <FiPlay className="me-2" /> Start Game
@@ -199,28 +199,24 @@ function NumberSequenceGame({ onClose, onGameComplete, initialDifficulty = "Easy
       {/* PLAYING VIEW */}
       {gameState === "playing" && currentQ && (
         <div className="py-3 text-center mx-auto" style={{ maxWidth: "600px" }}>
-          <div className="text-muted small text-uppercase tracking-wider mb-2">What is the next number?</div>
+          <div className="text-theme-secondary small text-uppercase tracking-wider mb-2 fw-semibold">What is the next number?</div>
 
           <div
-            className="p-4 mb-4 rounded-4 d-flex align-items-center justify-content-center gap-3 flex-wrap shadow-inner"
-            style={{
-              background: "rgba(30, 41, 59, 0.8)",
-              border: "1px solid rgba(139, 92, 246, 0.3)",
-              minHeight: "120px",
-            }}
+            className="p-4 mb-4 rounded-4 d-flex align-items-center justify-content-center gap-3 flex-wrap ns-score-hero-card"
+            style={{ minHeight: "120px" }}
           >
             {currentQ.sequence.map((num, idx) => (
               <div
                 key={idx}
-                className="d-flex align-items-center justify-content-center rounded-3 bg-dark border border-secondary border-opacity-30 fs-2 fw-bold text-white shadow-sm"
+                className="d-flex align-items-center justify-content-center rounded-3 ns-stat-card-item fs-2 fw-bold text-theme-primary shadow-sm"
                 style={{ width: "64px", height: "64px" }}
               >
                 {num}
               </div>
             ))}
             <div
-              className="d-flex align-items-center justify-content-center rounded-3 border-2 border-dashed border-primary fs-2 fw-bold text-primary"
-              style={{ width: "64px", height: "64px", background: "rgba(59, 130, 246, 0.1)" }}
+              className="d-flex align-items-center justify-content-center rounded-3 border-2 border-dashed border-primary fs-2 fw-bold text-primary animate-pulse"
+              style={{ width: "64px", height: "64px", background: "rgba(59, 130, 246, 0.12)" }}
             >
               ?
             </div>
@@ -228,7 +224,7 @@ function NumberSequenceGame({ onClose, onGameComplete, initialDifficulty = "Easy
 
           <div className="row g-3 justify-content-center mb-3">
             {currentQ.options.map((opt, idx) => {
-              let btnClass = "btn-outline-secondary text-white";
+              let btnClass = "btn-outline-secondary text-theme-primary";
               if (isAnswered) {
                 if (opt === currentQ.answer) btnClass = "btn-success text-white fw-bold";
                 else if (opt === selectedOption) btnClass = "btn-danger text-white";
@@ -238,7 +234,7 @@ function NumberSequenceGame({ onClose, onGameComplete, initialDifficulty = "Easy
                 <div key={idx} className="col-6 col-sm-3">
                   <button
                     disabled={isAnswered}
-                    className={`btn ${btnClass} p-3 w-100 rounded-3 fs-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2`}
+                    className={`btn ${btnClass} p-3 w-100 rounded-3 fs-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 btn-animated`}
                     style={{ minHeight: "65px" }}
                     onClick={() => handleOptionSelect(opt)}
                   >

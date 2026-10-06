@@ -200,16 +200,16 @@ function ProblemSolvingGame({ onClose, onGameComplete, initialDifficulty = "Easy
   const currentQ = questions[currentRound];
 
   return (
-    <div className="ns-card p-4 p-md-5 rounded-4 border border-secondary border-opacity-25" style={{ background: "rgba(15, 23, 42, 0.95)" }}>
+    <div className="ns-card p-4 p-md-5 rounded-4 shadow-sm">
       {/* Top Header */}
       <div className="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary border-opacity-25 pb-3">
         <div className="d-flex align-items-center gap-3">
-          <button className="btn btn-sm btn-outline-light rounded-circle p-2" onClick={onClose} title="Back to Games">
+          <button className="btn btn-sm btn-outline-secondary rounded-circle p-2 btn-animated" onClick={onClose} title="Back to Games">
             <FiArrowLeft size={18} />
           </button>
           <div>
-            <h3 className="text-white fw-bold mb-0">💡 Problem Solving</h3>
-            <span className="text-muted small">Solve logical puzzles and analytical reasoning challenges</span>
+            <h3 className="text-theme-primary fw-bold mb-0">💡 Problem Solving</h3>
+            <span className="text-theme-secondary small">Solve logical puzzles and analytical reasoning challenges</span>
           </div>
         </div>
 
@@ -218,7 +218,7 @@ function ProblemSolvingGame({ onClose, onGameComplete, initialDifficulty = "Easy
             {["Easy", "Medium", "Hard"].map((lvl) => (
               <button
                 key={lvl}
-                className={`btn btn-sm ${difficulty === lvl ? "btn-primary" : "btn-outline-secondary"}`}
+                className={`btn btn-sm rounded-pill px-3 ${difficulty === lvl ? "btn-primary fw-bold" : "btn-outline-secondary"}`}
                 onClick={() => setDifficulty(lvl)}
               >
                 {lvl}
@@ -229,10 +229,10 @@ function ProblemSolvingGame({ onClose, onGameComplete, initialDifficulty = "Easy
 
         {gameState === "playing" && (
           <div className="d-flex align-items-center gap-4">
-            <div className="text-white fw-bold d-flex align-items-center gap-1 fs-6">
-              <FiClock className="text-purple-400" /> {timeTaken}s
+            <div className="text-theme-primary fw-bold d-flex align-items-center gap-1.5 fs-6">
+              <FiClock className="text-purple-500" /> {timeTaken}s
             </div>
-            <span className="badge bg-primary px-3 py-1 rounded-pill">
+            <span className="badge bg-primary px-3 py-1.5 rounded-pill fw-bold">
               Puzzle {currentRound + 1} / {questions.length}
             </span>
           </div>
@@ -242,13 +242,13 @@ function ProblemSolvingGame({ onClose, onGameComplete, initialDifficulty = "Easy
       {/* INSTRUCTIONS */}
       {gameState === "instructions" && (
         <div className="py-4 text-center mx-auto" style={{ maxWidth: "550px" }}>
-          <div className="fs-1 mb-3">💡</div>
-          <h4 className="text-white fw-bold mb-2">How to Play</h4>
-          <p className="text-white-50 mb-4" style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
+          <div className="fs-1 mb-3 ns-float-icon">💡</div>
+          <h4 className="text-theme-primary fw-bold mb-2">How to Play</h4>
+          <p className="text-theme-secondary mb-4" style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
             Read each logical reasoning question carefully. Pick the single correct option from the choices provided.
           </p>
           <button
-            className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold w-100 shadow"
+            className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold w-100 shadow btn-animated"
             onClick={handleStartGame}
           >
             <FiPlay className="me-2" /> Start Game
@@ -259,19 +259,16 @@ function ProblemSolvingGame({ onClose, onGameComplete, initialDifficulty = "Easy
       {/* PLAYING VIEW */}
       {gameState === "playing" && currentQ && (
         <div className="py-2 text-center mx-auto" style={{ maxWidth: "650px" }}>
-          <div
-            className="p-4 mb-4 rounded-4 bg-dark border border-secondary border-opacity-30 text-start shadow-sm"
-            style={{ background: "rgba(30, 41, 59, 0.7)" }}
-          >
-            <span className="badge bg-purple-500 bg-opacity-20 text-purple-300 mb-2">Question {currentRound + 1}</span>
-            <h5 className="text-white fw-semibold mb-0" style={{ lineHeight: "1.5" }}>
+          <div className="p-4 mb-4 rounded-4 ns-score-hero-card text-start shadow-sm">
+            <span className="badge bg-primary bg-opacity-20 text-primary mb-2">Question {currentRound + 1}</span>
+            <h5 className="text-theme-primary fw-semibold mb-0" style={{ lineHeight: "1.5" }}>
               {currentQ.question}
             </h5>
           </div>
 
           <div className="row g-3 text-start">
             {currentQ.options.map((opt, idx) => {
-              let btnClass = "btn-outline-secondary text-white";
+              let btnClass = "btn-outline-secondary text-theme-primary";
               if (isAnswered) {
                 if (opt === currentQ.answer) btnClass = "btn-success text-white fw-bold";
                 else if (opt === selectedOption) btnClass = "btn-danger text-white";
@@ -281,13 +278,13 @@ function ProblemSolvingGame({ onClose, onGameComplete, initialDifficulty = "Easy
                 <div key={idx} className="col-12 col-sm-6">
                   <button
                     disabled={isAnswered}
-                    className={`btn ${btnClass} p-3 w-100 rounded-3 text-start d-flex align-items-center justify-content-between border border-secondary border-opacity-25 bg-dark`}
+                    className={`btn ${btnClass} p-3 w-100 rounded-3 text-start d-flex align-items-center justify-content-between ns-stat-card-item btn-animated`}
                     style={{ minHeight: "60px", fontSize: "0.95rem" }}
                     onClick={() => handleOptionSelect(opt)}
                   >
                     <span>{opt}</span>
-                    {isAnswered && opt === currentQ.answer && <FiCheck className="text-white fs-5" />}
-                    {isAnswered && opt === selectedOption && opt !== currentQ.answer && <FiX className="text-white fs-5" />}
+                    {isAnswered && opt === currentQ.answer && <FiCheck className="fs-5 text-success" />}
+                    {isAnswered && opt === selectedOption && opt !== currentQ.answer && <FiX className="fs-5 text-danger" />}
                   </button>
                 </div>
               );

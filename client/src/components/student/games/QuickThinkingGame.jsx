@@ -171,16 +171,16 @@ function QuickThinkingGame({ onClose, onGameComplete, initialDifficulty = "Easy"
   const currentQ = questions[currentRound];
 
   return (
-    <div className="ns-card p-4 p-md-5 rounded-4 border border-secondary border-opacity-25" style={{ background: "rgba(15, 23, 42, 0.95)" }}>
+    <div className="ns-card p-4 p-md-5 rounded-4 shadow-sm">
       {/* Header */}
       <div className="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary border-opacity-25 pb-3">
         <div className="d-flex align-items-center gap-3">
-          <button className="btn btn-sm btn-outline-light rounded-circle p-2" onClick={onClose} title="Back to Games">
+          <button className="btn btn-sm btn-outline-secondary rounded-circle p-2 btn-animated" onClick={onClose} title="Back to Games">
             <FiArrowLeft size={18} />
           </button>
           <div>
-            <h3 className="text-white fw-bold mb-0">⚡ Quick Thinking</h3>
-            <span className="text-muted small">Rapid-response true/false challenges under tight time limits</span>
+            <h3 className="text-theme-primary fw-bold mb-0">⚡ Quick Thinking</h3>
+            <span className="text-theme-secondary small">Rapid-response true/false challenges under tight time limits</span>
           </div>
         </div>
 
@@ -189,7 +189,7 @@ function QuickThinkingGame({ onClose, onGameComplete, initialDifficulty = "Easy"
             {["Easy", "Medium", "Hard"].map((lvl) => (
               <button
                 key={lvl}
-                className={`btn btn-sm ${difficulty === lvl ? "btn-primary" : "btn-outline-secondary"}`}
+                className={`btn btn-sm rounded-pill px-3 ${difficulty === lvl ? "btn-primary fw-bold" : "btn-outline-secondary"}`}
                 onClick={() => setDifficulty(lvl)}
               >
                 {lvl}
@@ -200,10 +200,10 @@ function QuickThinkingGame({ onClose, onGameComplete, initialDifficulty = "Easy"
 
         {gameState === "playing" && (
           <div className="d-flex align-items-center gap-4">
-            <div className="text-warning fw-bold d-flex align-items-center gap-1 fs-6">
-              <FiZap /> {roundTimeLeft}s left
+            <div className="text-warning fw-bold d-flex align-items-center gap-1.5 fs-6">
+              <FiZap className="text-warning" /> {roundTimeLeft}s left
             </div>
-            <span className="badge bg-primary px-3 py-1 rounded-pill">
+            <span className="badge bg-primary px-3 py-1.5 rounded-pill fw-bold">
               Question {currentRound + 1} / {questions.length}
             </span>
           </div>
@@ -213,13 +213,13 @@ function QuickThinkingGame({ onClose, onGameComplete, initialDifficulty = "Easy"
       {/* INSTRUCTIONS */}
       {gameState === "instructions" && (
         <div className="py-4 text-center mx-auto" style={{ maxWidth: "550px" }}>
-          <div className="fs-1 mb-3">⚡</div>
-          <h4 className="text-white fw-bold mb-2">How to Play</h4>
-          <p className="text-white-50 mb-4" style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
+          <div className="fs-1 mb-3 ns-float-icon">⚡</div>
+          <h4 className="text-theme-primary fw-bold mb-2">How to Play</h4>
+          <p className="text-theme-secondary mb-4" style={{ fontSize: "0.95rem", lineHeight: "1.6" }}>
             You get 5 seconds per question! Answer TRUE or FALSE as quickly as possible. Rapid thinking earns higher reaction scores.
           </p>
           <button
-            className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold w-100 shadow"
+            className="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold w-100 shadow btn-animated"
             onClick={handleStartGame}
           >
             <FiPlay className="me-2" /> Start Rapid Sprint
@@ -231,7 +231,7 @@ function QuickThinkingGame({ onClose, onGameComplete, initialDifficulty = "Easy"
       {gameState === "playing" && currentQ && (
         <div className="py-3 text-center mx-auto" style={{ maxWidth: "500px" }}>
           {/* Rapid Timer Bar */}
-          <div className="progress mb-4 bg-dark border border-secondary border-opacity-25" style={{ height: "10px" }}>
+          <div className="progress mb-4 border border-secondary border-opacity-25 rounded-pill" style={{ height: "10px", overflow: "hidden" }}>
             <div
               className={`progress-bar ${roundTimeLeft <= 2 ? "bg-danger" : "bg-warning"}`}
               style={{ width: `${(roundTimeLeft / 5) * 100}%`, transition: "width 1s linear" }}
@@ -239,17 +239,17 @@ function QuickThinkingGame({ onClose, onGameComplete, initialDifficulty = "Easy"
           </div>
 
           <div
-            className="p-4 mb-4 rounded-4 bg-dark border border-secondary border-opacity-30 shadow-sm"
-            style={{ background: "rgba(30, 41, 59, 0.7)", minHeight: "120px" }}
+            className="p-4 mb-4 rounded-4 ns-score-hero-card shadow-sm d-flex align-items-center justify-content-center"
+            style={{ minHeight: "120px" }}
           >
-            <h3 className="text-white fw-bold mb-0 lh-base">{currentQ.question}</h3>
+            <h3 className="text-theme-primary fw-bold mb-0 lh-base">{currentQ.question}</h3>
           </div>
 
           <div className="row g-3">
             {currentQ.options.map((opt, idx) => {
-              let btnClass = opt === "TRUE" ? "btn-success" : "btn-danger";
+              let btnClass = opt === "TRUE" ? "btn-success text-white" : "btn-danger text-white";
               if (isAnswered) {
-                if (opt === currentQ.answer) btnClass = "btn-success text-white fw-bold";
+                if (opt === currentQ.answer) btnClass = "btn-success text-white fw-bold shadow";
                 else if (opt === selectedOption) btnClass = "btn-outline-danger";
               }
 
@@ -257,7 +257,7 @@ function QuickThinkingGame({ onClose, onGameComplete, initialDifficulty = "Easy"
                 <div key={idx} className="col-6">
                   <button
                     disabled={isAnswered}
-                    className={`btn ${btnClass} btn-lg p-4 w-100 rounded-3 fw-extrabold shadow-sm`}
+                    className={`btn ${btnClass} btn-lg p-4 w-100 rounded-3 fw-extrabold shadow-sm btn-animated`}
                     style={{ fontSize: "1.2rem" }}
                     onClick={() => handleOptionSelect(opt)}
                   >

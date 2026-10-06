@@ -13,27 +13,50 @@ import {
   FiSettings,
   FiLogOut,
   FiX,
-  FiCalendar
+  FiZap
 } from "react-icons/fi";
 
-const workspaceNavItems = [
-  { id: "overview", label: "Overview", icon: FiGrid },
-  { id: "neuroplan", label: "✨ NeuroPlan Planner", icon: FiCalendar },
-  { id: "checkin", label: "Daily Check-in", icon: FiCheckSquare },
-  { id: "mood", label: "Mood & Stress", icon: FiSmile },
-  { id: "balance", label: "Work-Life Balance", icon: FiCompass },
-  { id: "focus", label: "Focus Sessions", icon: FiClock },
-  { id: "analytics", label: "Analytics", icon: FiBarChart2 },
-  { id: "ai-companion", label: "🤖 AI Companion", icon: FiCpu },
-];
-
-const personalNavItems = [
-  { id: "profile", label: "Profile", icon: FiUser },
-  { id: "settings", label: "Settings", icon: FiSettings },
+const professionalNavSections = [
+  {
+    title: "Workspace",
+    items: [
+      { id: "overview", label: "Overview", icon: FiGrid },
+      { id: "neuroplan", label: "NeuroPlan Planner", icon: FiZap, isFeatured: true },
+      { id: "checkin", label: "Daily Check-in", icon: FiCheckSquare },
+      { id: "mood", label: "Mood & Stress", icon: FiSmile },
+      { id: "balance", label: "Work-Life Balance", icon: FiCompass },
+      { id: "focus", label: "Focus Sessions", icon: FiClock },
+    ]
+  },
+  {
+    title: "Insights & AI",
+    items: [
+      { id: "analytics", label: "Analytics & Performance", icon: FiBarChart2 },
+      { id: "ai-companion", label: "AI Companion", icon: FiCpu },
+    ]
+  },
+  {
+    title: "Account",
+    items: [
+      { id: "profile", label: "Profile", icon: FiUser },
+      { id: "settings", label: "Settings", icon: FiSettings },
+    ]
+  }
 ];
 
 function ProfessionalSidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
   const navigate = useNavigate();
+
+  let currentUser = null;
+  try {
+    const userStr = localStorage.getItem("neurosync_current_user");
+    if (userStr) {
+      currentUser = JSON.parse(userStr);
+    }
+  } catch (e) {}
+
+  const userName = currentUser?.fullName || currentUser?.name || "Professional User";
+  const userInitial = userName ? userName.trim().charAt(0).toUpperCase() : "P";
 
   const handleNavClick = (id) => {
     if (setActiveTab) {
@@ -81,80 +104,71 @@ function ProfessionalSidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
 
       {/* Fixed Left Sidebar */}
       <aside className={`ns-sidebar ${isOpen ? "open" : ""}`}>
-        <div className="d-flex flex-column h-100 justify-content-between">
-          <div>
-            {/* Top Brand Header */}
-            <div className="d-flex align-items-center justify-content-between mb-4 px-2">
-              <div className="d-flex flex-column">
-                <Logo to="/professional/dashboard" />
-                <span className="text-secondary extra-small fw-medium mt-1 ms-1" style={{ fontSize: "0.68rem", color: "#94A3B8" }}>
-                  For Working Professionals
-                </span>
-              </div>
-              <button
-                className="btn text-white-50 p-1 d-lg-none"
-                onClick={() => setIsOpen && setIsOpen(false)}
-                aria-label="Close Sidebar"
-              >
-                <FiX size={24} />
-              </button>
-            </div>
+        <div className="ns-sidebar-content">
+          {/* Top Brand Header */}
+          <div className="d-flex align-items-center justify-content-between mb-3 px-1">
+            <Logo to="/professional/dashboard" />
+            <button
+              className="btn text-white-50 p-1 d-lg-none"
+              onClick={() => setIsOpen && setIsOpen(false)}
+              aria-label="Close Sidebar"
+            >
+              <FiX size={22} />
+            </button>
+          </div>
 
-            {/* WORKSPACE Section */}
-            <div className="mb-3">
-              <div className="px-3 mb-2 text-uppercase fw-bold" style={{ fontSize: "0.72rem", letterSpacing: "0.08em", color: "#CBD5E1" }}>
-                WORKSPACE
-              </div>
-              <nav>
-                <ul className="ns-nav-list">
-                  {workspaceNavItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id || (activeTab === "dashboard" && item.id === "overview");
-                    return (
-                      <li key={item.id} className={`ns-nav-item ${isActive ? "active" : ""}`}>
-                        <button
-                          type="button"
-                          onClick={() => handleNavClick(item.id)}
-                        >
-                          <Icon className="ns-nav-icon" />
-                          <span className="flex-grow-1">{item.label}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
+          {/* User Profile Summary Box */}
+          <div className="ns-sidebar-user-card">
+            <div className="ns-user-avatar-badge" style={{ background: "linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)" }}>
+              {userInitial}
             </div>
-
-            {/* PERSONAL Section */}
-            <div className="mb-3">
-              <div className="px-3 mb-2 text-uppercase fw-bold" style={{ fontSize: "0.72rem", letterSpacing: "0.08em", color: "#CBD5E1" }}>
-                PERSONAL
-              </div>
-              <nav>
-                <ul className="ns-nav-list">
-                  {personalNavItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    return (
-                      <li key={item.id} className={`ns-nav-item ${isActive ? "active" : ""}`}>
-                        <button
-                          type="button"
-                          onClick={() => handleNavClick(item.id)}
-                        >
-                          <Icon className="ns-nav-icon" />
-                          <span className="flex-grow-1">{item.label}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
+            <div className="d-flex flex-column overflow-hidden">
+              <span className="text-white fw-bold text-truncate" style={{ fontSize: "0.85rem" }}>
+                {userName}
+              </span>
+              <span className="ns-role-badge ns-role-badge-professional mt-0.5">
+                Working Professional
+              </span>
             </div>
           </div>
 
+          {/* Nav Content with Scroll */}
+          <div className="ns-sidebar-scroll">
+            <nav>
+              {professionalNavSections.map((section, idx) => (
+                <div key={section.title || idx} className="mb-2">
+                  <div className="ns-sidebar-section-title">
+                    {section.title}
+                  </div>
+                  <ul className="ns-nav-list">
+                    {section.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.id || (activeTab === "dashboard" && item.id === "overview");
+                      return (
+                        <li key={item.id} className={`ns-nav-item ${isActive ? "active" : ""}`}>
+                          <button
+                            type="button"
+                            onClick={() => handleNavClick(item.id)}
+                          >
+                            <Icon className="ns-nav-icon" />
+                            <span className="flex-grow-1 text-truncate">{item.label}</span>
+                            {item.isFeatured && (
+                              <span className="ns-nav-featured-badge ms-1">
+                                AI
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+          </div>
+
           {/* Bottom Section - Logout */}
-          <div className="pt-3 border-top border-secondary border-opacity-25 mt-auto">
+          <div className="pt-3 mt-2 border-top border-secondary border-opacity-25">
             <ul className="ns-nav-list">
               <li className="ns-nav-item">
                 <button
@@ -175,3 +189,4 @@ function ProfessionalSidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
 }
 
 export default ProfessionalSidebar;
+
