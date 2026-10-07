@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -38,7 +39,7 @@ function SeniorProgress() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/progress", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/progress`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();

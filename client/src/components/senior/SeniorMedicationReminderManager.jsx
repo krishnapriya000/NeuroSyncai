@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import React, { useState, useEffect, useRef } from "react";
 import { FiClock, FiCheck, FiX, FiBell, FiAlertCircle } from "react-icons/fi";
 
@@ -75,7 +76,7 @@ function SeniorMedicationReminderManager() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/medications", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/medications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
@@ -144,7 +145,7 @@ function SeniorMedicationReminderManager() {
 
   const triggerDBNotification = async (token, med) => {
     try {
-      const res = await fetch("http://localhost:5000/api/notifications/medication-reminder", {
+      const res = await fetch(`${API_BASE_URL}/api/notifications/medication-reminder`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

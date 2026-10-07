@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfessionalSidebar from "../components/professional/ProfessionalSidebar";

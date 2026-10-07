@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { FiClock, FiRotateCcw, FiArrowLeft, FiCheckCircle, FiXCircle } from "react-icons/fi";
 
@@ -140,7 +141,7 @@ function AttentionChallengeGame({ onClose, onGameComplete }) {
     const token = localStorage.getItem("neurosync_token");
     if (token) {
       try {
-        await fetch("http://localhost:5000/api/senior/cognitive-games/results", {
+        await fetch(`${API_BASE_URL}/api/senior/cognitive-games/results`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

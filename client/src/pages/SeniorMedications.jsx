@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -49,7 +50,7 @@ function SeniorMedications() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/medications", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/medications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
@@ -96,7 +97,7 @@ function SeniorMedications() {
     try {
       const url = editingMedId
         ? `http://localhost:5000/api/senior/medications/${editingMedId}`
-        : "http://localhost:5000/api/senior/medications";
+        : `${API_BASE_URL}/api/senior/medications`;
 
       const method = editingMedId ? "PUT" : "POST";
 

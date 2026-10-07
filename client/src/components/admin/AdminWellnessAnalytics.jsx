@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import { useState, useEffect, useCallback } from "react";
 import { 
   FiUsers, 
@@ -47,7 +48,7 @@ function AdminWellnessAnalytics({ theme = "light" }) {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/admin/wellness-analytics", {
+      const response = await fetch(`${API_BASE_URL}/api/admin/wellness-analytics`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -85,7 +86,7 @@ function AdminWellnessAnalytics({ theme = "light" }) {
       }
 
       try {
-        const res = await fetch("http://localhost:5000/api/admin/wellness-analytics", {
+        const res = await fetch(`${API_BASE_URL}/api/admin/wellness-analytics`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,

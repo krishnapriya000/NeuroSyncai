@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import React, { useState } from "react";
 import { FiSmile, FiClock, FiCheck } from "react-icons/fi";
 
@@ -23,7 +24,7 @@ function ProfessionalMoodCheckIn({ onViewHistory }) {
     if (token) {
       try {
         setLoading(true);
-        await fetch("http://localhost:5000/api/moodtracker", {
+        await fetch(`${API_BASE_URL}/api/moodtracker`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

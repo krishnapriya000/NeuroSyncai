@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -100,7 +101,7 @@ function ParentCheckInPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/parent/check-ins", {
+      const res = await fetch(`${API_BASE_URL}/api/parent/check-ins`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -188,7 +189,7 @@ function ParentCheckInPage() {
     const token = localStorage.getItem("neurosync_token");
 
     try {
-      const res = await fetch("http://localhost:5000/api/parent/check-ins", {
+      const res = await fetch(`${API_BASE_URL}/api/parent/check-ins`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

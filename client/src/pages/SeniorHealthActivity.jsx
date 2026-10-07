@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -46,7 +47,7 @@ function SeniorHealthActivity() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/health-activity?limit=10", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/health-activity?limit=10`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
@@ -80,7 +81,7 @@ function SeniorHealthActivity() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/health-activity", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/health-activity`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

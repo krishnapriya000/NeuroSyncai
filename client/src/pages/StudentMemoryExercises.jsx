@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -43,7 +44,7 @@ function StudentMemoryExercises() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/games/results?limit=8", {
+      const res = await fetch(`${API_BASE_URL}/api/games/results?limit=8`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();

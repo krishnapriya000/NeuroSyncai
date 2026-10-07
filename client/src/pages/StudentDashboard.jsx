@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/studentDashboard.css";
@@ -58,7 +59,7 @@ function StudentDashboard() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/dailycheckin/latest", {
+      const response = await fetch(`${API_BASE_URL}/api/dailycheckin/latest`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -109,7 +110,7 @@ function StudentDashboard() {
       const token = localStorage.getItem("neurosync_token");
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/goals/summary", {
+        const res = await fetch(`${API_BASE_URL}/api/goals/summary`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

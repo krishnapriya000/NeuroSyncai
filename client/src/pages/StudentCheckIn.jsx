@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -153,7 +154,7 @@ function StudentCheckIn() {
     const fetchCheckInStatus = async () => {
       setLoadingCheckIn(true);
       try {
-        const response = await fetch("http://localhost:5000/api/student/dailycheckin/latest", {
+        const response = await fetch(`${API_BASE_URL}/api/student/dailycheckin/latest`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -261,7 +262,7 @@ function StudentCheckIn() {
     try {
       const token = localStorage.getItem("neurosync_token");
 
-      const response = await fetch("http://localhost:5000/api/student/checkin", {
+      const response = await fetch(`${API_BASE_URL}/api/student/checkin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

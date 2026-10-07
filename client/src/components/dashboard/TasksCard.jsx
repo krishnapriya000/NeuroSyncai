@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiCalendar, FiCheck, FiArrowRight, FiClock, FiPlus } from "react-icons/fi";
@@ -19,10 +20,10 @@ function TasksCard() {
     try {
       // Fetch summary and today's tasks
       const [tasksRes, summaryRes] = await Promise.all([
-        fetch("http://localhost:5000/api/study-tasks?dateFilter=today", {
+        fetch(`${API_BASE_URL}/api/study-tasks?dateFilter=today`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/study-tasks/summary", {
+        fetch(`${API_BASE_URL}/api/study-tasks/summary`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

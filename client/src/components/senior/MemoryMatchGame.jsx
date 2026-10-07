@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { FiClock, FiRotateCcw, FiCheckCircle, FiXCircle, FiAward, FiArrowLeft } from "react-icons/fi";
 
@@ -132,7 +133,7 @@ function MemoryMatchGame({ onClose, onGameComplete }) {
     if (token) {
       setIsSubmitting(true);
       try {
-        await fetch("http://localhost:5000/api/senior/cognitive-games/results", {
+        await fetch(`${API_BASE_URL}/api/senior/cognitive-games/results`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

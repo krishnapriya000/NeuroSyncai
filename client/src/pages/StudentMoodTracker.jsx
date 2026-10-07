@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -113,7 +114,7 @@ function StudentMoodTracker() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/moodtracker/latest", {
+      const response = await fetch(`${API_BASE_URL}/api/moodtracker/latest`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -170,7 +171,7 @@ function StudentMoodTracker() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/moodtracker", {
+      const response = await fetch(`${API_BASE_URL}/api/moodtracker`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

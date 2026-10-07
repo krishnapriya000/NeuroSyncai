@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -66,7 +67,7 @@ function SeniorAICompanion() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/ai/chat/history", {
+      const res = await fetch(`${API_BASE_URL}/api/ai/chat/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -104,7 +105,7 @@ function SeniorAICompanion() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/ai/chat", {
+      const res = await fetch(`${API_BASE_URL}/api/ai/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +139,7 @@ function SeniorAICompanion() {
     try {
       setMessages([]);
       setError(null);
-      await fetch("http://localhost:5000/api/ai/chat/history", {
+      await fetch(`${API_BASE_URL}/api/ai/chat/history`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

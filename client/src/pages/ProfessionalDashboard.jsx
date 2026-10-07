@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/studentDashboard.css";
@@ -46,7 +47,7 @@ function ProfessionalDashboard() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/professional/checkin/today", {
+      const res = await fetch(`${API_BASE_URL}/api/professional/checkin/today`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

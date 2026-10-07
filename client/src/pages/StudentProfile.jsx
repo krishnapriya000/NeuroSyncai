@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -107,7 +108,7 @@ function StudentProfile() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/student/profile", {
+      const response = await fetch(`${API_BASE_URL}/api/student/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -148,7 +149,7 @@ function StudentProfile() {
     if (!token) return;
 
     try {
-      const response = await fetch("http://localhost:5000/api/student/emergency/contact", {
+      const response = await fetch(`${API_BASE_URL}/api/student/emergency/contact`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -179,7 +180,7 @@ function StudentProfile() {
     if (!token) return;
 
     try {
-      const response = await fetch("http://localhost:5000/api/student/emergency/alerts", {
+      const response = await fetch(`${API_BASE_URL}/api/student/emergency/alerts`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -233,7 +234,7 @@ function StudentProfile() {
     try {
       const token = localStorage.getItem("neurosync_token");
 
-      const response = await fetch("http://localhost:5000/api/student/profile", {
+      const response = await fetch(`${API_BASE_URL}/api/student/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -307,7 +308,7 @@ function StudentProfile() {
     try {
       const token = localStorage.getItem("neurosync_token");
 
-      const response = await fetch("http://localhost:5000/api/student/emergency/contact", {
+      const response = await fetch(`${API_BASE_URL}/api/student/emergency/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -359,7 +360,7 @@ function StudentProfile() {
 
     try {
       const token = localStorage.getItem("neurosync_token");
-      const response = await fetch("http://localhost:5000/api/student/emergency/contact", {
+      const response = await fetch(`${API_BASE_URL}/api/student/emergency/contact`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -112,7 +113,7 @@ function StudentGoals() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/goals", {
+      const response = await fetch(`${API_BASE_URL}/api/goals`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -235,7 +236,7 @@ function StudentGoals() {
     try {
       const url = editingGoal
         ? `http://localhost:5000/api/goals/${editingGoal._id}`
-        : "http://localhost:5000/api/goals";
+        : `${API_BASE_URL}/api/goals`;
       const method = editingGoal ? "PUT" : "POST";
 
       const response = await fetch(url, {

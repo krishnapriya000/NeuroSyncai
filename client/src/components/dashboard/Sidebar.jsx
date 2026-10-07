@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { 
   FiGrid, 
@@ -190,7 +191,7 @@ function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
       const token = localStorage.getItem("neurosync_token");
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/notifications/unread-count", {
+        const res = await fetch(`${API_BASE_URL}/api/notifications/unread-count`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

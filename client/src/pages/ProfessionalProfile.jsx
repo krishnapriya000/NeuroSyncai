@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/studentDashboard.css";
@@ -109,7 +110,7 @@ function ProfessionalProfile() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/professional/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/professional/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -312,7 +313,7 @@ function ProfessionalProfile() {
 
     try {
       if (token) {
-        const res = await fetch("http://localhost:5000/api/professional/profile", {
+        const res = await fetch(`${API_BASE_URL}/api/professional/profile`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

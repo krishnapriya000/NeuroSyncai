@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -188,7 +189,7 @@ function StudentJournal() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/journal", {
+      const response = await fetch(`${API_BASE_URL}/api/journal`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -279,7 +280,7 @@ function StudentJournal() {
     setIsSavingAndAnalyzing(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/journal", {
+      const response = await fetch(`${API_BASE_URL}/api/journal`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

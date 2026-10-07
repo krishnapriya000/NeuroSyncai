@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/studentDashboard.css";
@@ -106,7 +107,7 @@ function ProfessionalMoodStress() {
 
     try {
       // Fetch Today's Check-in
-      const todayRes = await fetch("http://localhost:5000/api/professional/checkin/today", {
+      const todayRes = await fetch(`${API_BASE_URL}/api/professional/checkin/today`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const todayJson = await todayRes.json();
@@ -115,7 +116,7 @@ function ProfessionalMoodStress() {
       }
 
       // Fetch History
-      const historyRes = await fetch("http://localhost:5000/api/professional/checkin/history", {
+      const historyRes = await fetch(`${API_BASE_URL}/api/professional/checkin/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const historyJson = await historyRes.json();

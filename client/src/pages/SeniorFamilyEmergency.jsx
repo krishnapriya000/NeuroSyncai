@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -47,7 +48,7 @@ function SeniorFamilyEmergency() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/family-contacts", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/family-contacts`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
@@ -97,7 +98,7 @@ function SeniorFamilyEmergency() {
     try {
       const url = editingId
         ? `http://localhost:5000/api/senior/family-contacts/${editingId}`
-        : "http://localhost:5000/api/senior/family-contacts";
+        : `${API_BASE_URL}/api/senior/family-contacts`;
 
       const method = editingId ? "PUT" : "POST";
 
@@ -152,7 +153,7 @@ function SeniorFamilyEmergency() {
     const token = localStorage.getItem("neurosync_token");
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/sos", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/sos`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

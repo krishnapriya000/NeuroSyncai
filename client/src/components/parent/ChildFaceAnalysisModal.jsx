@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import React, { useState, useEffect, useRef } from "react";
 import * as faceapi from "@vladmandic/face-api";
 import {

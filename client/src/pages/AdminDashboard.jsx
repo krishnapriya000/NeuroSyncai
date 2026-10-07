@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -69,7 +70,7 @@ function AdminDashboard() {
   // Fetch Dashboard Stats
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/stats", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/stats`, {
         headers: getHeaders(),
       });
       const data = await res.json();
@@ -84,7 +85,7 @@ function AdminDashboard() {
   // Fetch Users List
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/users", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers: getHeaders(),
       });
       const data = await res.json();
@@ -99,7 +100,7 @@ function AdminDashboard() {
   // Fetch Login Logs
   const fetchLogs = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/logins", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/logins`, {
         headers: getHeaders(),
       });
       const data = await res.json();
@@ -114,7 +115,7 @@ function AdminDashboard() {
   // Fetch Wellness Analytics Summary
   const fetchWellness = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/wellness-analytics", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/wellness-analytics`, {
         headers: getHeaders(),
       });
       const data = await res.json();

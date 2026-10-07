@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -91,7 +92,7 @@ function StudentAICompanion() {
 
     try {
       setFetchingHistory(true);
-      const res = await fetch("http://localhost:5000/api/ai/chat/history", {
+      const res = await fetch(`${API_BASE_URL}/api/ai/chat/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -111,7 +112,7 @@ function StudentAICompanion() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/ai/insights", {
+      const res = await fetch(`${API_BASE_URL}/api/ai/insights`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -152,7 +153,7 @@ function StudentAICompanion() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/ai/chat", {
+      const res = await fetch(`${API_BASE_URL}/api/ai/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -193,7 +194,7 @@ function StudentAICompanion() {
     if (!token || !tasks || tasks.length === 0) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/ai/study-plan/confirm", {
+      const res = await fetch(`${API_BASE_URL}/api/ai/study-plan/confirm`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -223,7 +224,7 @@ function StudentAICompanion() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:5000/api/ai/chat/history", {
+      const res = await fetch(`${API_BASE_URL}/api/ai/chat/history`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

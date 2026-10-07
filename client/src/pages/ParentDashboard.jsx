@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/studentDashboard.css";
@@ -41,7 +42,7 @@ function ParentDashboard() {
       const token = localStorage.getItem("neurosync_token");
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/parent/children", {
+        const res = await fetch(`${API_BASE_URL}/api/parent/children`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -57,7 +58,7 @@ function ParentDashboard() {
       const token = localStorage.getItem("neurosync_token");
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/parent/check-ins", {
+        const res = await fetch(`${API_BASE_URL}/api/parent/check-ins`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

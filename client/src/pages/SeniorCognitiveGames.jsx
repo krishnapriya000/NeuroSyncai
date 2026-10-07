@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -47,10 +48,10 @@ function SeniorCognitiveGames() {
 
     try {
       const [resHistory, resStats] = await Promise.all([
-        fetch("http://localhost:5000/api/senior/cognitive-games/results?limit=6", {
+        fetch(`${API_BASE_URL}/api/senior/cognitive-games/results?limit=6`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/senior/cognitive-games/stats", {
+        fetch(`${API_BASE_URL}/api/senior/cognitive-games/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

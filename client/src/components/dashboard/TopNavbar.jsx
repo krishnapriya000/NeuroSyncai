@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../utils/apiConfig.js";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiSearch, FiBell, FiMenu, FiUser, FiSettings, FiLogOut, FiChevronDown, FiSun, FiMoon, FiX } from "react-icons/fi";
@@ -93,7 +94,7 @@ function TopNavbar({ studentName: propStudentName, toggleSidebar }) {
       const token = localStorage.getItem("neurosync_token");
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/notifications?filter=Unread&limit=4", {
+        const res = await fetch(`${API_BASE_URL}/api/notifications?filter=Unread&limit=4`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

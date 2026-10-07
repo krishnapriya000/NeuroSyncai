@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -193,7 +194,7 @@ function NeuroPlan() {
     const token = localStorage.getItem("neurosync_token");
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:5000/api/neuroplan/history/analytics", {
+      const res = await fetch(`${API_BASE_URL}/api/neuroplan/history/analytics`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
@@ -270,7 +271,7 @@ function NeuroPlan() {
     const token = localStorage.getItem("neurosync_token");
 
     try {
-      const res = await fetch("http://localhost:5000/api/neuroplan/generate", {
+      const res = await fetch(`${API_BASE_URL}/api/neuroplan/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

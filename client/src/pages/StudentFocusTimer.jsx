@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/dashboard/Sidebar";
@@ -47,7 +48,7 @@ function StudentFocusTimer() {
       const token = localStorage.getItem("neurosync_token");
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/focus/today", {
+        const res = await fetch(`${API_BASE_URL}/api/focus/today`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -68,7 +69,7 @@ function StudentFocusTimer() {
       setCompletedSessions((prev) => prev + 1);
       if (token) {
         try {
-          await fetch("http://localhost:5000/api/focus/session", {
+          await fetch(`${API_BASE_URL}/api/focus/session`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

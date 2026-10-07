@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -43,7 +44,7 @@ function SeniorDailyCheckIn() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/daily-checkin?limit=7", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/daily-checkin?limit=7`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
@@ -72,7 +73,7 @@ function SeniorDailyCheckIn() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/senior/daily-checkin", {
+      const res = await fetch(`${API_BASE_URL}/api/senior/daily-checkin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

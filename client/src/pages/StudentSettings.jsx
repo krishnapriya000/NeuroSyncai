@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../utils/apiConfig.js";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import TopNavbar from "../components/dashboard/TopNavbar";
@@ -136,7 +137,7 @@ function StudentSettings() {
     setPwSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/change-password", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
