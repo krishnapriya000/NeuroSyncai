@@ -1,11 +1,23 @@
-import React, { useState } from "react";
-import { FiBell, FiSend, FiUsers, FiClock, FiCheckCircle, FiTrash2, FiPieChart, FiBarChart2 } from "react-icons/fi";
+import { useState } from "react";
+import { FiSend, FiClock, FiCheckCircle, FiTrash2, FiPieChart, FiBarChart2 } from "react-icons/fi";
 
-function AdminNotifications() {
+function AdminNotifications({ theme = "light" }) {
   const [targetRole, setTargetRole] = useState("All Users");
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [successBanner, setSuccessBanner] = useState("");
+
+  const isLight = theme === "light";
+
+  const cardStyle = {
+    background: isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.75)",
+    border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)",
+    boxShadow: isLight ? "0 2px 12px rgba(0, 0, 0, 0.03)" : "0 10px 30px -15px rgba(0, 0, 0, 0.5)",
+    borderRadius: "16px"
+  };
+
+  const titleColor = isLight ? "#111827" : "#FFFFFF";
+  const subtextColor = isLight ? "#64748B" : "#94A3B8";
 
   // Notification History log
   const [history, setHistory] = useState([
@@ -81,15 +93,6 @@ function AdminNotifications() {
 
   return (
     <div className="admin-notifications-section" style={{ maxWidth: "1500px", margin: "0 auto" }}>
-      {/* Header */}
-      <div className="p-4 rounded-4 mb-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-        <h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-          <FiBell className="text-warning" /> System Broadcast & Push Notifications
-        </h4>
-        <p className="text-secondary small mb-0">
-          Broadcast announcement alerts and push notifications to targeted user roles
-        </p>
-      </div>
 
       {/* Success Banner */}
       {successBanner && (
@@ -103,18 +106,18 @@ function AdminNotifications() {
       <div className="row g-4 mb-4">
         {/* 1. TARGET AUDIENCE DONUT CHART */}
         <div className="col-12 col-lg-5">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
-              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "0.95rem" }}>
                 <FiPieChart style={{ color: "#7C5CFC" }} /> Notification Target Audience
               </h6>
-              <span className="extra-small text-secondary fw-semibold">Distribution</span>
+              <span className="extra-small fw-semibold" style={{ color: subtextColor }}>Distribution</span>
             </div>
 
             <div className="d-flex flex-column align-items-center justify-content-center py-2">
               <div className="position-relative d-flex align-items-center justify-content-center mb-3">
                 <svg width="150" height="150" viewBox="0 0 42 42" className="donut-svg">
-                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F1F5F9" strokeWidth="4.5" />
+                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke={isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)"} strokeWidth="4.5" />
                   {/* Segment 1: Students 45% */}
                   <circle
                     cx="21"
@@ -161,20 +164,20 @@ function AdminNotifications() {
                   />
                 </svg>
                 <div className="position-absolute text-center">
-                  <span className="fw-bold d-block text-dark lh-1" style={{ fontSize: "1.25rem" }}>45%</span>
-                  <span className="extra-small text-secondary" style={{ fontSize: "0.68rem" }}>Students</span>
+                  <span className="fw-bold d-block lh-1" style={{ color: titleColor, fontSize: "1.25rem" }}>45%</span>
+                  <span className="extra-small" style={{ color: subtextColor, fontSize: "0.68rem" }}>Students</span>
                 </div>
               </div>
 
               {/* Legend List */}
               <div className="w-100 d-flex flex-column gap-2">
                 {targetDistribution.map((item, idx) => (
-                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: "#F8FAFC" }}>
+                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)" }}>
                     <div className="d-flex align-items-center gap-2">
                       <span className="rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: item.color }} />
-                      <span className="small fw-semibold text-dark" style={{ fontSize: "0.82rem" }}>{item.label}</span>
+                      <span className="small fw-semibold" style={{ color: titleColor, fontSize: "0.82rem" }}>{item.label}</span>
                     </div>
-                    <span className="extra-small fw-bold text-dark">{item.pct}%</span>
+                    <span className="extra-small fw-bold" style={{ color: titleColor }}>{item.pct}%</span>
                   </div>
                 ))}
               </div>
@@ -184,22 +187,22 @@ function AdminNotifications() {
 
         {/* 2. BROADCAST TYPE ACTIVITY BAR CHART */}
         <div className="col-12 col-lg-7">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
-              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "0.95rem" }}>
                 <FiBarChart2 style={{ color: "#4F8CFF" }} /> Broadcast Volume by Category
               </h6>
-              <span className="extra-small text-secondary fw-semibold">Delivered Messages</span>
+              <span className="extra-small fw-semibold" style={{ color: subtextColor }}>Delivered Messages</span>
             </div>
 
             <div className="d-flex flex-column gap-3 py-2">
               {categoryBarData.map((item, idx) => (
                 <div key={idx}>
                   <div className="d-flex justify-content-between small mb-1">
-                    <span className="fw-semibold text-dark" style={{ fontSize: "0.85rem" }}>{item.type}</span>
-                    <span className="extra-small fw-bold text-secondary">{item.count} Sent ({item.pct}%)</span>
+                    <span className="fw-semibold" style={{ color: titleColor, fontSize: "0.85rem" }}>{item.type}</span>
+                    <span className="extra-small fw-bold" style={{ color: subtextColor }}>{item.count} Sent ({item.pct}%)</span>
                   </div>
-                  <div className="progress" style={{ height: "10px", background: "#F1F5F9" }}>
+                  <div className="progress" style={{ height: "10px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                     <div 
                       className="progress-bar rounded-pill" 
                       style={{ 
@@ -219,20 +222,20 @@ function AdminNotifications() {
       <div className="row g-4">
         {/* Send Notification Form */}
         <div className="col-12 col-lg-5">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h5 className="fw-bold mb-3 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <h5 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1.05rem" }}>
               <FiSend className="text-primary" /> Create & Broadcast Notification
             </h5>
 
             <form onSubmit={handleSendNotification}>
               {/* Target Role Dropdown */}
               <div className="mb-3">
-                <label className="form-label text-secondary small fw-semibold">Target Audience / Role</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>Target Audience / Role</label>
                 <select 
-                  className="form-select bg-white text-dark border-secondary border-opacity-25"
+                  className="form-select border-secondary border-opacity-25"
                   value={targetRole}
                   onChange={(e) => setTargetRole(e.target.value)}
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.9)", color: titleColor }}
                 >
                   <option value="All Users">📢 All Users (Global Broadcast)</option>
                   <option value="Students">🎓 Students</option>
@@ -244,29 +247,29 @@ function AdminNotifications() {
 
               {/* Title */}
               <div className="mb-3">
-                <label className="form-label text-secondary small fw-semibold">Notification Title</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>Notification Title</label>
                 <input 
                   type="text" 
-                  className="form-control bg-white text-dark border-secondary border-opacity-25"
+                  className="form-control border-secondary border-opacity-25"
                   placeholder="e.g. Daily Survey Reminder"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: titleColor }}
                 />
               </div>
 
               {/* Message */}
               <div className="mb-4">
-                <label className="form-label text-secondary small fw-semibold">Message Body</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>Message Body</label>
                 <textarea 
                   rows="4" 
-                  className="form-control bg-white text-dark border-secondary border-opacity-25"
+                  className="form-control border-secondary border-opacity-25"
                   placeholder="Type announcement message to broadcast..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   required
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: titleColor }}
                 />
               </div>
 
@@ -284,12 +287,12 @@ function AdminNotifications() {
 
         {/* Notification History Log */}
         <div className="col-12 col-lg-7">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#E2E8F0" }}>
-              <h5 className="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
+              <h5 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1.05rem" }}>
                 <FiClock style={{ color: "#7C5CFC" }} /> Broadcast History Log ({history.length})
               </h5>
-              <span className="extra-small text-secondary fw-semibold">Delivered Messages</span>
+              <span className="extra-small fw-semibold" style={{ color: subtextColor }}>Delivered Messages</span>
             </div>
 
             {history.length > 0 ? (
@@ -298,19 +301,19 @@ function AdminNotifications() {
                   <div 
                     key={item.id}
                     className="p-3.5 rounded-3 border position-relative transition-all"
-                    style={{ background: "#F8FAFC", borderColor: "#E2E8F0" }}
+                    style={{ background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.04)", borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}
                   >
                     <div className="d-flex align-items-center justify-content-between mb-1">
-                      <h6 className="fw-bold text-dark mb-0" style={{ fontSize: "0.92rem" }}>{item.title}</h6>
+                      <h6 className="fw-bold mb-0" style={{ color: titleColor, fontSize: "0.92rem" }}>{item.title}</h6>
                       <span className="px-2.5 py-0.5 rounded-pill extra-small fw-bold" style={{ background: "rgba(124, 92, 252, 0.12)", color: "#7C5CFC" }}>
                         🎯 {item.target}
                       </span>
                     </div>
 
-                    <p className="text-secondary small mb-2" style={{ fontSize: "0.85rem", lineHeight: "1.4" }}>{item.message}</p>
+                    <p className="small mb-2" style={{ color: subtextColor, fontSize: "0.85rem", lineHeight: "1.4" }}>{item.message}</p>
 
-                    <div className="d-flex align-items-center justify-content-between text-secondary extra-small border-top pt-2" style={{ borderColor: "#E2E8F0", fontSize: "0.76rem" }}>
-                      <span>🕒 Sent: {item.sentAt} • Delivered to <strong>{item.count} users</strong></span>
+                    <div className="d-flex align-items-center justify-content-between extra-small border-top pt-2" style={{ color: subtextColor, borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)", fontSize: "0.76rem" }}>
+                      <span>🕒 Sent: {item.sentAt} • Delivered to <strong style={{ color: titleColor }}>{item.count} users</strong></span>
                       <button 
                         onClick={() => deleteNotificationLog(item.id)} 
                         className="btn btn-link text-danger p-0 border-0 text-decoration-none extra-small"
@@ -323,7 +326,7 @@ function AdminNotifications() {
                 ))}
               </div>
             ) : (
-              <div className="text-center text-secondary py-5 small">
+              <div className="text-center py-5 extra-small" style={{ color: subtextColor }}>
                 No notification broadcast logs recorded yet.
               </div>
             )}

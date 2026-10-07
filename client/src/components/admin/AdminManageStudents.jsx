@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { 
   FiSearch, 
   FiUser, 
@@ -8,21 +8,29 @@ import {
   FiCheckCircle, 
   FiXCircle, 
   FiCalendar, 
-  FiActivity,
-  FiX,
-  FiSmile,
-  FiShield,
   FiUserCheck,
   FiBarChart2,
   FiPieChart,
   FiTrendingUp
 } from "react-icons/fi";
 
-function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
+function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser, theme = "light" }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activeModal, setActiveModal] = useState(null); // "profile" | "today-survey" | "history" | "report"
   const [studentStatusMap, setStudentStatusMap] = useState({});
+
+  const isLight = theme === "light";
+
+  const cardStyle = {
+    background: isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.75)",
+    border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)",
+    boxShadow: isLight ? "0 2px 12px rgba(0, 0, 0, 0.03)" : "0 10px 30px -15px rgba(0, 0, 0, 0.5)",
+    borderRadius: "16px"
+  };
+
+  const titleColor = isLight ? "#111827" : "#FFFFFF";
+  const subtextColor = isLight ? "#64748B" : "#94A3B8";
 
   // Filter student role users
   const students = users.filter((u) => u.role === "Student");
@@ -75,69 +83,21 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
 
   return (
     <div className="manage-students-section" style={{ maxWidth: "1500px", margin: "0 auto" }}>
-      
-      {/* CONCEPT HERO OVERVIEW HEADER CARD */}
-      <div 
-        className="p-4 rounded-4 mb-4 bg-white border shadow-sm transition-all"
-        style={{ borderColor: "#E2E8F0" }}
-      >
-        <div className="row align-items-center g-3">
-          <div className="col-12 col-lg-7">
-            <div className="d-flex align-items-center gap-3">
-              <div 
-                className="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0 shadow-sm"
-                style={{ width: "52px", height: "52px", background: "linear-gradient(135deg, #6C4CF1, #4F8CFF)", fontSize: "1.3rem" }}
-              >
-                🎓
-              </div>
-              <div>
-                <div className="d-flex align-items-center gap-2 mb-1">
-                  <h4 className="fw-bold mb-0 text-dark" style={{ letterSpacing: "-0.01em" }}>
-                    Student Management Hub
-                  </h4>
-                  <span className="px-2.5 py-0.5 rounded-pill extra-small fw-bold" style={{ background: "rgba(108, 76, 241, 0.12)", color: "#6C4CF1" }}>
-                    {filteredStudents.length} Active Accounts
-                  </span>
-                </div>
-                <p className="text-secondary small mb-0">
-                  Oversee student wellness logs, daily check-in survey responses, and profile records.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-12 col-lg-5 d-flex justify-content-lg-end">
-            <div className="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border" style={{ maxWidth: "320px", borderColor: "#CBD5E1" }}>
-              <span className="input-group-text bg-white border-0 ps-3 text-secondary">
-                <FiSearch size={15} />
-              </span>
-              <input 
-                type="text"
-                className="form-control border-0 bg-white pe-3"
-                placeholder="Search student or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ fontSize: "0.85rem" }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* STUDENT ANALYTICS ROW: BAR CHART & PIE/DONUT CHART */}
       <div className="row g-4 mb-4">
         
         {/* CHART 1: STUDENT WELLNESS SCORE DISTRIBUTION (BAR CHART) */}
         <div className="col-12 col-lg-4">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h6 className="fw-bold mb-3 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1rem" }}>
               <FiBarChart2 style={{ color: "#6C4CF1" }} /> Wellness Score Distribution
             </h6>
 
             <div className="d-flex flex-column gap-2.5 pt-1">
               <div>
                 <div className="d-flex justify-content-between extra-small fw-semibold mb-1">
-                  <span className="text-dark">Excellent (≥80%)</span>
+                  <span style={{ color: titleColor }}>Excellent (≥80%)</span>
                   <span style={{ color: "#16B981" }}>{excellentCount} Students ({Math.round((excellentCount/totalAnalytics)*100)}%)</span>
                 </div>
                 <div className="progress rounded-pill" style={{ height: "8px", background: "#F1F5F9" }}>
@@ -147,30 +107,30 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
 
               <div>
                 <div className="d-flex justify-content-between extra-small fw-semibold mb-1">
-                  <span className="text-dark">Good (60-79%)</span>
+                  <span style={{ color: titleColor }}>Good (60-79%)</span>
                   <span style={{ color: "#4F8CFF" }}>{goodCount} Students ({Math.round((goodCount/totalAnalytics)*100)}%)</span>
                 </div>
-                <div className="progress rounded-pill" style={{ height: "8px", background: "#F1F5F9" }}>
+                <div className="progress rounded-pill" style={{ height: "8px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                   <div className="progress-bar rounded-pill" style={{ width: `${(goodCount/totalAnalytics)*100}%`, background: "#4F8CFF" }} />
                 </div>
               </div>
 
               <div>
                 <div className="d-flex justify-content-between extra-small fw-semibold mb-1">
-                  <span className="text-dark">Moderate (40-59%)</span>
+                  <span style={{ color: titleColor }}>Moderate (40-59%)</span>
                   <span style={{ color: "#F59E0B" }}>{moderateCount} Students ({Math.round((moderateCount/totalAnalytics)*100)}%)</span>
                 </div>
-                <div className="progress rounded-pill" style={{ height: "8px", background: "#F1F5F9" }}>
+                <div className="progress rounded-pill" style={{ height: "8px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                   <div className="progress-bar rounded-pill" style={{ width: `${(moderateCount/totalAnalytics)*100}%`, background: "#F59E0B" }} />
                 </div>
               </div>
 
               <div>
                 <div className="d-flex justify-content-between extra-small fw-semibold mb-1">
-                  <span className="text-dark">Needs Attention (&lt;40%)</span>
+                  <span style={{ color: titleColor }}>Needs Attention (&lt;40%)</span>
                   <span style={{ color: "#EF4444" }}>{needsAttentionCount} Students ({Math.round((needsAttentionCount/totalAnalytics)*100)}%)</span>
                 </div>
-                <div className="progress rounded-pill" style={{ height: "8px", background: "#F1F5F9" }}>
+                <div className="progress rounded-pill" style={{ height: "8px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                   <div className="progress-bar rounded-pill" style={{ width: `${(needsAttentionCount/totalAnalytics)*100}%`, background: "#EF4444" }} />
                 </div>
               </div>
@@ -180,8 +140,8 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
 
         {/* CHART 2: MOOD & STRESS DONUT CHART */}
         <div className="col-12 col-lg-4">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h6 className="fw-bold mb-3 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1rem" }}>
               <FiPieChart style={{ color: "#EC4899" }} /> Mood & Mental Health Breakdown
             </h6>
 
@@ -189,14 +149,14 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
               {/* SVG Donut Chart Component */}
               <div className="position-relative d-flex align-items-center justify-content-center" style={{ width: "120px", height: "120px" }}>
                 <svg width="120" height="120" viewBox="0 0 42 42" className="donut">
-                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F1F5F9" strokeWidth="4"></circle>
+                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke={isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)"} strokeWidth="4"></circle>
                   <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#16B981" strokeWidth="4.5" strokeDasharray={`${(excellentCount/totalAnalytics)*100} ${100 - (excellentCount/totalAnalytics)*100}`} strokeDashoffset="25"></circle>
                   <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#4F8CFF" strokeWidth="4.5" strokeDasharray={`${(goodCount/totalAnalytics)*100} ${100 - (goodCount/totalAnalytics)*100}`} strokeDashoffset={`${25 - (excellentCount/totalAnalytics)*100}`}></circle>
                   <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F59E0B" strokeWidth="4.5" strokeDasharray={`${(moderateCount/totalAnalytics)*100} ${100 - (moderateCount/totalAnalytics)*100}`} strokeDashoffset={`${25 - (excellentCount/totalAnalytics)*100 - (goodCount/totalAnalytics)*100}`}></circle>
                 </svg>
                 <div className="position-absolute text-center">
-                  <span className="fw-bold fs-5 text-dark leading-none d-block">{students.length}</span>
-                  <span className="extra-small text-secondary" style={{ fontSize: "0.65rem" }}>Students</span>
+                  <span className="fw-bold fs-5 leading-none d-block" style={{ color: titleColor }}>{students.length}</span>
+                  <span className="extra-small" style={{ color: subtextColor, fontSize: "0.65rem" }}>Students</span>
                 </div>
               </div>
 
@@ -204,19 +164,19 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
               <div className="d-flex flex-column gap-1.5 extra-small fw-semibold">
                 <div className="d-flex align-items-center gap-1.5">
                   <span className="rounded-circle d-inline-block" style={{ width: "8px", height: "8px", background: "#16B981" }} />
-                  <span className="text-dark">Happy / Calm</span>
+                  <span style={{ color: titleColor }}>Happy / Calm</span>
                 </div>
                 <div className="d-flex align-items-center gap-1.5">
                   <span className="rounded-circle d-inline-block" style={{ width: "8px", height: "8px", background: "#4F8CFF" }} />
-                  <span className="text-dark">Balanced</span>
+                  <span style={{ color: titleColor }}>Balanced</span>
                 </div>
                 <div className="d-flex align-items-center gap-1.5">
                   <span className="rounded-circle d-inline-block" style={{ width: "8px", height: "8px", background: "#F59E0B" }} />
-                  <span className="text-dark">Mild Stress</span>
+                  <span style={{ color: titleColor }}>Mild Stress</span>
                 </div>
                 <div className="d-flex align-items-center gap-1.5">
                   <span className="rounded-circle d-inline-block" style={{ width: "8px", height: "8px", background: "#EF4444" }} />
-                  <span className="text-dark">High Stress</span>
+                  <span style={{ color: titleColor }}>High Stress</span>
                 </div>
               </div>
             </div>
@@ -225,8 +185,8 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
 
         {/* CHART 3: 7-DAY CHECK-IN TREND BAR CHART */}
         <div className="col-12 col-lg-4">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h6 className="fw-bold mb-3 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1rem" }}>
               <FiTrendingUp style={{ color: "#16B981" }} /> 7-Day Check-in Activity
             </h6>
 
@@ -246,7 +206,7 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
                         maxWidth: "28px"
                       }}
                     />
-                    <span className="extra-small text-secondary mt-1" style={{ fontSize: "0.68rem" }}>
+                    <span className="extra-small mt-1" style={{ color: subtextColor, fontSize: "0.68rem" }}>
                       {item.date?.slice ? item.date.slice(5) || item.date : item.date}
                     </span>
                   </div>
@@ -259,20 +219,36 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
       </div>
 
       {/* STUDENT LIST TABLE CARD */}
-      <div className="p-4 rounded-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-        <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3" style={{ borderColor: "#E2E8F0" }}>
-          <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+      <div className="p-4 rounded-4" style={cardStyle}>
+        <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3 border-bottom pb-3" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
+          <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1.05rem" }}>
             <FiUserCheck style={{ color: "#6C4CF1" }} /> Student Directory
           </h6>
-          <span className="extra-small text-secondary fw-semibold">
-            Showing {filteredStudents.length} Students
-          </span>
+
+          <div className="d-flex align-items-center gap-3">
+            <span className="extra-small fw-semibold d-none d-md-inline" style={{ color: subtextColor }}>
+              Showing {filteredStudents.length} Students
+            </span>
+            <div className="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border" style={{ maxWidth: "260px", borderColor: isLight ? "#CBD5E1" : "rgba(255, 255, 255, 0.15)" }}>
+              <span className="input-group-text border-0 ps-3" style={{ background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: subtextColor }}>
+                <FiSearch size={14} />
+              </span>
+              <input 
+                type="text"
+                className="form-control border-0 pe-3"
+                placeholder="Search student or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ fontSize: "0.83rem", background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: titleColor }}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0" style={{ background: "transparent" }}>
             <thead>
-              <tr className="extra-small text-uppercase tracking-wider border-bottom text-secondary" style={{ borderColor: "#E2E8F0" }}>
+              <tr className="extra-small text-uppercase tracking-wider border-bottom" style={{ color: subtextColor, borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
                 <th className="fw-bold py-2.5">STUDENT NAME</th>
                 <th className="fw-bold py-2.5">EMAIL</th>
                 <th className="fw-bold py-2.5">PHONE</th>
@@ -285,10 +261,9 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((s) => {
                   const status = studentStatusMap[s._id] || "Active";
-                  const wellness = getStudentWellness(s.email);
 
                   return (
-                    <tr key={s._id} className="border-bottom" style={{ borderColor: "#F1F5F9" }}>
+                    <tr key={s._id} className="border-bottom" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.05)" }}>
                       <td className="py-3">
                         <div className="d-flex align-items-center gap-3">
                           <div 
@@ -298,14 +273,14 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
                             {s.fullName?.charAt(0)?.toUpperCase() || "S"}
                           </div>
                           <div>
-                            <span className="fw-semibold text-dark d-block" style={{ fontSize: "0.88rem" }}>{s.fullName}</span>
-                            <span className="text-secondary extra-small d-block" style={{ fontSize: "0.75rem" }}>{s.occupation || "Student"}</span>
+                            <span className="fw-semibold d-block" style={{ color: titleColor, fontSize: "0.88rem" }}>{s.fullName}</span>
+                            <span className="extra-small d-block" style={{ color: subtextColor, fontSize: "0.75rem" }}>{s.occupation || "Student"}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="text-secondary small py-3" style={{ fontSize: "0.84rem" }}>{s.email}</td>
-                      <td className="text-secondary small py-3" style={{ fontSize: "0.84rem" }}>{s.phone || "N/A"}</td>
-                      <td className="text-secondary small py-3" style={{ fontSize: "0.84rem" }}>{s.dob || s.age || "N/A"}</td>
+                      <td className="small py-3" style={{ color: subtextColor, fontSize: "0.84rem" }}>{s.email}</td>
+                      <td className="small py-3" style={{ color: subtextColor, fontSize: "0.84rem" }}>{s.phone || "N/A"}</td>
+                      <td className="small py-3" style={{ color: subtextColor, fontSize: "0.84rem" }}>{s.dob || s.age || "N/A"}</td>
                       <td className="py-3">
                         <span 
                           className="px-2.5 py-1 rounded-pill extra-small fw-bold d-inline-flex align-items-center gap-1"
@@ -365,7 +340,7 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
                             type="button"
                             onClick={() => toggleStudentStatus(s._id)}
                             className="btn btn-sm p-1.5 rounded-circle border-0 text-secondary"
-                            style={{ background: "#F1F5F9" }}
+                            style={{ background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}
                             title={status === "Active" ? "Deactivate Account" : "Activate Account"}
                           >
                             {status === "Active" ? <FiXCircle size={15} className="text-secondary" /> : <FiCheckCircle size={15} className="text-success" />}
@@ -387,7 +362,7 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
                 })
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center py-4 text-secondary small">
+                  <td colSpan="6" className="text-center py-4 extra-small" style={{ color: subtextColor }}>
                     No student accounts found matching your search.
                   </td>
                 </tr>
@@ -399,19 +374,19 @@ function AdminManageStudents({ users, wellnessAnalytics, onDeleteUser }) {
 
       {/* MODALS */}
       {activeModal && selectedStudent && (
-        <div className="modal fade show d-block" tabIndex="-1" style={{ background: "rgba(15, 23, 42, 0.65)", backdropFilter: "blur(6px)" }}>
+        <div className="modal fade show d-block" tabIndex="-1" style={{ background: "rgba(15, 23, 42, 0.75)", backdropFilter: "blur(6px)" }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
-            <div className="modal-content bg-white text-dark rounded-4 border-0 shadow-lg">
+            <div className="modal-content rounded-4 border-0 shadow-lg" style={{ background: isLight ? "#FFFFFF" : "#1E293B", color: titleColor }}>
               
               {/* Modal Header */}
-              <div className="modal-header border-bottom p-4" style={{ borderColor: "#E2E8F0" }}>
-                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.1rem" }}>
+              <div className="modal-header border-bottom p-4" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
+                <h5 className="modal-title fw-bold d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1.1rem" }}>
                   {activeModal === "profile" && <>👤 Student Profile: {selectedStudent.fullName}</>}
                   {activeModal === "today-survey" && <>📝 Today's Survey Result: {selectedStudent.fullName}</>}
                   {activeModal === "history" && <>📜 Check-in Survey History: {selectedStudent.fullName}</>}
                   {activeModal === "report" && <>❤️ Wellness Analysis Report: {selectedStudent.fullName}</>}
                 </h5>
-                <button type="button" className="btn-close" onClick={closeModal}></button>
+                <button type="button" className={`btn-close ${!isLight ? "btn-close-white" : ""}`} onClick={closeModal}></button>
               </div>
 
               {/* Modal Body */}

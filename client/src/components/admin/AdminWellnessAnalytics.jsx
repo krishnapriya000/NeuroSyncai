@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   FiUsers, 
   FiCheckCircle, 
@@ -7,7 +7,6 @@ import {
   FiTrendingDown,
   FiSmile,
   FiActivity,
-  FiTrendingUp,
   FiSearch,
   FiRefreshCw,
   FiCalendar,
@@ -17,12 +16,24 @@ import {
   FiBarChart2
 } from "react-icons/fi";
 
-function AdminWellnessAnalytics() {
+function AdminWellnessAnalytics({ theme = "light" }) {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  const isLight = theme === "light";
+
+  const cardStyle = {
+    background: isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.75)",
+    border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)",
+    boxShadow: isLight ? "0 2px 12px rgba(0, 0, 0, 0.03)" : "0 10px 30px -15px rgba(0, 0, 0, 0.5)",
+    borderRadius: "16px"
+  };
+
+  const titleColor = isLight ? "#111827" : "#FFFFFF";
+  const subtextColor = isLight ? "#64748B" : "#94A3B8";
 
   const fetchWellnessAnalytics = useCallback(async () => {
     setLoading(true);
@@ -61,22 +72,64 @@ function AdminWellnessAnalytics() {
   }, []);
 
   useEffect(() => {
-    fetchWellnessAnalytics();
-  }, [fetchWellnessAnalytics]);
+    let isMounted = true;
+
+    async function loadData() {
+      const token = localStorage.getItem("neurosync_token");
+      if (!token) {
+        if (isMounted) {
+          setError("Authentication token missing. Please log in as Admin.");
+          setLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5000/api/admin/wellness-analytics", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (!isMounted) return;
+
+        if (data.success) {
+          setAnalytics(data.analytics);
+        } else {
+          setError(data.message || "Failed to load wellness analytics.");
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error("Fetch wellness analytics error:", err);
+        setError("Cannot connect to server to fetch wellness analytics.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (loading) {
     return (
-      <div className="p-5 text-center bg-white border rounded-4 shadow-sm my-4" style={{ borderColor: "#E2E8F0" }}>
+      <div className="p-5 text-center my-4" style={cardStyle}>
         <div className="spinner-border text-primary mb-3" role="status" style={{ width: "3rem", height: "3rem" }} />
-        <h5 className="fw-bold text-dark">Loading Student Wellness Analytics...</h5>
-        <p className="text-secondary small">Fetching real-time survey responses from MongoDB</p>
+        <h5 className="fw-bold" style={{ color: titleColor }}>Loading Student Wellness Analytics...</h5>
+        <p className="small mb-0" style={{ color: subtextColor }}>Fetching real-time survey responses from MongoDB</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 rounded-4 text-dark mb-4 bg-white border border-danger border-opacity-25 shadow-sm">
+      <div className="p-4 rounded-4 mb-4 border border-danger border-opacity-25 shadow-sm" style={{ background: isLight ? "#FFFFFF" : "#1E293B", color: titleColor }}>
         <div className="d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center gap-2 text-danger">
             <FiAlertTriangle size={24} />
@@ -148,45 +201,28 @@ function AdminWellnessAnalytics() {
 
   return (
     <div className="wellness-analytics-section" style={{ maxWidth: "1500px", margin: "0 auto" }}>
-      {/* Header & Refresh */}
-      <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-3 bg-white p-4 rounded-4 border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-        <div>
-          <h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-            <FiHeart className="text-danger" /> Admin Wellness Analytics Dashboard
-          </h4>
-          <p className="text-secondary small mb-0">
-            Real-time survey metrics & mental health analysis aggregated from MongoDB check-ins
-          </p>
-        </div>
-        <button 
-          onClick={fetchWellnessAnalytics}
-          className="btn btn-outline-primary btn-sm rounded-pill px-3.5 py-2 d-inline-flex align-items-center gap-2 fw-semibold"
-        >
-          <FiRefreshCw /> Refresh Realtime Data
-        </button>
-      </div>
 
       {/* 5 DASHBOARD STAT CARDS */}
       <div className="row g-3 mb-4">
         {/* 1. Total Students */}
         <div className="col-12 col-sm-6 col-xl-2.4">
-          <div className="p-3.5 rounded-4 h-100 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
+          <div className="p-3.5 rounded-4 h-100 transition-all" style={cardStyle}>
             <div className="d-flex align-items-center justify-content-between mb-2">
-              <span className="text-secondary small fw-medium">Total Students</span>
+              <span className="small fw-medium" style={{ color: subtextColor }}>Total Students</span>
               <span className="p-2 rounded-3" style={{ background: "rgba(59, 130, 246, 0.12)", color: "#2563EB" }}>
                 <FiUsers />
               </span>
             </div>
-            <h3 className="fw-bold mb-1 text-dark">{totalStudents}</h3>
-            <span className="text-secondary extra-small">Registered Accounts</span>
+            <h3 className="fw-bold mb-1" style={{ color: titleColor }}>{totalStudents}</h3>
+            <span className="extra-small" style={{ color: subtextColor }}>Registered Accounts</span>
           </div>
         </div>
 
         {/* 2. Today's Check-ins */}
         <div className="col-12 col-sm-6 col-xl-2.4">
-          <div className="p-3.5 rounded-4 h-100 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
+          <div className="p-3.5 rounded-4 h-100 transition-all" style={cardStyle}>
             <div className="d-flex align-items-center justify-content-between mb-2">
-              <span className="text-secondary small fw-medium">Today's Check-ins</span>
+              <span className="small fw-medium" style={{ color: subtextColor }}>Today's Check-ins</span>
               <span className="p-2 rounded-3" style={{ background: "rgba(16, 185, 129, 0.12)", color: "#059669" }}>
                 <FiCheckCircle />
               </span>
@@ -198,23 +234,23 @@ function AdminWellnessAnalytics() {
 
         {/* 3. Average Wellness Score */}
         <div className="col-12 col-sm-6 col-xl-2.4">
-          <div className="p-3.5 rounded-4 h-100 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
+          <div className="p-3.5 rounded-4 h-100 transition-all" style={cardStyle}>
             <div className="d-flex align-items-center justify-content-between mb-2">
-              <span className="text-secondary small fw-medium">Avg Wellness Score</span>
+              <span className="small fw-medium" style={{ color: subtextColor }}>Avg Wellness Score</span>
               <span className="p-2 rounded-3" style={{ background: "rgba(124, 92, 252, 0.12)", color: "#7C5CFC" }}>
                 <FiHeart />
               </span>
             </div>
             <h3 className="fw-bold mb-1" style={{ color: "#7C5CFC" }}>{avgWellnessScore}%</h3>
-            <span className="text-secondary extra-small">Platform Average</span>
+            <span className="extra-small" style={{ color: subtextColor }}>Platform Average</span>
           </div>
         </div>
 
         {/* 4. High Stress Students */}
         <div className="col-12 col-sm-6 col-xl-2.4">
-          <div className="p-3.5 rounded-4 h-100 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
+          <div className="p-3.5 rounded-4 h-100 transition-all" style={cardStyle}>
             <div className="d-flex align-items-center justify-content-between mb-2">
-              <span className="text-secondary small fw-medium">High Stress Students</span>
+              <span className="small fw-medium" style={{ color: subtextColor }}>High Stress Students</span>
               <span className="p-2 rounded-3" style={{ background: "rgba(245, 158, 11, 0.12)", color: "#D97706" }}>
                 <FiActivity />
               </span>
@@ -226,9 +262,9 @@ function AdminWellnessAnalytics() {
 
         {/* 5. Low Wellness Score Students */}
         <div className="col-12 col-sm-6 col-xl-2.4">
-          <div className="p-3.5 rounded-4 h-100 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
+          <div className="p-3.5 rounded-4 h-100 transition-all" style={cardStyle}>
             <div className="d-flex align-items-center justify-content-between mb-2">
-              <span className="text-secondary small fw-medium">Low Wellness Score</span>
+              <span className="small fw-medium" style={{ color: subtextColor }}>Low Wellness Score</span>
               <span className="p-2 rounded-3" style={{ background: "rgba(239, 68, 68, 0.12)", color: "#DC2626" }}>
                 <FiTrendingDown />
               </span>
@@ -241,17 +277,20 @@ function AdminWellnessAnalytics() {
 
       {/* ALERT SECTION: STUDENTS NEEDING ATTENTION */}
       <div 
-        className="p-4 rounded-4 mb-4 bg-white border shadow-sm position-relative overflow-hidden"
-        style={{ borderColor: "rgba(239, 68, 68, 0.3)" }}
+        className="p-4 rounded-4 mb-4 transition-all position-relative overflow-hidden"
+        style={{
+          ...cardStyle,
+          border: isLight ? "1px solid rgba(239, 68, 68, 0.3)" : "1px solid rgba(239, 68, 68, 0.4)",
+        }}
       >
-        <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
+        <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
           <div className="d-flex align-items-center gap-2">
             <span className="p-2 rounded-circle bg-danger bg-opacity-10 text-danger">
               <FiAlertTriangle size={20} />
             </span>
             <div>
-              <h5 className="fw-bold mb-0 text-dark fs-6">🚨 Students Needing Attention</h5>
-              <span className="text-secondary small" style={{ fontSize: "0.78rem" }}>
+              <h5 className="fw-bold mb-0 fs-6" style={{ color: titleColor }}>🚨 Students Needing Attention</h5>
+              <span className="small" style={{ color: subtextColor, fontSize: "0.78rem" }}>
                 Flagged automatically based on low score (&lt;40%), extreme stress (&gt;8), or consecutive sad check-ins
               </span>
             </div>
@@ -271,27 +310,27 @@ function AdminWellnessAnalytics() {
           <div className="row g-3">
             {studentsNeedingAttention.map((student, idx) => (
               <div key={idx} className="col-12 col-md-6 col-lg-4">
-                <div className="p-3 rounded-4 h-100 bg-light border" style={{ borderColor: "#E2E8F0" }}>
+                <div className="p-3 rounded-4 h-100 border" style={{ background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)", borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
                   <div className="d-flex align-items-center justify-content-between mb-2">
-                    <h6 className="fw-bold text-dark mb-0">{student.fullName}</h6>
+                    <h6 className="fw-bold mb-0" style={{ color: titleColor }}>{student.fullName}</h6>
                     <span className="px-2 py-0.5 rounded-pill extra-small fw-bold text-danger bg-danger bg-opacity-10">
                       {student.wellnessScore}% Wellness
                     </span>
                   </div>
-                  <p className="text-secondary small mb-2 d-flex align-items-center gap-1" style={{ fontSize: "0.82rem" }}>
+                  <p className="small mb-2 d-flex align-items-center gap-1" style={{ color: subtextColor, fontSize: "0.82rem" }}>
                     <FiMail size={13} /> {student.email}
                   </p>
                   
                   <div className="d-flex flex-wrap gap-1 mb-2">
                     {student.reasons.map((reason, rIdx) => (
-                      <span key={rIdx} className="px-2 py-0.5 rounded extra-small fw-semibold text-danger bg-white border border-danger border-opacity-25">
+                      <span key={rIdx} className="px-2 py-0.5 rounded extra-small fw-semibold text-danger bg-danger bg-opacity-10 border border-danger border-opacity-25">
                         ⚠️ {reason}
                       </span>
                     ))}
                   </div>
 
-                  <div className="d-flex justify-content-between text-secondary extra-small border-top pt-2 mt-2" style={{ borderColor: "#CBD5E1" }}>
-                    <span>Mood: <strong className="text-dark">{student.mood}</strong></span>
+                  <div className="d-flex justify-content-between extra-small border-top pt-2 mt-2" style={{ color: subtextColor, borderColor: isLight ? "#CBD5E1" : "rgba(255, 255, 255, 0.1)" }}>
+                    <span>Mood: <strong style={{ color: titleColor }}>{student.mood}</strong></span>
                     <span>Stress: <strong className="text-danger">{student.stressLevel}/10</strong></span>
                   </div>
                 </div>
@@ -305,8 +344,8 @@ function AdminWellnessAnalytics() {
       <div className="row g-4 mb-4">
         {/* CHART 1: Mood Distribution (Bar + Donut concept) */}
         <div className="col-12 col-lg-6">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h6 className="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: titleColor }}>
               <FiSmile className="text-warning" /> Mood Distribution Breakdown
             </h6>
             <div className="d-flex flex-column gap-3">
@@ -315,11 +354,11 @@ function AdminWellnessAnalytics() {
                 const pct = Math.round((count / maxMoodCount) * 100);
                 return (
                   <div key={moodKey}>
-                    <div className="d-flex justify-content-between small text-secondary mb-1">
+                    <div className="d-flex justify-content-between small mb-1" style={{ color: subtextColor }}>
                       <span>{getMoodEmoji(moodKey)}</span>
-                      <span className="fw-bold text-dark">{count} Students</span>
+                      <span className="fw-bold" style={{ color: titleColor }}>{count} Students</span>
                     </div>
-                    <div className="progress" style={{ height: "10px", background: "#F1F5F9" }}>
+                    <div className="progress" style={{ height: "10px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                       <div 
                         className="progress-bar rounded-pill" 
                         style={{ width: `${pct}%`, transition: "width 0.6s ease", background: "linear-gradient(90deg, #F59E0B, #D97706)" }}
@@ -334,8 +373,8 @@ function AdminWellnessAnalytics() {
 
         {/* CHART 2: Average Wellness Score Breakdown */}
         <div className="col-12 col-lg-6">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h6 className="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: titleColor }}>
               <FiPieChart style={{ color: "#7C5CFC" }} /> Wellness Score Distribution
             </h6>
             <div className="d-flex flex-column gap-3">
@@ -349,11 +388,11 @@ function AdminWellnessAnalytics() {
 
                 return (
                   <div key={scoreKey}>
-                    <div className="d-flex justify-content-between small text-secondary mb-1">
+                    <div className="d-flex justify-content-between small mb-1" style={{ color: subtextColor }}>
                       <span>{scoreKey}</span>
-                      <span className="fw-bold text-dark">{count} Students</span>
+                      <span className="fw-bold" style={{ color: titleColor }}>{count} Students</span>
                     </div>
-                    <div className="progress" style={{ height: "10px", background: "#F1F5F9" }}>
+                    <div className="progress" style={{ height: "10px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                       <div 
                         className="progress-bar rounded-pill" 
                         style={{ width: `${pct}%`, background: barColor, transition: "width 0.6s ease" }}
@@ -368,8 +407,8 @@ function AdminWellnessAnalytics() {
 
         {/* CHART 3: Daily Check-in Trend (Last 7 Days) */}
         <div className="col-12 col-lg-6">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h6 className="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: titleColor }}>
               <FiBarChart2 className="text-info" /> Daily Check-in Activity Trend (7 Days)
             </h6>
             <div className="d-flex align-items-end justify-content-between gap-2 pt-3" style={{ height: "160px" }}>
@@ -378,7 +417,7 @@ function AdminWellnessAnalytics() {
                 const displayDate = item.date.slice(5); // MM-DD
                 return (
                   <div key={idx} className="d-flex flex-column align-items-center flex-grow-1 h-100 justify-content-end">
-                    <span className="extra-small fw-bold text-dark mb-1">{item.count}</span>
+                    <span className="extra-small fw-bold mb-1" style={{ color: titleColor }}>{item.count}</span>
                     <div 
                       className="w-100 rounded-top"
                       style={{ 
@@ -387,7 +426,7 @@ function AdminWellnessAnalytics() {
                         transition: "height 0.5s ease"
                       }}
                     />
-                    <span className="extra-small text-secondary mt-2" style={{ fontSize: "0.75rem" }}>{displayDate}</span>
+                    <span className="extra-small mt-2" style={{ color: subtextColor, fontSize: "0.75rem" }}>{displayDate}</span>
                   </div>
                 );
               })}
@@ -397,8 +436,8 @@ function AdminWellnessAnalytics() {
 
         {/* CHART 4: Stress Level Distribution */}
         <div className="col-12 col-lg-6">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h6 className="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: titleColor }}>
               <FiActivity className="text-danger" /> Stress Level Distribution
             </h6>
             <div className="d-flex flex-column gap-3">
@@ -411,11 +450,11 @@ function AdminWellnessAnalytics() {
 
                 return (
                   <div key={stressKey}>
-                    <div className="d-flex justify-content-between small text-secondary mb-1">
+                    <div className="d-flex justify-content-between small mb-1" style={{ color: subtextColor }}>
                       <span>{stressKey}</span>
-                      <span className="fw-bold text-dark">{count} Students</span>
+                      <span className="fw-bold" style={{ color: titleColor }}>{count} Students</span>
                     </div>
-                    <div className="progress" style={{ height: "10px", background: "#F1F5F9" }}>
+                    <div className="progress" style={{ height: "10px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                       <div 
                         className="progress-bar rounded-pill" 
                         style={{ width: `${pct}%`, background: barColor, transition: "width 0.6s ease" }}
@@ -430,30 +469,31 @@ function AdminWellnessAnalytics() {
       </div>
 
       {/* STUDENT WELLNESS TABLE */}
-      <div className="p-4 rounded-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
+      <div className="p-4 rounded-4" style={cardStyle}>
         <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-          <h5 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+          <h5 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor }}>
             <FiShield className="text-primary" /> Student Wellness Records ({filteredList.length})
           </h5>
 
           {/* Search & Filter Controls */}
           <div className="d-flex flex-wrap align-items-center gap-2">
             <div className="input-group input-group-sm" style={{ width: "240px" }}>
-              <span className="input-group-text bg-white border-end-0 text-secondary">
+              <span className="input-group-text border-end-0" style={{ background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: subtextColor }}>
                 <FiSearch />
               </span>
               <input 
                 type="text"
-                className="form-control bg-white border-start-0 text-dark"
+                className="form-control border-start-0"
                 placeholder="Search student or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: titleColor, borderColor: isLight ? "#CBD5E1" : "rgba(255, 255, 255, 0.15)" }}
               />
             </div>
 
             <select 
-              className="form-select form-select-sm bg-white text-dark"
-              style={{ width: "170px" }}
+              className="form-select form-select-sm"
+              style={{ width: "170px", background: isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.9)", color: titleColor, borderColor: isLight ? "#CBD5E1" : "rgba(255, 255, 255, 0.15)" }}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -470,7 +510,7 @@ function AdminWellnessAnalytics() {
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0" style={{ background: "transparent" }}>
             <thead>
-              <tr className="text-secondary border-bottom extra-small text-uppercase tracking-wider" style={{ borderColor: "#E2E8F0" }}>
+              <tr className="border-bottom extra-small text-uppercase tracking-wider" style={{ color: subtextColor, borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
                 <th>STUDENT NAME</th>
                 <th>EMAIL</th>
                 <th>TODAY'S MOOD</th>
@@ -484,15 +524,15 @@ function AdminWellnessAnalytics() {
             <tbody>
               {filteredList.length > 0 ? (
                 filteredList.map((item) => (
-                  <tr key={item.id} className="border-bottom" style={{ borderColor: "#F1F5F9" }}>
+                  <tr key={item.id} className="border-bottom" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.05)" }}>
                     <td>
-                      <span className="fw-semibold text-dark d-block" style={{ fontSize: "0.88rem" }}>{item.fullName}</span>
+                      <span className="fw-semibold d-block" style={{ color: titleColor, fontSize: "0.88rem" }}>{item.fullName}</span>
                     </td>
-                    <td className="text-secondary small" style={{ fontSize: "0.84rem" }}>{item.email}</td>
-                    <td className="fw-medium text-dark">{getMoodEmoji(item.mood)}</td>
+                    <td className="small" style={{ color: subtextColor, fontSize: "0.84rem" }}>{item.email}</td>
+                    <td className="fw-medium" style={{ color: titleColor }}>{getMoodEmoji(item.mood)}</td>
                     <td>
                       <div className="d-flex align-items-center gap-2">
-                        <div className="progress flex-grow-1" style={{ height: "6px", width: "70px", background: "#F1F5F9" }}>
+                        <div className="progress flex-grow-1" style={{ height: "6px", width: "70px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                           <div 
                             className={`progress-bar ${
                               item.wellnessScore >= 80 ? "bg-success" : item.wellnessScore >= 60 ? "bg-warning" : item.wellnessScore >= 40 ? "bg-warning" : "bg-danger"
@@ -500,7 +540,7 @@ function AdminWellnessAnalytics() {
                             style={{ width: `${item.wellnessScore}%` }}
                           />
                         </div>
-                        <span className="fw-bold small text-dark">{item.wellnessScore}%</span>
+                        <span className="fw-bold small" style={{ color: titleColor }}>{item.wellnessScore}%</span>
                       </div>
                     </td>
                     <td>
@@ -509,11 +549,11 @@ function AdminWellnessAnalytics() {
                       </span>
                     </td>
                     <td>
-                      <span className="px-2 py-0.5 rounded extra-small fw-semibold text-secondary bg-light border" style={{ fontSize: "0.75rem" }}>
+                      <span className="px-2 py-0.5 rounded extra-small fw-semibold border" style={{ background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.08)", color: subtextColor, borderColor: isLight ? "#CBD5E1" : "rgba(255, 255, 255, 0.1)", fontSize: "0.75rem" }}>
                         ⚡ {item.energyLevel}
                       </span>
                     </td>
-                    <td className="text-secondary small" style={{ fontSize: "0.82rem" }}>
+                    <td className="small" style={{ color: subtextColor, fontSize: "0.82rem" }}>
                       <FiCalendar className="me-1" />
                       {item.checkInDate}
                     </td>
@@ -524,7 +564,7 @@ function AdminWellnessAnalytics() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center py-4 text-secondary small">
+                  <td colSpan="8" className="text-center py-4 extra-small" style={{ color: subtextColor }}>
                     No student wellness records found matching your filters.
                   </td>
                 </tr>

@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { 
   FiGrid, 
@@ -26,7 +25,9 @@ const SIDEBAR_NAV_ITEMS = [
   { id: "settings", label: "Settings", icon: FiSettings },
 ];
 
-function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarOpen, setSidebarOpen }) {
+function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarOpen, setSidebarOpen, theme = "light" }) {
+  const isLight = theme === "light";
+
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
     if (window.innerWidth < 992) {
@@ -45,25 +46,25 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
         />
       )}
 
-      {/* Premium Dark / Navy Sidebar Container */}
+      {/* Sidebar Container */}
       <aside
         className={`admin-sidebar position-fixed top-0 start-0 h-100 d-flex flex-column transition-all ${
           sidebarOpen ? "show" : ""
         }`}
         style={{
           width: "260px",
-          background: "#15132B",
-          borderRight: "1px solid rgba(255, 255, 255, 0.08)",
-          color: "#E5E7EB",
+          background: isLight ? "#FFFFFF" : "#15132B",
+          borderRight: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)",
+          color: isLight ? "#0F172A" : "#E5E7EB",
           zIndex: 1045,
           backdropFilter: "blur(20px)",
-          boxShadow: "4px 0 24px rgba(0, 0, 0, 0.2)"
+          boxShadow: isLight ? "4px 0 24px rgba(0, 0, 0, 0.04)" : "4px 0 24px rgba(0, 0, 0, 0.2)"
         }}
       >
         {/* Sidebar Header / Brand Logo */}
         <div 
           className="p-4 d-flex align-items-center justify-content-between position-relative"
-          style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}
+          style={{ borderBottom: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)" }}
         >
           {/* Subtle Ambient Glow behind Logo */}
           <div 
@@ -93,15 +94,15 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
               🧠
             </div>
             <div>
-              <h5 className="fw-bold mb-0 leading-tight" style={{ fontSize: "1.12rem", color: "#FFFFFF", letterSpacing: "-0.02em" }}>
+              <h5 className="fw-bold mb-0 leading-tight" style={{ fontSize: "1.12rem", color: isLight ? "#0F172A" : "#FFFFFF", letterSpacing: "-0.02em" }}>
                 NeuroSync <span style={{ color: "#4F8CFF" }}>AI</span>
               </h5>
               <span 
                 className="extra-small px-2 py-0.5 rounded-pill fw-bold text-uppercase tracking-wider" 
                 style={{ 
-                  background: "rgba(124, 92, 252, 0.2)", 
-                  color: "#C4B5FD", 
-                  border: "1px solid rgba(124, 92, 252, 0.35)",
+                  background: isLight ? "rgba(124, 92, 252, 0.1)" : "rgba(124, 92, 252, 0.2)", 
+                  color: isLight ? "#7C5CFC" : "#C4B5FD", 
+                  border: isLight ? "1px solid rgba(124, 92, 252, 0.25)" : "1px solid rgba(124, 92, 252, 0.35)",
                   fontSize: "0.62rem"
                 }}
               >
@@ -112,17 +113,17 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
 
           <button 
             onClick={() => setSidebarOpen(false)} 
-            className="btn btn-sm text-secondary d-lg-none p-0 border-0"
-            style={{ color: "#94A3B8" }}
+            className="btn btn-sm d-lg-none p-0 border-0"
+            style={{ color: isLight ? "#64748B" : "#94A3B8" }}
           >
             <FiX size={22} />
           </button>
         </div>
 
-        {/* Navigation Links List (EVERY ITEM IS A SEPARATE TOP-LEVEL ITEM) */}
+        {/* Navigation Links List */}
         <div 
           className="flex-grow-1 overflow-y-auto px-3 py-3 custom-sidebar-scrollbar"
-          style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255, 255, 255, 0.15) transparent" }}
+          style={{ scrollbarWidth: "thin", scrollbarColor: isLight ? "rgba(0, 0, 0, 0.15) transparent" : "rgba(255, 255, 255, 0.15) transparent" }}
         >
           <ul className="nav nav-pills flex-column gap-1.5 list-unstyled mb-0">
             {SIDEBAR_NAV_ITEMS.map((item) => {
@@ -146,7 +147,7 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
                             transition: "all 200ms ease-out"
                           }
                         : { 
-                            color: "#94A3B8", 
+                            color: isLight ? "#475569" : "#94A3B8", 
                             background: "transparent",
                             fontWeight: 500,
                             borderRadius: "12px",
@@ -165,7 +166,7 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
                       }}
                     />
 
-                    <IconComponent size={18} className="flex-shrink-0" style={{ color: isActive ? "#FFFFFF" : "#94A3B8" }} />
+                    <IconComponent size={18} className="flex-shrink-0" style={{ color: isActive ? "#FFFFFF" : isLight ? "#64748B" : "#94A3B8" }} />
                     <span style={{ fontSize: "0.92rem", letterSpacing: "-0.01em" }}>
                       {item.label}
                     </span>
@@ -179,14 +180,14 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
         {/* Sidebar Footer: Admin Profile & Ghost Logout */}
         <div 
           className="p-3.5 border-top mt-auto"
-          style={{ borderColor: "rgba(255, 255, 255, 0.08)", background: "rgba(17, 24, 39, 0.5)" }}
+          style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)", background: isLight ? "#F8FAFC" : "rgba(17, 24, 39, 0.5)" }}
         >
           {/* Admin Profile Card */}
           <div 
             className="d-flex align-items-center gap-3 p-2.5 rounded-3 mb-2.5 border transition-all"
             style={{ 
-              background: "rgba(255, 255, 255, 0.04)", 
-              borderColor: "rgba(255, 255, 255, 0.08)" 
+              background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.04)", 
+              borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" 
             }}
           >
             <div 
@@ -196,10 +197,10 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
               {currentUser?.fullName?.charAt(0) || "A"}
             </div>
             <div className="overflow-hidden">
-              <h6 className="fw-semibold mb-0 text-truncate text-white" style={{ fontSize: "0.85rem" }}>
+              <h6 className="fw-semibold mb-0 text-truncate" style={{ fontSize: "0.85rem", color: isLight ? "#0F172A" : "#FFFFFF" }}>
                 {currentUser?.fullName || "System Admin"}
               </h6>
-              <span className="extra-small text-truncate d-block" style={{ color: "#94A3B8", fontSize: "0.72rem" }} title={currentUser?.email || "admin@neurosync.ai"}>
+              <span className="extra-small text-truncate d-block" style={{ color: isLight ? "#64748B" : "#94A3B8", fontSize: "0.72rem" }} title={currentUser?.email || "admin@neurosync.ai"}>
                 {currentUser?.email || "admin@neurosync.ai"}
               </span>
             </div>
@@ -210,7 +211,7 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
             onClick={onLogout}
             className="btn btn-sm w-100 py-2 rounded-3 d-flex align-items-center justify-content-center gap-2 fw-semibold transition-all border-0 ns-logout-btn"
             style={{
-              background: "rgba(239, 68, 68, 0.08)",
+              background: isLight ? "#FFF1F2" : "rgba(239, 68, 68, 0.08)",
               color: "#EF4444",
               fontSize: "0.83rem"
             }}
@@ -224,8 +225,8 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
       {/* Hover & Animation CSS Styles */}
       <style>{`
         .ns-sidebar-btn:hover {
-          background: rgba(255, 255, 255, 0.06) !important;
-          color: #FFFFFF !important;
+          background: ${isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.06)"} !important;
+          color: ${isLight ? "#0F172A" : "#FFFFFF"} !important;
           transform: translateX(3px) !important;
         }
         .ns-sidebar-btn:hover svg {
@@ -234,8 +235,8 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
           transition: transform 200ms ease-out;
         }
         .ns-logout-btn:hover {
-          background: rgba(239, 68, 68, 0.2) !important;
-          color: #FF6B6B !important;
+          background: ${isLight ? "#FFE4E6" : "rgba(239, 68, 68, 0.2)"} !important;
+          color: #E11D48 !important;
           transform: translateY(-1px);
         }
         .custom-sidebar-scrollbar::-webkit-scrollbar {
@@ -245,7 +246,7 @@ function AdminSidebar({ activeTab, setActiveTab, currentUser, onLogout, sidebarO
           background: transparent;
         }
         .custom-sidebar-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.15);
+          background: ${isLight ? "rgba(0, 0, 0, 0.15)" : "rgba(255, 255, 255, 0.15)"};
           border-radius: 4px;
         }
       `}</style>

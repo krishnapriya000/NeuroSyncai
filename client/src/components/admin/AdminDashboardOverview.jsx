@@ -1,16 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { 
   FiUsers, 
   FiUserCheck, 
-  FiHeart, 
-  FiBriefcase, 
-  FiSun, 
   FiCheckCircle, 
   FiActivity, 
   FiTrendingDown,
   FiClock,
-  FiUserPlus,
-  FiShield,
   FiArrowRight,
   FiBell,
   FiPlus,
@@ -168,11 +163,11 @@ function AdminDashboardOverview({ stats, wellnessAnalytics, users = [], logs = [
           </div>
         </div>
 
-        <div className="d-flex align-items-center gap-3 bg-white bg-opacity-75 px-3 py-2 rounded-3 border" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
+        <div className="d-flex align-items-center gap-3 px-3 py-2 rounded-3 border" style={{ background: isLight ? "rgba(255, 255, 255, 0.85)" : "rgba(255, 255, 255, 0.08)", borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
           <span className="extra-small text-uppercase fw-bold tracking-wider" style={{ color: subtextColor, fontSize: "0.7rem" }}>
             Total Users
           </span>
-          <span className="fw-bold fs-5 text-primary leading-none" style={{ color: "#6C4CF1" }}>
+          <span className="fw-bold fs-5 leading-none" style={{ color: "#6C4CF1" }}>
             {totalUserCount}
           </span>
         </div>
@@ -286,10 +281,12 @@ function AdminDashboardOverview({ stats, wellnessAnalytics, users = [], logs = [
                     <button
                       key={range}
                       type="button"
-                      className={`btn btn-sm rounded-pill border-0 extra-small px-3 fw-medium transition-all ${
-                        chartRange === range ? "bg-white shadow-sm text-primary fw-bold" : "text-secondary"
-                      }`}
-                      style={chartRange === range ? { color: "#6C4CF1" } : { color: subtextColor }}
+                      className="btn btn-sm rounded-pill border-0 extra-small px-3 fw-medium transition-all"
+                      style={
+                        chartRange === range
+                          ? { background: isLight ? "#FFFFFF" : "#6C4CF1", color: isLight ? "#6C4CF1" : "#FFFFFF", fontWeight: "700" }
+                          : { background: "transparent", color: subtextColor }
+                      }
                       onClick={() => setChartRange(range)}
                     >
                       {range}

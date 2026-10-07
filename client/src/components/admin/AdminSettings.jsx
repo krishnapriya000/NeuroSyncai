@@ -1,7 +1,20 @@
-import React, { useState } from "react";
-import { FiSettings, FiUser, FiLock, FiShield, FiSave, FiLogOut, FiCheckCircle, FiPieChart, FiBarChart2 } from "react-icons/fi";
+import { useState } from "react";
+import { FiUser, FiLock, FiShield, FiSave, FiLogOut, FiCheckCircle, FiPieChart, FiBarChart2 } from "react-icons/fi";
 
-function AdminSettings({ currentUser, onLogout }) {
+function AdminSettings({ currentUser, onLogout, theme = "light" }) {
+  const isLight = theme === "light";
+  const cardStyle = isLight
+    ? { background: "#FFFFFF", borderColor: "#E2E8F0" }
+    : { background: "rgba(15, 23, 42, 0.75)", backdropFilter: "blur(12px)", borderColor: "rgba(255, 255, 255, 0.1)" };
+  const titleColor = isLight ? "#0F172A" : "#F8FAFC";
+  const subtextColor = isLight ? "#64748B" : "#94A3B8";
+  const itemBg = isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.04)";
+  const inputBg = isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.6)";
+  const inputBorder = isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.15)";
+  const inputText = isLight ? "#0F172A" : "#F8FAFC";
+  const disabledInputBg = isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)";
+  const borderDivider = isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.1)";
+
   const [profileData, setProfileData] = useState({
     fullName: currentUser?.fullName || "System Admin",
     email: currentUser?.email || "admin@neurosync.ai",
@@ -62,15 +75,6 @@ function AdminSettings({ currentUser, onLogout }) {
 
   return (
     <div className="admin-settings-section" style={{ maxWidth: "1500px", margin: "0 auto" }}>
-      {/* Header */}
-      <div className="p-4 rounded-4 mb-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-        <h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-          <FiSettings className="text-primary" /> System Settings & Configuration
-        </h4>
-        <p className="text-secondary small mb-0">
-          Manage admin account profile, change security password, and monitor platform infrastructure health
-        </p>
-      </div>
 
       {/* Success Banner */}
       {successMsg && (
@@ -84,18 +88,18 @@ function AdminSettings({ currentUser, onLogout }) {
       <div className="row g-4 mb-4">
         {/* 1. SECURITY & ACCESS DONUT CHART */}
         <div className="col-12 col-lg-5">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
-              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+          <div className="p-4 rounded-4 border shadow-sm h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: borderDivider }}>
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "0.95rem", color: titleColor }}>
                 <FiPieChart style={{ color: "#10B981" }} /> Security & Authentication Index
               </h6>
-              <span className="extra-small text-secondary fw-semibold">System Health</span>
+              <span className="extra-small fw-semibold" style={{ color: subtextColor }}>System Health</span>
             </div>
 
             <div className="d-flex flex-column align-items-center justify-content-center py-2">
               <div className="position-relative d-flex align-items-center justify-content-center mb-3">
                 <svg width="150" height="150" viewBox="0 0 42 42" className="donut-svg">
-                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F1F5F9" strokeWidth="4.5" />
+                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke={isLight ? "#F1F5F9" : "rgba(255,255,255,0.1)"} strokeWidth="4.5" />
                   {/* Segment 1: Email Verified 94% */}
                   <circle
                     cx="21"
@@ -120,20 +124,20 @@ function AdminSettings({ currentUser, onLogout }) {
                   />
                 </svg>
                 <div className="position-absolute text-center">
-                  <span className="fw-bold d-block text-dark lh-1" style={{ fontSize: "1.25rem" }}>99.9%</span>
-                  <span className="extra-small text-secondary" style={{ fontSize: "0.68rem" }}>Uptime</span>
+                  <span className="fw-bold d-block lh-1" style={{ fontSize: "1.25rem", color: titleColor }}>99.9%</span>
+                  <span className="extra-small" style={{ fontSize: "0.68rem", color: subtextColor }}>Uptime</span>
                 </div>
               </div>
 
               {/* Legend List */}
               <div className="w-100 d-flex flex-column gap-2">
                 {securityMetrics.map((item, idx) => (
-                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: "#F8FAFC" }}>
+                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: itemBg }}>
                     <div className="d-flex align-items-center gap-2">
                       <span className="rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: item.color }} />
-                      <span className="small fw-semibold text-dark" style={{ fontSize: "0.82rem" }}>{item.label}</span>
+                      <span className="small fw-semibold" style={{ fontSize: "0.82rem", color: titleColor }}>{item.label}</span>
                     </div>
-                    <span className="extra-small fw-bold text-dark">{item.pct}%</span>
+                    <span className="extra-small fw-bold" style={{ color: titleColor }}>{item.pct}%</span>
                   </div>
                 ))}
               </div>
@@ -143,22 +147,22 @@ function AdminSettings({ currentUser, onLogout }) {
 
         {/* 2. SERVER PERFORMANCE BAR CHART */}
         <div className="col-12 col-lg-7">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
-              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+          <div className="p-4 rounded-4 border shadow-sm h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: borderDivider }}>
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ fontSize: "0.95rem", color: titleColor }}>
                 <FiBarChart2 style={{ color: "#06B6D4" }} /> Infrastructure Service Uptime & Latency
               </h6>
-              <span className="extra-small text-secondary fw-semibold">Real-time Metrics</span>
+              <span className="extra-small fw-semibold" style={{ color: subtextColor }}>Real-time Metrics</span>
             </div>
 
             <div className="d-flex flex-column gap-3 py-2">
               {serverPerformance.map((item, idx) => (
                 <div key={idx}>
                   <div className="d-flex justify-content-between small mb-1">
-                    <span className="fw-semibold text-dark" style={{ fontSize: "0.85rem" }}>{item.component}</span>
-                    <span className="extra-small fw-bold text-secondary">Latency: {item.latency} • Uptime: {item.uptime}%</span>
+                    <span className="fw-semibold" style={{ fontSize: "0.85rem", color: titleColor }}>{item.component}</span>
+                    <span className="extra-small fw-bold" style={{ color: subtextColor }}>Latency: {item.latency} • Uptime: {item.uptime}%</span>
                   </div>
-                  <div className="progress" style={{ height: "10px", background: "#F1F5F9" }}>
+                  <div className="progress" style={{ height: "10px", background: borderDivider }}>
                     <div 
                       className="progress-bar rounded-pill" 
                       style={{ 
@@ -178,42 +182,42 @@ function AdminSettings({ currentUser, onLogout }) {
       <div className="row g-4">
         {/* 1. Admin Profile Card */}
         <div className="col-12 col-lg-6">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h5 className="fw-bold mb-3 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+          <div className="p-4 rounded-4 border shadow-sm h-100" style={cardStyle}>
+            <h5 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ fontSize: "1.05rem", color: titleColor }}>
               <FiUser className="text-info" /> Admin Profile Information
             </h5>
 
             <form onSubmit={handleProfileSubmit}>
               <div className="mb-3">
-                <label className="form-label text-secondary small fw-semibold">Full Name</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>Full Name</label>
                 <input 
                   type="text"
-                  className="form-control bg-white text-dark border-secondary border-opacity-25"
+                  className="form-control"
                   value={profileData.fullName}
                   onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: inputBg, borderColor: inputBorder, color: inputText }}
                 />
               </div>
 
               <div className="mb-3">
-                <label className="form-label text-secondary small fw-semibold">Email Address (Read-Only)</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>Email Address (Read-Only)</label>
                 <input 
                   type="email"
-                  className="form-control bg-light text-secondary border-secondary border-opacity-25"
+                  className="form-control"
                   value={profileData.email}
                   disabled
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: disabledInputBg, borderColor: inputBorder, color: subtextColor }}
                 />
               </div>
 
               <div className="mb-4">
-                <label className="form-label text-secondary small fw-semibold">System Role</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>System Role</label>
                 <input 
                   type="text"
-                  className="form-control bg-light text-secondary border-secondary border-opacity-25"
+                  className="form-control"
                   value={profileData.role}
                   disabled
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: disabledInputBg, borderColor: inputBorder, color: subtextColor }}
                 />
               </div>
 
@@ -226,48 +230,48 @@ function AdminSettings({ currentUser, onLogout }) {
 
         {/* 2. Change Password Card */}
         <div className="col-12 col-lg-6">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <h5 className="fw-bold mb-3 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+          <div className="p-4 rounded-4 border shadow-sm h-100" style={cardStyle}>
+            <h5 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ fontSize: "1.05rem", color: titleColor }}>
               <FiLock className="text-warning" /> Change Admin Password
             </h5>
 
             <form onSubmit={handlePasswordSubmit}>
               <div className="mb-3">
-                <label className="form-label text-secondary small fw-semibold">Current Password</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>Current Password</label>
                 <input 
                   type="password"
-                  className="form-control bg-white text-dark border-secondary border-opacity-25"
+                  className="form-control"
                   placeholder="••••••••"
                   value={passwordData.currentPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                   required
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: inputBg, borderColor: inputBorder, color: inputText }}
                 />
               </div>
 
               <div className="mb-3">
-                <label className="form-label text-secondary small fw-semibold">New Password</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>New Password</label>
                 <input 
                   type="password"
-                  className="form-control bg-white text-dark border-secondary border-opacity-25"
+                  className="form-control"
                   placeholder="••••••••"
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   required
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: inputBg, borderColor: inputBorder, color: inputText }}
                 />
               </div>
 
               <div className="mb-4">
-                <label className="form-label text-secondary small fw-semibold">Confirm New Password</label>
+                <label className="form-label small fw-semibold" style={{ color: subtextColor }}>Confirm New Password</label>
                 <input 
                   type="password"
-                  className="form-control bg-white text-dark border-secondary border-opacity-25"
+                  className="form-control"
                   placeholder="••••••••"
                   value={passwordData.confirmPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   required
-                  style={{ fontSize: "0.88rem" }}
+                  style={{ fontSize: "0.88rem", background: inputBg, borderColor: inputBorder, color: inputText }}
                 />
               </div>
 
@@ -280,8 +284,8 @@ function AdminSettings({ currentUser, onLogout }) {
 
         {/* 3. System Settings Card */}
         <div className="col-12 col-lg-8">
-          <div className="p-4 rounded-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-            <h5 className="fw-bold mb-3 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+          <div className="p-4 rounded-4 border shadow-sm" style={cardStyle}>
+            <h5 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ fontSize: "1.05rem", color: titleColor }}>
               <FiShield className="text-success" /> Security Controls & Platform Configuration
             </h5>
 
@@ -294,7 +298,7 @@ function AdminSettings({ currentUser, onLogout }) {
                   checked={sysSettings.maintenanceMode}
                   onChange={(e) => setSysSettings({ ...sysSettings, maintenanceMode: e.target.checked })}
                 />
-                <label className="form-check-label text-dark small ms-2 fw-medium" htmlFor="maintMode">
+                <label className="form-check-label small ms-2 fw-medium" htmlFor="maintMode" style={{ color: titleColor }}>
                   Enable Maintenance Mode (Restricts non-admin access)
                 </label>
               </div>
@@ -307,30 +311,30 @@ function AdminSettings({ currentUser, onLogout }) {
                   checked={sysSettings.requireEmailVerification}
                   onChange={(e) => setSysSettings({ ...sysSettings, requireEmailVerification: e.target.checked })}
                 />
-                <label className="form-check-label text-dark small ms-2 fw-medium" htmlFor="emailVerif">
+                <label className="form-check-label small ms-2 fw-medium" htmlFor="emailVerif" style={{ color: titleColor }}>
                   Require Email Verification for New User Registrations
                 </label>
               </div>
 
               <div className="row g-3 mb-4">
                 <div className="col-6">
-                  <label className="form-label text-secondary small fw-semibold">Daily Survey Limit (Per User)</label>
+                  <label className="form-label small fw-semibold" style={{ color: subtextColor }}>Daily Survey Limit (Per User)</label>
                   <input 
                     type="number" 
-                    className="form-control bg-white text-dark border-secondary border-opacity-25"
+                    className="form-control"
                     value={sysSettings.surveyCheckInDailyLimit}
                     onChange={(e) => setSysSettings({ ...sysSettings, surveyCheckInDailyLimit: Number(e.target.value) })}
-                    style={{ fontSize: "0.88rem" }}
+                    style={{ fontSize: "0.88rem", background: inputBg, borderColor: inputBorder, color: inputText }}
                   />
                 </div>
                 <div className="col-6">
-                  <label className="form-label text-secondary small fw-semibold">JWT Session Expiry (Hours)</label>
+                  <label className="form-label small fw-semibold" style={{ color: subtextColor }}>JWT Session Expiry (Hours)</label>
                   <input 
                     type="number" 
-                    className="form-control bg-white text-dark border-secondary border-opacity-25"
+                    className="form-control"
                     value={sysSettings.jwtSessionExpiryHours}
                     onChange={(e) => setSysSettings({ ...sysSettings, jwtSessionExpiryHours: Number(e.target.value) })}
-                    style={{ fontSize: "0.88rem" }}
+                    style={{ fontSize: "0.88rem", background: inputBg, borderColor: inputBorder, color: inputText }}
                   />
                 </div>
               </div>
@@ -344,12 +348,18 @@ function AdminSettings({ currentUser, onLogout }) {
 
         {/* 4. Logout Card */}
         <div className="col-12 col-lg-4">
-          <div className="p-4 rounded-4 bg-white border border-danger border-opacity-25 shadow-sm h-100 d-flex flex-column justify-content-between">
+          <div 
+            className="p-4 rounded-4 border shadow-sm h-100 d-flex flex-column justify-content-between"
+            style={{
+              background: isLight ? "#FFF1F2" : "rgba(239, 68, 68, 0.08)",
+              borderColor: isLight ? "#FECDD3" : "rgba(239, 68, 68, 0.25)"
+            }}
+          >
             <div>
               <h5 className="fw-bold mb-2 text-danger d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
                 <FiLogOut /> Admin Session
               </h5>
-              <p className="text-secondary small mb-3" style={{ fontSize: "0.85rem" }}>
+              <p className="small mb-3" style={{ fontSize: "0.85rem", color: subtextColor }}>
                 Log out of the NeuroSync Admin Panel securely. You will need to log back in with admin credentials.
               </p>
             </div>

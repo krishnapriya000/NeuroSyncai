@@ -1,10 +1,22 @@
-import React, { useState } from "react";
-import { FiSearch, FiSun, FiHeart, FiTrash2, FiX, FiActivity, FiPieChart, FiBarChart2, FiCheckCircle } from "react-icons/fi";
+import { useState } from "react";
+import { FiSearch, FiSun, FiHeart, FiTrash2, FiPieChart, FiBarChart2 } from "react-icons/fi";
 
-function AdminManageSeniors({ users, onDeleteUser }) {
+function AdminManageSeniors({ users, onDeleteUser, theme = "light" }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSenior, setSelectedSenior] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  const isLight = theme === "light";
+
+  const cardStyle = {
+    background: isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.75)",
+    border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)",
+    boxShadow: isLight ? "0 2px 12px rgba(0, 0, 0, 0.03)" : "0 10px 30px -15px rgba(0, 0, 0, 0.5)",
+    borderRadius: "16px"
+  };
+
+  const titleColor = isLight ? "#111827" : "#FFFFFF";
+  const subtextColor = isLight ? "#64748B" : "#94A3B8";
 
   // Filter Senior Citizen role users
   const seniors = users.filter((u) => u.role === "Senior Citizen");
@@ -37,71 +49,23 @@ function AdminManageSeniors({ users, onDeleteUser }) {
 
   return (
     <div className="manage-seniors-section" style={{ maxWidth: "1500px", margin: "0 auto" }}>
-      
-      {/* CONCEPT HERO OVERVIEW HEADER CARD */}
-      <div 
-        className="p-4 rounded-4 mb-4 bg-white border shadow-sm transition-all"
-        style={{ borderColor: "#E2E8F0" }}
-      >
-        <div className="row align-items-center g-3">
-          <div className="col-12 col-lg-7">
-            <div className="d-flex align-items-center gap-3">
-              <div 
-                className="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0 shadow-sm"
-                style={{ width: "52px", height: "52px", background: "linear-gradient(135deg, #F59E0B, #D97706)", fontSize: "1.3rem" }}
-              >
-                👴
-              </div>
-              <div>
-                <div className="d-flex align-items-center gap-2 mb-1">
-                  <h4 className="fw-bold mb-0 text-dark" style={{ letterSpacing: "-0.01em" }}>
-                    Senior Citizens Care Hub
-                  </h4>
-                  <span className="px-2.5 py-0.5 rounded-pill extra-small fw-bold" style={{ background: "rgba(245, 158, 11, 0.12)", color: "#D97706" }}>
-                    {filteredSeniors.length} Senior Accounts
-                  </span>
-                </div>
-                <p className="text-secondary small mb-0">
-                  Monitor senior citizen health check-ins, cognitive exercise completion, and caretaker status.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-12 col-lg-5 d-flex justify-content-lg-end">
-            <div className="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border" style={{ maxWidth: "320px", borderColor: "#CBD5E1" }}>
-              <span className="input-group-text bg-white border-0 ps-3 text-secondary">
-                <FiSearch size={15} />
-              </span>
-              <input 
-                type="text"
-                className="form-control border-0 bg-white pe-3"
-                placeholder="Search senior citizen or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ fontSize: "0.85rem" }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* VISUAL CHARTS ROW: DONUT CHART + BAR CHART */}
       <div className="row g-4 mb-4">
         {/* 1. HEALTH & MOBILITY PIE/DONUT CHART */}
         <div className="col-12 col-lg-5">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
-              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "0.95rem" }}>
                 <FiPieChart style={{ color: "#F59E0B" }} /> Cognitive & Health Status
               </h6>
-              <span className="extra-small text-secondary fw-semibold">Distribution</span>
+              <span className="extra-small fw-semibold" style={{ color: subtextColor }}>Distribution</span>
             </div>
 
             <div className="d-flex flex-column align-items-center justify-content-center py-2">
               <div className="position-relative d-flex align-items-center justify-content-center mb-3">
                 <svg width="150" height="150" viewBox="0 0 42 42" className="donut-svg">
-                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F1F5F9" strokeWidth="4.5" />
+                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke={isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)"} strokeWidth="4.5" />
                   {/* Segment 1: Active 62% */}
                   <circle
                     cx="21"
@@ -137,20 +101,20 @@ function AdminManageSeniors({ users, onDeleteUser }) {
                   />
                 </svg>
                 <div className="position-absolute text-center">
-                  <span className="fw-bold d-block text-dark lh-1" style={{ fontSize: "1.25rem" }}>62%</span>
-                  <span className="extra-small text-secondary" style={{ fontSize: "0.68rem" }}>Active</span>
+                  <span className="fw-bold d-block lh-1" style={{ color: titleColor, fontSize: "1.25rem" }}>62%</span>
+                  <span className="extra-small" style={{ color: subtextColor, fontSize: "0.68rem" }}>Active</span>
                 </div>
               </div>
 
               {/* Legend List */}
               <div className="w-100 d-flex flex-column gap-2 mt-1">
                 {healthDistribution.map((item, idx) => (
-                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: "#F8FAFC" }}>
+                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)" }}>
                     <div className="d-flex align-items-center gap-2">
                       <span className="rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: item.color }} />
-                      <span className="small fw-semibold text-dark" style={{ fontSize: "0.82rem" }}>{item.label}</span>
+                      <span className="small fw-semibold" style={{ color: titleColor, fontSize: "0.82rem" }}>{item.label}</span>
                     </div>
-                    <span className="extra-small fw-bold text-dark">{item.percentage}% ({item.count})</span>
+                    <span className="extra-small fw-bold" style={{ color: titleColor }}>{item.percentage}% ({item.count})</span>
                   </div>
                 ))}
               </div>
@@ -160,9 +124,9 @@ function AdminManageSeniors({ users, onDeleteUser }) {
 
         {/* 2. WEEKLY SENIOR ACTIVITY ENGAGEMENT BAR CHART */}
         <div className="col-12 col-lg-7">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
-              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "0.95rem" }}>
                 <FiBarChart2 style={{ color: "#7C5CFC" }} /> 7-Day Cognitive & Wellness Activity
               </h6>
               <div className="d-flex align-items-center gap-3 extra-small fw-semibold">
@@ -207,7 +171,7 @@ function AdminManageSeniors({ users, onDeleteUser }) {
                       title={`Gentle Walk: ${item.walking}%`}
                     />
                   </div>
-                  <span className="extra-small fw-semibold text-secondary mt-2" style={{ fontSize: "0.75rem" }}>{item.day}</span>
+                  <span className="extra-small fw-semibold mt-2" style={{ color: subtextColor, fontSize: "0.75rem" }}>{item.day}</span>
                 </div>
               ))}
             </div>
@@ -216,20 +180,36 @@ function AdminManageSeniors({ users, onDeleteUser }) {
       </div>
 
       {/* SENIOR LIST TABLE CARD */}
-      <div className="p-4 rounded-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-        <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3" style={{ borderColor: "#E2E8F0" }}>
-          <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+      <div className="p-4 rounded-4" style={cardStyle}>
+        <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3 border-bottom pb-3" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
+          <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1.05rem" }}>
             <FiSun style={{ color: "#F59E0B" }} /> Senior Directory
           </h6>
-          <span className="extra-small text-secondary fw-semibold">
-            Showing {filteredSeniors.length} Seniors
-          </span>
+
+          <div className="d-flex align-items-center gap-3">
+            <span className="extra-small fw-semibold d-none d-md-inline" style={{ color: subtextColor }}>
+              Showing {filteredSeniors.length} Seniors
+            </span>
+            <div className="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border" style={{ maxWidth: "260px", borderColor: isLight ? "#CBD5E1" : "rgba(255, 255, 255, 0.15)" }}>
+              <span className="input-group-text border-0 ps-3" style={{ background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: subtextColor }}>
+                <FiSearch size={14} />
+              </span>
+              <input 
+                type="text"
+                className="form-control border-0 pe-3"
+                placeholder="Search senior citizen or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ fontSize: "0.83rem", background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: titleColor }}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0" style={{ background: "transparent" }}>
             <thead>
-              <tr className="extra-small text-uppercase tracking-wider border-bottom text-secondary" style={{ borderColor: "#E2E8F0" }}>
+              <tr className="extra-small text-uppercase tracking-wider border-bottom" style={{ color: subtextColor, borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
                 <th className="fw-bold py-2.5">SENIOR NAME</th>
                 <th className="fw-bold py-2.5">EMAIL</th>
                 <th className="fw-bold py-2.5">PHONE</th>
@@ -241,7 +221,7 @@ function AdminManageSeniors({ users, onDeleteUser }) {
               {filteredSeniors.length > 0 ? (
                 filteredSeniors.map((s) => {
                   return (
-                    <tr key={s._id} className="border-bottom" style={{ borderColor: "#F1F5F9" }}>
+                    <tr key={s._id} className="border-bottom" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.05)" }}>
                       <td className="py-3">
                         <div className="d-flex align-items-center gap-3">
                           <div 
@@ -251,13 +231,13 @@ function AdminManageSeniors({ users, onDeleteUser }) {
                             {s.fullName?.charAt(0)?.toUpperCase() || "S"}
                           </div>
                           <div>
-                            <span className="fw-semibold text-dark d-block" style={{ fontSize: "0.88rem" }}>{s.fullName}</span>
-                            <span className="text-secondary extra-small d-block" style={{ fontSize: "0.75rem" }}>Senior Citizen</span>
+                            <span className="fw-semibold d-block" style={{ color: titleColor, fontSize: "0.88rem" }}>{s.fullName}</span>
+                            <span className="extra-small d-block" style={{ color: subtextColor, fontSize: "0.75rem" }}>Senior Citizen</span>
                           </div>
                         </div>
                       </td>
-                      <td className="text-secondary small py-3" style={{ fontSize: "0.84rem" }}>{s.email}</td>
-                      <td className="text-secondary small py-3" style={{ fontSize: "0.84rem" }}>{s.phone || "N/A"}</td>
+                      <td className="small py-3" style={{ color: subtextColor, fontSize: "0.84rem" }}>{s.email}</td>
+                      <td className="small py-3" style={{ color: subtextColor, fontSize: "0.84rem" }}>{s.phone || "N/A"}</td>
                       <td className="py-3">
                         <span 
                           className="px-2.5 py-1 rounded-pill extra-small fw-bold d-inline-flex align-items-center gap-1"
@@ -294,7 +274,7 @@ function AdminManageSeniors({ users, onDeleteUser }) {
                 })
               ) : (
                 <tr>
-                  <td colSpan="5" className="text-center py-4 text-secondary small">
+                  <td colSpan="5" className="text-center py-4 extra-small" style={{ color: subtextColor }}>
                     No senior citizen accounts found matching your search.
                   </td>
                 </tr>
@@ -306,15 +286,15 @@ function AdminManageSeniors({ users, onDeleteUser }) {
 
       {/* MODAL */}
       {showReportModal && selectedSenior && (
-        <div className="modal fade show d-block" tabIndex="-1" style={{ background: "rgba(15, 23, 42, 0.65)", backdropFilter: "blur(6px)" }}>
+        <div className="modal fade show d-block" tabIndex="-1" style={{ background: "rgba(15, 23, 42, 0.75)", backdropFilter: "blur(6px)" }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content bg-white text-dark rounded-4 border-0 shadow-lg">
+            <div className="modal-content rounded-4 border-0 shadow-lg" style={{ background: isLight ? "#FFFFFF" : "#1E293B", color: titleColor }}>
               
-              <div className="modal-header border-bottom p-4" style={{ borderColor: "#E2E8F0" }}>
-                <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.1rem" }}>
+              <div className="modal-header border-bottom p-4" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
+                <h5 className="modal-title fw-bold d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1.1rem" }}>
                   👴 Senior Citizen Wellness Report: {selectedSenior.fullName}
                 </h5>
-                <button type="button" className="btn-close" onClick={() => setShowReportModal(false)}></button>
+                <button type="button" className={`btn-close ${!isLight ? "btn-close-white" : ""}`} onClick={() => setShowReportModal(false)}></button>
               </div>
 
               <div className="modal-body p-4 text-center">
@@ -322,12 +302,12 @@ function AdminManageSeniors({ users, onDeleteUser }) {
                 <span className="px-3 py-1 rounded-pill extra-small fw-bold text-success bg-success bg-opacity-15 mb-3 d-inline-block">
                   Excellent Health Score
                 </span>
-                <p className="text-secondary small mb-0">
+                <p className="small mb-0" style={{ color: subtextColor }}>
                   Daily cognitive activities completed consistently. Sleep cycle and hydration habits are well maintained.
                 </p>
               </div>
 
-              <div className="modal-footer border-top p-3" style={{ borderColor: "#E2E8F0" }}>
+              <div className="modal-footer border-top p-3" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
                 <button type="button" className="btn btn-secondary rounded-pill px-4 btn-sm" onClick={() => setShowReportModal(false)}>Close</button>
               </div>
 

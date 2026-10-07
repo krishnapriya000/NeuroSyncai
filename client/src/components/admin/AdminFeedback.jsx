@@ -1,9 +1,21 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FiMessageSquare, FiSearch, FiCheckCircle, FiTrash2, FiClock, FiStar, FiPieChart, FiBarChart2 } from "react-icons/fi";
 
-function AdminFeedback() {
+function AdminFeedback({ theme = "light" }) {
   const [searchTerm, setSearchTerm] = useState("");
-  
+
+  const isLight = theme === "light";
+
+  const cardStyle = {
+    background: isLight ? "#FFFFFF" : "rgba(15, 23, 42, 0.75)",
+    border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.08)",
+    boxShadow: isLight ? "0 2px 12px rgba(0, 0, 0, 0.03)" : "0 10px 30px -15px rgba(0, 0, 0, 0.5)",
+    borderRadius: "16px"
+  };
+
+  const titleColor = isLight ? "#111827" : "#FFFFFF";
+  const subtextColor = isLight ? "#64748B" : "#94A3B8";
+
   // Sample production-grade user feedback data
   const [feedbackList, setFeedbackList] = useState([
     {
@@ -93,51 +105,23 @@ function AdminFeedback() {
 
   return (
     <div className="admin-feedback-section" style={{ maxWidth: "1500px", margin: "0 auto" }}>
-      {/* Header & Search */}
-      <div className="p-4 rounded-4 mb-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-        <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
-          <div>
-            <h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-              <FiMessageSquare className="text-primary" /> User Feedback & Satisfaction
-            </h4>
-            <p className="text-secondary small mb-0">
-              Review user ratings, category feedback, mark items as resolved, and track user satisfaction
-            </p>
-          </div>
-
-          {/* Search Bar */}
-          <div className="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border" style={{ maxWidth: "280px", borderColor: "#CBD5E1" }}>
-            <span className="input-group-text bg-white border-0 ps-3 text-secondary">
-              <FiSearch size={15} />
-            </span>
-            <input 
-              type="text"
-              className="form-control border-0 bg-white pe-3"
-              placeholder="Search feedback..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ fontSize: "0.85rem" }}
-            />
-          </div>
-        </div>
-      </div>
 
       {/* VISUAL CHARTS ROW: RATING PIE/DONUT CHART + CATEGORY BAR CHART */}
       <div className="row g-4 mb-4">
         {/* 1. RATING PIE/DONUT CHART */}
         <div className="col-12 col-lg-5">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
-              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "0.95rem" }}>
                 <FiPieChart style={{ color: "#F59E0B" }} /> Satisfaction Rating Breakdown
               </h6>
-              <span className="extra-small text-secondary fw-semibold">Overall 4.8 / 5.0</span>
+              <span className="extra-small fw-semibold" style={{ color: subtextColor }}>Overall 4.8 / 5.0</span>
             </div>
 
             <div className="d-flex flex-column align-items-center justify-content-center py-2">
               <div className="position-relative d-flex align-items-center justify-content-center mb-3">
                 <svg width="150" height="150" viewBox="0 0 42 42" className="donut-svg">
-                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F1F5F9" strokeWidth="4.5" />
+                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke={isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)"} strokeWidth="4.5" />
                   {/* Segment 1: 5 Stars 68% */}
                   <circle
                     cx="21"
@@ -173,20 +157,20 @@ function AdminFeedback() {
                   />
                 </svg>
                 <div className="position-absolute text-center">
-                  <span className="fw-bold d-block text-dark lh-1" style={{ fontSize: "1.25rem" }}>4.8 ★</span>
-                  <span className="extra-small text-secondary" style={{ fontSize: "0.68rem" }}>Avg Score</span>
+                  <span className="fw-bold d-block lh-1" style={{ color: titleColor, fontSize: "1.25rem" }}>4.8 ★</span>
+                  <span className="extra-small" style={{ color: subtextColor, fontSize: "0.68rem" }}>Avg Score</span>
                 </div>
               </div>
 
               {/* Legend List */}
               <div className="w-100 d-flex flex-column gap-2">
                 {ratingDistribution.map((item, idx) => (
-                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: "#F8FAFC" }}>
+                  <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded-3" style={{ background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)" }}>
                     <div className="d-flex align-items-center gap-2">
                       <span className="rounded-circle" style={{ width: "10px", height: "10px", backgroundColor: item.color }} />
-                      <span className="small fw-semibold text-dark" style={{ fontSize: "0.82rem" }}>{item.label}</span>
+                      <span className="small fw-semibold" style={{ color: titleColor, fontSize: "0.82rem" }}>{item.label}</span>
                     </div>
-                    <span className="extra-small fw-bold text-dark">{item.pct}%</span>
+                    <span className="extra-small fw-bold" style={{ color: titleColor }}>{item.pct}%</span>
                   </div>
                 ))}
               </div>
@@ -196,22 +180,22 @@ function AdminFeedback() {
 
         {/* 2. CATEGORY ACTIVITY BAR CHART */}
         <div className="col-12 col-lg-7">
-          <div className="p-4 rounded-4 bg-white border shadow-sm h-100" style={{ borderColor: "#E2E8F0" }}>
-            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: "#F1F5F9" }}>
-              <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "0.95rem" }}>
+          <div className="p-4 rounded-4 h-100" style={cardStyle}>
+            <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style={{ borderColor: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
+              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "0.95rem" }}>
                 <FiBarChart2 style={{ color: "#7C5CFC" }} /> Feedback Volume by Category
               </h6>
-              <span className="extra-small text-secondary fw-semibold">Total Submissions</span>
+              <span className="extra-small fw-semibold" style={{ color: subtextColor }}>Total Submissions</span>
             </div>
 
             <div className="d-flex flex-column gap-3 py-2">
               {categoryActivity.map((item, idx) => (
                 <div key={idx}>
                   <div className="d-flex justify-content-between small mb-1">
-                    <span className="fw-semibold text-dark" style={{ fontSize: "0.85rem" }}>{item.category}</span>
-                    <span className="extra-small fw-bold text-secondary">{item.count} Submissions ({item.pct}%)</span>
+                    <span className="fw-semibold" style={{ color: titleColor, fontSize: "0.85rem" }}>{item.category}</span>
+                    <span className="extra-small fw-bold" style={{ color: subtextColor }}>{item.count} Submissions ({item.pct}%)</span>
                   </div>
-                  <div className="progress" style={{ height: "10px", background: "#F1F5F9" }}>
+                  <div className="progress" style={{ height: "10px", background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)" }}>
                     <div 
                       className="progress-bar rounded-pill" 
                       style={{ 
@@ -229,14 +213,30 @@ function AdminFeedback() {
       </div>
 
       {/* Feedback Items Grid Card */}
-      <div className="p-4 rounded-4 bg-white border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-        <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3" style={{ borderColor: "#E2E8F0" }}>
-          <h6 className="fw-bold mb-0 text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.05rem" }}>
+      <div className="p-4 rounded-4" style={cardStyle}>
+        <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3 border-bottom pb-3" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
+          <h6 className="fw-bold mb-0 d-flex align-items-center gap-2" style={{ color: titleColor, fontSize: "1.05rem" }}>
             <FiMessageSquare style={{ color: "#7C5CFC" }} /> Customer Feedback Activity Log
           </h6>
-          <span className="extra-small text-secondary fw-semibold">
-            Showing {filteredFeedbacks.length} Entries
-          </span>
+
+          <div className="d-flex align-items-center gap-3">
+            <span className="extra-small fw-semibold d-none d-md-inline" style={{ color: subtextColor }}>
+              Showing {filteredFeedbacks.length} Entries
+            </span>
+            <div className="input-group input-group-sm shadow-sm rounded-pill overflow-hidden border" style={{ maxWidth: "260px", borderColor: isLight ? "#CBD5E1" : "rgba(255, 255, 255, 0.15)" }}>
+              <span className="input-group-text border-0 ps-3" style={{ background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: subtextColor }}>
+                <FiSearch size={14} />
+              </span>
+              <input 
+                type="text"
+                className="form-control border-0 pe-3"
+                placeholder="Search feedback..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ fontSize: "0.83rem", background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: titleColor }}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="row g-3">
@@ -246,8 +246,8 @@ function AdminFeedback() {
                 <div 
                   className="p-4 rounded-4 h-100 d-flex flex-column justify-content-between border transition-all"
                   style={{
-                    background: "#F8FAFC",
-                    borderColor: "#E2E8F0",
+                    background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.04)",
+                    borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)",
                   }}
                 >
                   <div>
@@ -261,8 +261,8 @@ function AdminFeedback() {
                           {fb.user.charAt(0)}
                         </div>
                         <div>
-                          <h6 className="fw-bold text-dark mb-0" style={{ fontSize: "0.92rem" }}>{fb.user}</h6>
-                          <span className="text-secondary extra-small" style={{ fontSize: "0.75rem" }}>{fb.email} • <strong style={{ color: "#7C5CFC" }}>{fb.role}</strong></span>
+                          <h6 className="fw-bold mb-0" style={{ color: titleColor, fontSize: "0.92rem" }}>{fb.user}</h6>
+                          <span className="extra-small" style={{ color: subtextColor, fontSize: "0.75rem" }}>{fb.email} • <strong style={{ color: "#7C5CFC" }}>{fb.role}</strong></span>
                         </div>
                       </div>
 
@@ -284,20 +284,20 @@ function AdminFeedback() {
                           <FiStar key={i} size={14} fill="#F59E0B" color="#F59E0B" />
                         ))}
                       </div>
-                      <span className="px-2 py-0.5 rounded extra-small fw-bold bg-white text-secondary border" style={{ fontSize: "0.73rem" }}>
+                      <span className="px-2 py-0.5 rounded extra-small fw-bold border" style={{ background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)", color: subtextColor, borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.12)", fontSize: "0.73rem" }}>
                         {fb.category}
                       </span>
                     </div>
 
                     {/* Comment Text */}
-                    <p className="text-dark small mb-3" style={{ lineHeight: "1.5", fontSize: "0.86rem" }}>
+                    <p className="small mb-3" style={{ color: titleColor, lineHeight: "1.5", fontSize: "0.86rem" }}>
                       "{fb.comment}"
                     </p>
                   </div>
 
                   {/* Footer Controls */}
-                  <div className="d-flex align-items-center justify-content-between border-top pt-3 mt-2" style={{ borderColor: "#E2E8F0" }}>
-                    <span className="text-secondary extra-small d-flex align-items-center gap-1" style={{ fontSize: "0.76rem" }}>
+                  <div className="d-flex align-items-center justify-content-between border-top pt-3 mt-2" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
+                    <span className="extra-small d-flex align-items-center gap-1" style={{ color: subtextColor, fontSize: "0.76rem" }}>
                       <FiClock size={12} /> Received: {fb.date}
                     </span>
 
@@ -306,8 +306,8 @@ function AdminFeedback() {
                         onClick={() => toggleResolve(fb.id)}
                         className={`btn btn-sm px-3 rounded-pill extra-small fw-semibold d-inline-flex align-items-center gap-1 border-0`}
                         style={{
-                          background: fb.status === "Resolved" ? "#E2E8F0" : "rgba(16, 185, 129, 0.15)",
-                          color: fb.status === "Resolved" ? "#475569" : "#047857",
+                          background: fb.status === "Resolved" ? (isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)") : "rgba(16, 185, 129, 0.15)",
+                          color: fb.status === "Resolved" ? (isLight ? "#475569" : "#94A3B8") : "#047857",
                           fontSize: "0.75rem"
                         }}
                       >
@@ -329,7 +329,7 @@ function AdminFeedback() {
               </div>
             ))
           ) : (
-            <div className="col-12 text-center text-secondary py-5 small">
+            <div className="col-12 text-center py-5 extra-small" style={{ color: subtextColor }}>
               No feedback entries found matching your search term.
             </div>
           )}

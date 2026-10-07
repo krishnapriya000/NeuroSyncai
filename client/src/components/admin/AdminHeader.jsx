@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { 
   FiMenu, 
   FiRefreshCw, 
-  FiHome, 
-  FiLogOut, 
   FiSearch, 
   FiSun, 
   FiMoon, 
   FiX, 
-  FiBell 
+  FiBell,
+  FiChevronDown,
+  FiUser,
+  FiLogOut
 } from "react-icons/fi";
 
 const ADMIN_NAVIGATION_ITEMS = [
@@ -26,11 +26,10 @@ const ADMIN_NAVIGATION_ITEMS = [
 
 function AdminHeader({ 
   currentUser, 
-  onLogout, 
+  onLogout,
   toggleSidebar, 
   onRefreshData, 
   activeTabTitle, 
-  activeTab, 
   onSelectTab, 
   theme = "light", 
   toggleTheme,
@@ -39,6 +38,7 @@ function AdminHeader({
   const searchInputRef = useRef(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Keyboard shortcut listener (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -51,6 +51,7 @@ function AdminHeader({
       if (e.key === "Escape") {
         setIsSearchOpen(false);
         searchInputRef.current?.blur();
+        setShowProfileMenu(false);
       }
     };
 
@@ -99,6 +100,9 @@ function AdminHeader({
   };
 
   const isLight = theme === "light";
+  const displayName = currentUser?.fullName || "System Admin";
+  const displayEmail = currentUser?.email || "admin@neurosync.ai";
+  const userInitial = displayName.trim().charAt(0).toUpperCase() || "A";
 
   return (
     <header 
@@ -111,14 +115,15 @@ function AdminHeader({
         height: "76px",
         display: "flex",
         alignItems: "center",
-        background: isLight ? "rgba(245, 247, 251, 0.96)" : "rgba(11, 15, 25, 0.96)",
+        background: isLight ? "rgba(255, 255, 255, 0.95)" : "#15132B",
         borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
         zIndex: 1030,
+        boxShadow: isLight ? "0 2px 10px rgba(0,0,0,0.03)" : "0 4px 20px rgba(0,0,0,0.25)"
       }}
     >
-      <div className="d-flex align-items-center justify-content-between">
+      <div className="w-100 d-flex align-items-center justify-content-between">
         
         {/* Left: Section Title & Subtitle */}
         <div className="d-flex align-items-center gap-3">
@@ -126,7 +131,7 @@ function AdminHeader({
             onClick={toggleSidebar}
             className="btn btn-sm p-2 rounded-3 border-0 d-lg-none"
             style={{
-              background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)",
+              background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)",
               color: isLight ? "#111827" : "#FFFFFF",
             }}
             title="Toggle Sidebar"
@@ -135,21 +140,21 @@ function AdminHeader({
           </button>
 
           <div>
-            <h5 className="fw-bold mb-0 leading-tight fs-5" style={{ color: isLight ? "#111827" : "#FFFFFF" }}>
-              {activeTabTitle || "Dashboard"}
+            <h5 className="fw-bold mb-0 leading-tight fs-5 d-flex align-items-center gap-2" style={{ color: isLight ? "#111827" : "#FFFFFF" }}>
+              {activeTabTitle || "Dashboard Overview"}
             </h5>
-            <span className="extra-small d-none d-sm-inline" style={{ color: isLight ? "#64748B" : "#94A3B8" }}>
+            <span className="extra-small d-none d-sm-inline" style={{ color: isLight ? "#64748B" : "#94A3B8", fontSize: "0.78rem" }}>
               Overview of your NeuroSync platform
             </span>
           </div>
         </div>
 
-        {/* Center/Right: Admin Search Bar */}
+        {/* Center: Admin Command Search Bar */}
         <div className="d-flex align-items-center gap-3">
-          <div className="ns-search-box position-relative d-none d-md-block" style={{ width: "280px" }}>
+          <div className="ns-search-box position-relative d-none d-md-block" style={{ width: "320px" }}>
             <FiSearch 
               className="position-absolute start-0 top-50 translate-middle-y ms-3"
-              style={{ color: isLight ? "#64748B" : "#94A3B8", fontSize: "0.9rem" }} 
+              style={{ color: isLight ? "#64748B" : "#94A3B8", fontSize: "0.95rem" }} 
             />
             <input 
               ref={searchInputRef}
@@ -157,11 +162,12 @@ function AdminHeader({
               className="form-control rounded-pill px-4 ps-5 pe-5 border-0 shadow-sm"
               style={{
                 fontSize: "0.85rem",
-                background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)",
+                height: "40px",
+                background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.06)",
                 color: isLight ? "#111827" : "#FFFFFF",
                 border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)",
               }}
-              placeholder="Search users, stats..." 
+              placeholder="Search admin tools, users, stats... (⌘K)" 
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -187,7 +193,7 @@ function AdminHeader({
                 className="position-absolute end-0 top-50 translate-middle-y me-3 px-1.5 py-0.5 rounded extra-small fw-semibold"
                 style={{
                   fontSize: "0.68rem",
-                  background: isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.12)",
+                  background: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.12)",
                   color: isLight ? "#64748B" : "#94A3B8"
                 }}
               >
@@ -209,11 +215,11 @@ function AdminHeader({
                   style={{
                     width: "360px",
                     maxHeight: "420px",
-                    background: isLight ? "#FFFFFF" : "#0F172A",
+                    background: isLight ? "#FFFFFF" : "#1A173B",
                     border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)",
                     backdropFilter: "blur(20px)",
                     color: isLight ? "#111827" : "#FFFFFF",
-                    boxShadow: "0 12px 36px rgba(0, 0, 0, 0.15)",
+                    boxShadow: "0 12px 36px rgba(0, 0, 0, 0.3)",
                     zIndex: 1050,
                     display: "flex",
                     flexDirection: "column"
@@ -304,7 +310,7 @@ function AdminHeader({
                               </div>
                             </div>
                           </div>
-                          <span className="badge rounded-pill extra-small px-2 py-1 ms-2 flex-shrink-0" style={{ background: "rgba(108, 76, 241, 0.15)", color: "#6C4CF1", fontSize: "0.68rem" }}>
+                          <span className="badge rounded-pill extra-small px-2 py-1 ms-2 flex-shrink-0" style={{ background: "rgba(124, 92, 252, 0.15)", color: "#9D82FF", fontSize: "0.68rem" }}>
                             {item.category}
                           </span>
                         </button>
@@ -327,16 +333,16 @@ function AdminHeader({
             type="button"
             className="btn rounded-circle p-2 d-flex align-items-center justify-content-center border-0 shadow-sm transition-all position-relative"
             style={{
-              width: "38px",
-              height: "38px",
-              background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)",
+              width: "40px",
+              height: "40px",
+              background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.06)",
               color: isLight ? "#111827" : "#FFFFFF",
               border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)"
             }}
             onClick={() => onSelectTab("notifications")}
             title="System Notifications"
           >
-            <FiBell size={17} />
+            <FiBell size={18} />
             <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style={{ width: "8px", height: "8px" }} />
           </button>
 
@@ -346,45 +352,136 @@ function AdminHeader({
               type="button"
               className="btn rounded-circle p-2 d-flex align-items-center justify-content-center border-0 shadow-sm transition-all"
               style={{
-                width: "38px",
-                height: "38px",
-                background: isLight ? "#FFFFFF" : "rgba(255, 255, 255, 0.08)",
+                width: "40px",
+                height: "40px",
+                background: isLight ? "#F8FAFC" : "rgba(255, 255, 255, 0.06)",
                 color: isLight ? "#111827" : "#FFFFFF",
                 border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)"
               }}
               onClick={toggleTheme}
               title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Theme`}
             >
-              {theme === "dark" ? <FiSun size={17} className="text-warning" /> : <FiMoon size={17} style={{ color: "#6C4CF1" }} />}
+              {theme === "dark" ? <FiSun size={18} className="text-warning" /> : <FiMoon size={18} style={{ color: "#7C5CFC" }} />}
             </button>
           )}
 
           {/* Refresh Action */}
           <button
             onClick={onRefreshData}
-            className="btn btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1.5 extra-small fw-medium border-0 shadow-sm"
-            style={{ background: "rgba(108, 76, 241, 0.1)", color: "#6C4CF1" }}
+            className="btn btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1.5 extra-small fw-semibold border-0 shadow-sm"
+            style={{ 
+              background: isLight ? "rgba(124, 92, 252, 0.1)" : "rgba(124, 92, 252, 0.2)", 
+              color: isLight ? "#7C5CFC" : "#C4B5FD",
+              height: "40px"
+            }}
             title="Refresh Metrics Data"
           >
-            <FiRefreshCw size={13} /> <span className="d-none d-lg-inline">Refresh</span>
+            <FiRefreshCw size={14} /> <span className="d-none d-lg-inline">Refresh</span>
           </button>
 
-          {/* Admin Avatar & Name */}
-          <div className="d-flex align-items-center gap-2 ps-2 border-start" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
-            <div 
-              className="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm"
-              style={{ width: "36px", height: "36px", background: "linear-gradient(135deg, #6C4CF1, #4F8CFF)", fontSize: "0.85rem" }}
+          {/* Admin Avatar & Dropdown Menu */}
+          <div className="position-relative ps-2 border-start" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)" }}>
+            <button
+              type="button"
+              className="btn p-1 d-flex align-items-center gap-2 border-0 bg-transparent text-start"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
             >
-              {(currentUser?.fullName || "A").charAt(0).toUpperCase()}
-            </div>
-            <div className="d-none d-xl-block">
-              <span className="fw-semibold d-block leading-none" style={{ fontSize: "0.84rem", color: isLight ? "#111827" : "#FFFFFF" }}>
-                {currentUser?.fullName || "Admin"}
-              </span>
-              <span className="extra-small" style={{ fontSize: "0.7rem", color: isLight ? "#64748B" : "#94A3B8" }}>
-                Administrator
-              </span>
-            </div>
+              <div 
+                className="rounded-circle text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm"
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "linear-gradient(135deg, #7C5CFC 0%, #4F8CFF 100%)",
+                  fontSize: "0.95rem",
+                  boxShadow: "0 4px 12px rgba(124, 92, 252, 0.3)"
+                }}
+              >
+                {userInitial}
+              </div>
+              <div className="d-none d-xl-block">
+                <span className="fw-semibold d-block lh-1" style={{ fontSize: "0.86rem", color: isLight ? "#111827" : "#FFFFFF" }}>
+                  {displayName}
+                </span>
+                <span className="extra-small d-block" style={{ fontSize: "0.72rem", color: isLight ? "#64748B" : "#94A3B8" }}>
+                  Administrator
+                </span>
+              </div>
+              <FiChevronDown style={{ color: isLight ? "#64748B" : "#94A3B8" }} className="d-none d-xl-block" />
+            </button>
+
+            {/* Profile Dropdown Popover */}
+            {showProfileMenu && (
+              <>
+                <div 
+                  className="position-fixed"
+                  style={{ top: 0, left: 0, right: 0, bottom: 0, zIndex: 1040 }}
+                  onClick={() => setShowProfileMenu(false)}
+                />
+
+                <div 
+                  className="position-absolute end-0 mt-2 p-2 rounded-4 shadow-lg"
+                  style={{
+                    width: "230px",
+                    background: isLight ? "#FFFFFF" : "#1A173B",
+                    border: isLight ? "1px solid #E2E8F0" : "1px solid rgba(255, 255, 255, 0.12)",
+                    backdropFilter: "blur(20px)",
+                    color: isLight ? "#111827" : "#FFFFFF",
+                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
+                    zIndex: 1050
+                  }}
+                >
+                  <div className="p-2 border-bottom" style={{ borderColor: isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)" }}>
+                    <div className="fw-bold text-truncate" style={{ color: isLight ? "#111827" : "#FFFFFF", fontSize: "0.9rem" }}>{displayName}</div>
+                    <div className="extra-small text-truncate" style={{ color: isLight ? "#64748B" : "#94A3B8", fontSize: "0.75rem" }}>{displayEmail}</div>
+                    <span 
+                      className="badge mt-1 text-uppercase fw-bold" 
+                      style={{ background: "rgba(124, 92, 252, 0.2)", color: "#C4B5FD", fontSize: "0.62rem" }}
+                    >
+                      System Admin
+                    </span>
+                  </div>
+
+                  <div className="d-flex flex-column gap-1 mt-2">
+                    <button 
+                      className="btn text-start p-2 rounded-3 border-0 d-flex align-items-center gap-2 fw-medium transition-all" 
+                      style={{ fontSize: "0.85rem", color: isLight ? "#334155" : "#CBD5E1" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        onSelectTab("settings");
+                      }}
+                    >
+                      <FiUser size={16} /> Admin Profile & Settings
+                    </button>
+                    <button 
+                      className="btn text-start p-2 rounded-3 border-0 d-flex align-items-center gap-2 fw-medium transition-all" 
+                      style={{ fontSize: "0.85rem", color: isLight ? "#334155" : "#CBD5E1" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = isLight ? "#F1F5F9" : "rgba(255, 255, 255, 0.08)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        onRefreshData();
+                      }}
+                    >
+                      <FiRefreshCw size={16} /> Sync Dashboard Data
+                    </button>
+                    {onLogout && (
+                      <button 
+                        className="btn text-danger text-start p-2 rounded-3 border-0 d-flex align-items-center gap-2 mt-1 fw-semibold transition-all" 
+                        style={{ fontSize: "0.85rem", background: "rgba(239, 68, 68, 0.08)" }} 
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          onLogout();
+                        }}
+                      >
+                        <FiLogOut size={16} /> Log Out
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
         </div>

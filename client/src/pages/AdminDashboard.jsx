@@ -287,6 +287,7 @@ function AdminDashboard() {
               logs={logs}
               loading={loading}
               onNavigateTab={(tab) => setActiveTab(tab)}
+              theme={theme}
             />
           )}
 
@@ -296,6 +297,7 @@ function AdminDashboard() {
               users={users}
               wellnessAnalytics={wellnessAnalytics}
               onDeleteUser={handleDeleteUser}
+              theme={theme}
             />
           )}
 
@@ -304,6 +306,7 @@ function AdminDashboard() {
             <AdminManageParents 
               users={users}
               onDeleteUser={handleDeleteUser}
+              theme={theme}
             />
           )}
 
@@ -312,6 +315,7 @@ function AdminDashboard() {
             <AdminManageProfessionals 
               users={users}
               onDeleteUser={handleDeleteUser}
+              theme={theme}
             />
           )}
 
@@ -320,22 +324,29 @@ function AdminDashboard() {
             <AdminManageSeniors 
               users={users}
               onDeleteUser={handleDeleteUser}
+              theme={theme}
             />
           )}
 
           {/* 6. Wellness Analytics Page */}
           {activeTab === "wellness-analytics" && (
-            <AdminWellnessAnalytics />
+            <AdminWellnessAnalytics 
+              theme={theme}
+            />
           )}
 
           {/* 7. Feedback Page */}
           {activeTab === "feedback" && (
-            <AdminFeedback />
+            <AdminFeedback 
+              theme={theme}
+            />
           )}
 
           {/* 8. Notifications Page */}
           {activeTab === "notifications" && (
-            <AdminNotifications />
+            <AdminNotifications 
+              theme={theme}
+            />
           )}
 
           {/* 9. Settings Page */}
@@ -343,6 +354,7 @@ function AdminDashboard() {
             <AdminSettings 
               currentUser={currentUser}
               onLogout={handleLogout}
+              theme={theme}
             />
           )}
 
